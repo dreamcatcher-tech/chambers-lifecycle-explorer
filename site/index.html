@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="Chambers Atlas — an interactive, playable explorer for the Chambers lifecycle sequence diagrams."
+    />
+    <meta name="theme-color" content="#071019" />
+    <meta name="color-scheme" content="dark" />
+    <title>Chambers Atlas · Lifecycle sequence explorer</title>
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./data.js" defer></script>
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to explorer</a>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Chambers Atlas home">
+        <span class="brand-mark" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <span class="brand-copy">
+          <strong>Chambers Atlas</strong>
+          <small>Lifecycle explorer</small>
+        </span>
+      </a>
+
+      <div class="source-pulse" id="sourcePulse" title="Loaded source snapshot">
+        <span class="pulse-dot" aria-hidden="true"></span>
+        <span id="sourcePulseText">Loading source…</span>
+      </div>
+
+      <div class="top-actions">
+        <button class="quiet-button command-button" id="searchButton" type="button" aria-label="Search scenes and functions">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" /></svg>
+          <span>Search</span><kbd>/</kbd>
+        </button>
+        <button class="icon-button" id="shareButton" type="button" aria-label="Copy a link to this view" title="Copy link">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 12.8 15.7 17m-7.2-5.8L15.7 7M18 20a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm12-5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" /></svg>
+        </button>
+        <button class="icon-button" id="helpButton" type="button" aria-label="How to use Chambers Atlas" title="Help">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.4 9a2.8 2.8 0 1 1 4.3 2.4c-1 .6-1.7 1.1-1.7 2.4M12 18h.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z" /></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="mobile-scene-bar">
+      <label for="mobileSceneSelect">Journey</label>
+      <select id="mobileSceneSelect" aria-label="Choose a lifecycle sequence"></select>
+      <span id="mobileSceneCount"></span>
+    </div>
+
+    <div class="workspace">
+      <aside class="journey-panel" aria-label="Lifecycle sequences">
+        <div class="journey-heading">
+          <span class="eyebrow">Explore the journey</span>
+          <p>Select a sequence, then play its calls.</p>
+        </div>
+        <nav class="journey-list" id="journeyList" aria-label="Sequence list"></nav>
+        <div class="source-card">
+          <div class="source-card-top">
+            <span class="source-icon" aria-hidden="true">⌁</span>
+            <div>
+              <strong>Source snapshot</strong>
+              <span id="sourceCommit">—</span>
+            </div>
+          </div>
+          <dl>
+            <div><dt>Sequences</dt><dd id="sourceSequenceCount">—</dd></div>
+            <div><dt>Calls</dt><dd id="sourceCallCount">—</dd></div>
+            <div><dt>Functions</dt><dd id="sourceFunctionCount">—</dd></div>
+          </dl>
+          <span class="source-mode">Committed copy · regenerated on publish</span>
+        </div>
+      </aside>
+
+      <main id="main-content" tabindex="-1">
+        <section class="scene-heading" aria-labelledby="sceneTitle">
+          <div class="scene-copy">
+            <div class="scene-kicker-row">
+              <span class="scene-kicker" id="sceneKicker">Sequence</span>
+              <span class="status-pill" id="sceneStatus">Current</span>
+            </div>
+            <h1 id="sceneTitle">Loading lifecycle…</h1>
+            <p id="sceneSummary"></p>
+            <p class="scene-question"><span aria-hidden="true">↳</span><span id="sceneQuestion"></span></p>
+          </div>
+          <div class="scene-metrics" id="sceneMetrics" aria-label="Sequence metrics"></div>
+        </section>
+
+        <nav class="view-switcher" aria-label="Explorer view">
+          <button class="view-tab is-active" type="button" data-view="trace" aria-pressed="true">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4v16M12 4v16M19 4v16M5 8h7l7 4M19 16h-7l-7-4" /></svg>
+            <span>Trace</span>
+            <small>Play the calls</small>
+          </button>
+          <button class="view-tab" type="button" data-view="map" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="2.5" /><circle cx="19" cy="6" r="2.5" /><circle cx="19" cy="18" r="2.5" /><path d="m7.4 11 9.2-4m-9.2 6 9.2 4" /></svg>
+            <span>Map</span>
+            <small>See relationships</small>
+          </button>
+          <button class="view-tab" type="button" data-view="functions" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4 3 12l5 8m8-16 5 8-5 8M14 3 10 21" /></svg>
+            <span>Functions</span>
+            <small>Browse the surface</small>
+          </button>
+        </nav>
+
+        <section class="explorer-view is-active" id="traceView" data-view-panel="trace" aria-label="Playable sequence trace">
+          <div class="tool-row">
+            <div class="filter-group" aria-label="Call type filter">
+              <span class="tool-label">Show</span>
+              <div class="segmented compact" id="callFilter">
+                <button type="button" data-filter="all" class="is-active" aria-pressed="true">All calls</button>
+                <button type="button" data-filter="i3" aria-pressed="false"><i class="legend-dot i3"></i>I3</button>
+                <button type="button" data-filter="host" aria-pressed="false"><i class="legend-dot host"></i>Host code</button>
+              </div>
+            </div>
+            <label class="select-control">
+              <span>Focus actor</span>
+              <select id="actorFilter"><option value="">Every actor</option></select>
+            </label>
+            <div class="zoom-control" aria-label="Diagram zoom">
+              <button class="icon-button small" type="button" id="zoomOut" aria-label="Zoom out">−</button>
+              <output id="zoomValue" for="zoomOut zoomIn">100%</output>
+              <button class="icon-button small" type="button" id="zoomIn" aria-label="Zoom in">+</button>
+            </div>
+          </div>
+
+          <div class="trace-grid">
+            <article class="stage-card">
+              <div class="call-now" id="callNow" aria-live="polite">
+                <div class="call-now-index"><span>Step</span><strong id="currentStepNumber">—</strong></div>
+                <div class="call-now-route">
+                  <span id="currentRoute">Choose a call</span>
+                  <code id="currentFunction">—</code>
+                </div>
+                <div class="call-now-branch" id="currentBranch"></div>
+              </div>
+
+              <div class="sequence-viewport" id="sequenceViewport" tabindex="0" aria-label="Interactive sequence lanes">
+                <svg id="sequenceSvg" role="img" aria-labelledby="sequenceSvgTitle sequenceSvgDesc"></svg>
+              </div>
+
+              <div class="playback" aria-label="Sequence playback controls">
+                <div class="transport">
+                  <button class="transport-button" type="button" id="previousCall" aria-label="Previous call" title="Previous call (left arrow)">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14m12-13-9 6 9 6V6Z" /></svg>
+                  </button>
+                  <button class="play-button" type="button" id="playPause" aria-label="Play sequence" title="Play or pause (space)">
+                    <svg class="play-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7V5Z" /></svg>
+                    <svg class="pause-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14m8-14v14" /></svg>
+                  </button>
+                  <button class="transport-button" type="button" id="nextCall" aria-label="Next call" title="Next call (right arrow)">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5v14M6 6l9 6-9 6V6Z" /></svg>
+                  </button>
+                </div>
+                <div class="scrubber-wrap">
+                  <input id="stepScrubber" type="range" min="0" max="0" value="0" step="1" aria-label="Current call" />
+                  <div class="scrubber-meta">
+                    <span id="stepProgress">0 / 0</span>
+                    <span id="stepHint">Use ← → or swipe</span>
+                  </div>
+                </div>
+                <button class="speed-button" type="button" id="speedButton" aria-label="Playback speed"><span>Speed</span><strong>1×</strong></button>
+              </div>
+            </article>
+
+            <aside class="inspector-card" id="callInspector" aria-label="Selected function detail">
+              <div class="inspector-empty">Choose a call to inspect it.</div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="explorer-view" id="mapView" data-view-panel="map" aria-label="Actor relationship map" hidden>
+          <div class="map-intro">
+            <div>
+              <span class="eyebrow">Relationship map</span>
+              <h2>Who calls whom?</h2>
+              <p>Line weight is call frequency. Select an actor or connection to isolate its surface.</p>
+            </div>
+            <div class="role-legend" id="roleLegend" aria-label="Actor role legend"></div>
+          </div>
+          <div class="map-grid">
+            <article class="map-card">
+              <div class="map-toolbar">
+                <span id="mapScope">All actors · all calls</span>
+                <button class="quiet-button" type="button" id="clearMapFocus">Clear focus</button>
+              </div>
+              <div class="map-viewport" id="mapViewport" tabindex="0">
+                <svg id="mapSvg" role="img" aria-labelledby="mapSvgTitle mapSvgDesc"></svg>
+              </div>
+            </article>
+            <aside class="map-detail inspector-card" id="mapDetail" aria-label="Relationship detail"></aside>
+          </div>
+        </section>
+
+        <section class="explorer-view" id="functionsView" data-view-panel="functions" aria-label="Function catalog" hidden>
+          <div class="catalog-heading">
+            <div>
+              <span class="eyebrow">Function surface</span>
+              <h2>Every named lifecycle call</h2>
+              <p>I3 functions and the four critical host-boundary code calls, linked to every diagram usage.</p>
+            </div>
+            <label class="catalog-search">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" /></svg>
+              <span class="sr-only">Filter functions</span>
+              <input id="functionSearch" type="search" placeholder="Filter by name, owner, or contract…" autocomplete="off" />
+            </label>
+          </div>
+          <div class="catalog-toolbar">
+            <div class="segmented compact" id="functionFilter" aria-label="Function kind filter">
+              <button type="button" data-function-filter="all" class="is-active" aria-pressed="true">All</button>
+              <button type="button" data-function-filter="i3" aria-pressed="false"><i class="legend-dot i3"></i>I3</button>
+              <button type="button" data-function-filter="host" aria-pressed="false"><i class="legend-dot host"></i>Host code</button>
+              <button type="button" data-function-filter="unused" aria-pressed="false">Not pictured</button>
+            </div>
+            <span id="functionResultCount"></span>
+          </div>
+          <div class="catalog-grid">
+            <div class="function-list" id="functionList" role="list"></div>
+            <aside class="function-detail inspector-card" id="functionDetail" aria-label="Function contract detail"></aside>
+          </div>
+        </section>
+
+        <footer class="site-footer">
+          <span>Chambers Atlas</span>
+          <span id="footerSource">Source loading…</span>
+          <button class="text-button" type="button" id="footerHelp">Keyboard &amp; touch guide</button>
+        </footer>
+      </main>
+    </div>
+
+    <dialog class="modal search-modal" id="searchDialog" aria-labelledby="searchTitle">
+      <div class="modal-head">
+        <div><span class="eyebrow">Jump anywhere</span><h2 id="searchTitle">Search Atlas</h2></div>
+        <button class="icon-button" type="button" data-close-dialog="searchDialog" aria-label="Close search">×</button>
+      </div>
+      <label class="command-search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" /></svg>
+        <input id="globalSearch" type="search" placeholder="Try “selection”, “Filesystem”, or “wake_engine”" autocomplete="off" />
+      </label>
+      <div class="search-results" id="searchResults"></div>
+      <div class="modal-foot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>enter</kbd> open</span><span><kbd>esc</kbd> close</span></div>
+    </dialog>
+
+    <dialog class="modal help-modal" id="helpDialog" aria-labelledby="helpTitle">
+      <div class="modal-head">
+        <div><span class="eyebrow">Orientation</span><h2 id="helpTitle">Read the lifecycle three ways</h2></div>
+        <button class="icon-button" type="button" data-close-dialog="helpDialog" aria-label="Close help">×</button>
+      </div>
+      <div class="help-grid">
+        <article><span class="help-number">01</span><h3>Trace</h3><p>Play calls in order. Bright cyan is I3; amber crosses the trusted host boundary.</p></article>
+        <article><span class="help-number">02</span><h3>Map</h3><p>See actor relationships at once. Click a node or connection to isolate its calls.</p></article>
+        <article><span class="help-number">03</span><h3>Functions</h3><p>Search the full contract table, including functions defined but not pictured.</p></article>
+      </div>
+      <div class="shortcut-table" aria-label="Keyboard shortcuts">
+        <div><kbd>space</kbd><span>Play or pause</span></div>
+        <div><kbd>←</kbd><kbd>→</kbd><span>Step backward or forward</span></div>
+        <div><kbd>/</kbd><span>Search</span></div>
+        <div><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><span>Trace, map, functions</span></div>
+      </div>
+      <p class="help-note">On touch screens, swipe across the sequence canvas to step. The diagram itself scrolls horizontally when many actors are present.</p>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <noscript>This interactive explorer requires JavaScript. The source snapshot remains available in the repository.</noscript>
+  </body>
+</html>
