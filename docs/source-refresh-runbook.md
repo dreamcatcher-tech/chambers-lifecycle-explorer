@@ -1,0 +1,125 @@
+# Fundamentals sequence source refresh runbook
+
+Use this runbook whenever a registered Fundamentals sequence authority changes, or when a new Fundamentals sequence-document family must become a Lifecycle Atlas workspace.
+
+## Authority and publication boundary
+
+- `/opt/data/repos/fundamentals` is the private architecture authority.
+- `/opt/data/repos/chambers-lifecycle-explorer` is a public generated projection.
+- Files under `source/` are exact committed snapshots, not editable authority.
+- `source/manifest.json` and `site/data.js` are generated outputs. Never repair either by hand.
+- Publication is deliberate. Do **not** discover and publish every matching Fundamentals file automatically: registering a document copies its bytes into a public repository and browser payload.
+
+The current registered authorities are:
+
+| Workspace | Fundamentals authority | Public snapshot |
+| --- | --- | --- |
+| Chambers | `docs/chambers-lifecycle-sequences.md` | `source/chambers-lifecycle-sequences.md` |
+| Cardflow | `docs/cardflow-filesystem-lease-sequences.md` | `source/cardflow-filesystem-lease-sequences.md` |
+
+The registration surfaces of record are:
+
+- `scripts/sync_source.py::DOCUMENTS` — private source path and public snapshot name.
+- `scripts/build_data.py::DOCUMENT_CONFIGS` — workspace copy, function-table heading, sequence metadata, ordering, and theme.
+- `source/manifest.json` — generated provenance for the registered set; it is not an authoring registry.
+
+## Refresh an already registered authority
+
+1. Read `fundamentals/AGENTS.md`, this repository's `AGENTS.md`, this runbook, and the changed source document.
+2. Synchronize both repositories before trusting local state. Do not overwrite dirty work.
+
+   ```bash
+   git -C ../fundamentals status --short --branch
+   git -C ../fundamentals fetch --all --prune
+   git -C ../fundamentals pull --ff-only
+   git status --short --branch
+   git fetch --all --prune
+   git pull --ff-only
+   ```
+
+3. Require the Fundamentals checkout to be clean, on a branch, and exactly synchronized with its tracking branch. Commit and push authoritative changes in Fundamentals before projecting them.
+4. Run the one supported refresh command from the Atlas repository:
+
+   ```bash
+   python3 scripts/sync_source.py ../fundamentals
+   ```
+
+   It copies every registered authority, regenerates `source/manifest.json` and `site/data.js`, and runs parser/static validation. If it fails, fix the source/parser/config contract; never hand-edit generated output to make it pass.
+
+5. Inspect the generated diff. For each document, verify:
+   - snapshot bytes equal the authoritative file;
+   - manifest `path`, `sourceCommit`, `sourceTimestamp`, `documentSha256`, and `documentBytes` describe those exact bytes;
+   - the source URL names that document's last-touch commit and private repository path;
+   - every Mermaid call resolves to exactly one row in that document's function table;
+   - participant order, message direction, branches, loops/options, notes, implementation markers, and document-level caveats retain their source meaning;
+   - document navigation, search, function catalogs, actor roles, and provenance remain scoped to the selected authority.
+
+   Totals alone are not semantic proof. In particular, inspect note-only `alt`/`else` branches and nested control fragments; a note must not be attached to an unrelated nearby call merely because its line number is close.
+
+6. Run the complete local gate:
+
+   ```bash
+   make validate
+   node --check site/app.js
+   node qa/browser-smoke.js
+   node qa/layout-audit.js
+   ```
+
+   Browser checks must exercise every registered workspace and sequence. For call selection, assert both that the requested call becomes current **and** that user-controlled `scrollLeft`/`scrollTop` remain unchanged. Exercise sidebar/mobile/search selection, scrubber, next/previous, playback restart, Map and Functions drill-down, document switching, URLs, keyboard focus, and accessibility roles.
+
+7. Preview and inspect desktop, tablet, 390px mobile, and 320px mobile. Check dense and bidirectional maps, branch/kind labels, touch targets, initial context, and page-level overflow—not only the first/default sequence.
+8. Commit only the intended projection changes, push `main`, watch `Publish Lifecycle Atlas`, then verify the cache-busted live HTML/assets and a browser interaction in every changed workspace.
+
+## Register a new sequence-document family
+
+New documents are deliberately onboarded; they are not auto-published by filename.
+
+### 1. Qualify the source contract
+
+The authoritative document must be committed in Fundamentals and have a stable structure the deterministic parser can support:
+
+- displayed sequence sections use `##` headings;
+- each displayed sequence contains a fenced Mermaid `sequenceDiagram`;
+- participants are declared before use;
+- call messages name function IDs in backticks;
+- one function-table section defines every called function exactly once, with invocation path and contract columns;
+- status markers and document-level maturity/runtime caveats have explicit source semantics.
+
+If a new authority uses a different structure, generalize the parser with exact fixtures and fail-closed tests. Do not introduce hand-authored browser data as a fallback.
+
+### 2. Register source and workspace metadata
+
+1. Add one entry to `scripts/sync_source.py::DOCUMENTS` with a stable lowercase `id`, Fundamentals-relative `path`, and unique `snapshotPath`.
+2. Add the document's sequence metadata and one matching `scripts/build_data.py::DOCUMENT_CONFIGS` entry. Record:
+   - display name/title/subtitle/description;
+   - exact function-table heading;
+   - source-defined status vocabulary and caveats;
+   - stable sequence IDs, short titles, summaries, questions, and status labels;
+   - a supported accent/theme.
+3. Keep IDs stable after publication; they are URL contracts.
+4. Review generic UI assumptions:
+   - `site/app.js` renders tabs/selectors/search from `atlas.documents`, but new state transitions still need browser coverage;
+   - add a `body[data-document="<id>"]` theme in `site/styles.css` when the document needs a distinct accent;
+   - update static product/brand wording in `site/index.html` where the previous two-document wording is no longer accurate;
+   - ensure desktop navigation wraps and mobile selection remains usable with the larger document count.
+5. Generalize exact-two validation where necessary. Update `scripts/validate_site.py`, `tests/test_build_data.py`, README deep links/counts, and QA fixtures so the registered document order, IDs, source binding, expected sequences, and source-defined statistics are checked intentionally.
+6. Run `python3 scripts/sync_source.py ../fundamentals`, then follow the complete validation, visual QA, commit, deployment, and live-readback gates above.
+
+### 3. New-document acceptance checks
+
+Do not publish until all are true:
+
+- the snapshot and manifest bind the exact private source bytes and last-touch commit;
+- every arrow/function/table relationship is closed and document-local;
+- control fragments and note-only branches retain exact context;
+- unmarked and marked implementation statuses mean only what that document defines;
+- a direct `?doc=<id>` URL opens the intended workspace without fallback;
+- all sequences work in Trace, Map, and Functions views;
+- cross-document search enters the right workspace and URL;
+- accessibility-tree controls retain native button/combobox semantics;
+- responsive QA includes the densest sequence/map, not merely the default;
+- CI and the live Pages artifact pass before completion is reported.
+
+## Publication report
+
+Report the authoritative source commit(s), Atlas commit, registered document/sequence/call/function counts, validation commands, Pages workflow URL, live workspace URL, and any remaining semantic limitation. Never claim that a passing static validator establishes architecture or runtime acceptance.

@@ -25,19 +25,28 @@ dreamcatcher-tech/fundamentals
 └── docs/cardflow-filesystem-lease-sequences.md
 ```
 
-This public repository contains intentional committed snapshots. The synchronization path is fail-closed: both documents must be committed, the Fundamentals checkout must be clean and synchronized with its upstream, every diagram call must resolve to that document's function table, and the generated browser bundle must exactly match both copied sources.
+This public repository contains intentional committed snapshots. The synchronization path is fail-closed: every registered document must be committed, the Fundamentals checkout must be clean and synchronized with its upstream, every diagram call must resolve to that document's function table, and the generated browser bundle must exactly match the copied sources.
+
+The durable maintainer/agent procedure is [`docs/source-refresh-runbook.md`](docs/source-refresh-runbook.md). It covers routine refreshes, semantic review, browser/publication proof, and deliberate onboarding of a new sequence-document family.
 
 ```bash
 git -C ../fundamentals fetch --all --prune
 git -C ../fundamentals pull --ff-only
 python3 scripts/sync_source.py ../fundamentals
 make validate
+node --check site/app.js
+node qa/browser-smoke.js
+node qa/layout-audit.js
 git add source site/data.js
 git commit -m "docs: sync lifecycle sequence sources"
 git push
 ```
 
-`sync_source.py` copies both authorities, writes `source/manifest.json`, rebuilds `site/data.js`, and validates the publication. A push to `main` repeats validation and republishes GitHub Pages.
+`sync_source.py` copies every deliberately registered authority, writes `source/manifest.json`, rebuilds `site/data.js`, and validates the publication. A push to `main` repeats validation and republishes GitHub Pages.
+
+### Adding another Fundamentals sequence authority
+
+New documents are not auto-discovered, because registration copies private source bytes into a public repository and browser payload. Add the source explicitly to `scripts/sync_source.py::DOCUMENTS`, add its workspace and sequence metadata to `scripts/build_data.py::DOCUMENT_CONFIGS`, then generalize the exact document/count checks, UI theme/wording, tests, and QA fixtures described in the runbook. If the source uses a new Markdown/Mermaid shape, extend the parser with exact semantic fixtures rather than hand-authoring browser data.
 
 ## Local preview
 

@@ -14,6 +14,7 @@ from urllib.parse import parse_qs, urlparse
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "site"
 SOURCE = ROOT / "source"
+RUNBOOK = ROOT / "docs" / "source-refresh-runbook.md"
 
 
 def fail(message: str) -> None:
@@ -44,6 +45,8 @@ def validate_required_files() -> None:
         ROOT / ".github" / "workflows" / "pages.yml",
         ROOT / "scripts" / "sync_source.py",
         ROOT / "scripts" / "build_data.py",
+        ROOT / "AGENTS.md",
+        RUNBOOK,
     ]
     missing = [str(path.relative_to(ROOT)) for path in required if not path.exists()]
     if missing:
@@ -169,6 +172,36 @@ def validate_documented_deep_links(payload: dict) -> None:
             fail(f"README deep link names unknown {document_id}/{diagram_id} call {call_id!r}")
 
 
+def validate_source_refresh_contract() -> None:
+    required_markers = {
+        ROOT / "AGENTS.md": (
+            "docs/source-refresh-runbook.md",
+            "scripts/sync_source.py::DOCUMENTS",
+            "scripts/build_data.py::DOCUMENT_CONFIGS",
+        ),
+        ROOT / "README.md": (
+            "docs/source-refresh-runbook.md",
+            "Adding another Fundamentals sequence authority",
+            "python3 scripts/sync_source.py ../fundamentals",
+        ),
+        RUNBOOK: (
+            "Refresh an already registered authority",
+            "Register a new sequence-document family",
+            "node qa/browser-smoke.js",
+            "note-only `alt`/`else` branches",
+            "Do **not** discover and publish every matching Fundamentals file automatically",
+        ),
+    }
+    for path, markers in required_markers.items():
+        text = path.read_text(encoding="utf-8")
+        missing = [marker for marker in markers if marker not in text]
+        if missing:
+            fail(
+                f"{path.relative_to(ROOT)} is missing source-refresh contract markers: "
+                f"{', '.join(missing)}"
+            )
+
+
 def run_build_check() -> None:
     result = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "build_data.py"), "--check"],
@@ -189,6 +222,7 @@ def main() -> None:
     validate_manifest_and_bundle(payload)
     validate_html_and_assets(payload)
     validate_documented_deep_links(payload)
+    validate_source_refresh_contract()
     print("PASS: two exact source snapshots, generated data, app shell, navigation, and publication assets are valid")
 
 
