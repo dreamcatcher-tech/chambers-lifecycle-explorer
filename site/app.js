@@ -63,6 +63,8 @@
     searchIndex: 0,
     toastTimer: null,
     resizeFrame: null,
+    revealFrame: null,
+    inspectorHeights: new Map(),
     touch: null,
   };
 
@@ -73,7 +75,7 @@
       "sourceDocumentLink", "mobileSceneSelect", "mobileSceneCount", "sceneKicker", "sceneStatus",
       "sceneTitle", "sceneSummary", "sceneQuestion", "sceneMetrics", "callFilter", "hostCallFilter", "actorFilter",
       "zoomOut", "zoomIn", "zoomValue", "callNow", "currentStepNumber", "currentRoute",
-      "currentFunction", "currentBranch", "sequenceViewport", "sequenceSvg", "previousCall",
+      "currentFunction", "currentBranch", "stickyActorHeader", "stickyActorSvg", "sequenceViewport", "sequenceSvg", "resetSequence", "previousCall",
       "playPause", "nextCall", "stepScrubber", "stepProgress", "stepHint", "speedButton",
       "callInspector", "mapScope", "clearMapFocus", "mapViewport", "mapSvg", "mapDetail",
       "roleLegend", "mapIntroTitle", "mapIntroText", "functionHeading", "functionIntro", "functionSearch",
@@ -152,7 +154,7 @@
     }[fn.implementationStatus] || (fn.usages.length ? "Pictured" : "Not pictured");
   }
 
-  function updateUrl() {
+  function updateUrl(mode = "replace") {
     const next = new URL(window.location.href);
     next.searchParams.set("doc", state.documentId);
     next.searchParams.set("diagram", state.sequenceId);
@@ -162,7 +164,18 @@
     else next.searchParams.delete("call");
     if (state.view === "functions" && state.selectedFunctionId) next.searchParams.set("function", state.selectedFunctionId);
     else next.searchParams.delete("function");
-    window.history.replaceState({}, "", next);
+
+    const historyState = {
+      lifecycleAtlas: true,
+      documentId: state.documentId,
+      sequenceId: state.sequenceId,
+      view: state.view,
+      callId: state.callId,
+      functionId: state.view === "functions" ? state.selectedFunctionId : null,
+    };
+    if (mode === "none") return;
+    if (mode === "push" && next.href !== window.location.href) window.history.pushState(historyState, "", next);
+    else window.history.replaceState(historyState, "", next);
   }
 
   function toast(message) {
@@ -272,18 +285,130 @@
     elements.mobileSceneSelect.value = state.sequenceId;
   }
 
-  function renderTrace() {
-    const viewportPosition = {
-      left: elements.sequenceViewport.scrollLeft,
-      top: elements.sequenceViewport.scrollTop,
-    };
+  function renderTrace(options = {}) {
+    const horizontalPosition = elements.sequenceViewport.scrollLeft;
     const call = ensureCurrentCall();
     renderSequenceSvg();
-    elements.sequenceViewport.scrollTo({ ...viewportPosition, behavior: "auto" });
+    elements.sequenceViewport.scrollTo({ left: horizontalPosition, top: 0, behavior: "auto" });
     renderCallNow(call);
     renderCallInspector(call);
+    stabilizeCallInspectorHeight();
     updatePlayback(call);
-    updateUrl();
+    if (options.revealCall && call) scheduleVerticalCallReveal(call.id);
+  }
+
+  function stickyViewportTop() {
+    return [document.querySelector(".topbar"), document.querySelector(".mobile-scene-bar")]
+      .filter(Boolean)
+      .reduce((bottom, element) => {
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        if (style.display === "none" || style.visibility === "hidden" || rect.bottom <= 0 || rect.top >= window.innerHeight) return bottom;
+        return Math.max(bottom, rect.bottom);
+      }, 0);
+  }
+
+  function renderStickyActorHeader(width) {
+    const naturalHeight = 80;
+    const scaledWidth = Math.round(width * state.zoom);
+    const scaledHeight = Math.round(naturalHeight * state.zoom);
+    elements.stickyActorHeader.classList.remove("is-visible");
+    elements.stickyActorSvg.replaceChildren();
+    elements.stickyActorSvg.setAttribute("viewBox", `0 0 ${width} ${naturalHeight}`);
+    elements.stickyActorSvg.setAttribute("width", String(scaledWidth));
+    elements.stickyActorSvg.setAttribute("height", String(scaledHeight));
+    elements.stickyActorSvg.style.width = `${scaledWidth}px`;
+    elements.stickyActorSvg.style.height = `${scaledHeight}px`;
+    elements.stickyActorHeader.dataset.height = String(scaledHeight);
+    elements.stickyActorHeader.style.height = `${scaledHeight}px`;
+    elements.stickyActorSvg.appendChild(svgElement("rect", {
+      x: 0, y: 0, width, height: naturalHeight, class: "sticky-actor-background",
+    }));
+    elements.sequenceSvg.querySelectorAll(".svg-actor").forEach((actor) => {
+      const clone = actor.cloneNode(true);
+      clone.removeAttribute("role");
+      clone.removeAttribute("tabindex");
+      clone.removeAttribute("aria-description");
+      clone.classList.add("sticky-svg-actor");
+      elements.stickyActorSvg.appendChild(clone);
+    });
+    elements.stickyActorSvg.appendChild(svgElement("line", {
+      x1: 0, y1: naturalHeight - 1, x2: width, y2: naturalHeight - 1, class: "sticky-actor-rule",
+    }));
+    syncStickyActorHeader();
+  }
+
+  function stickyActorHeaderGeometry() {
+    const actorHeader = elements.sequenceSvg.querySelector(".svg-actor");
+    const height = Number(elements.stickyActorHeader.dataset.height || 0);
+    if (state.view !== "trace" || !actorHeader || !height) return null;
+    const viewportRect = elements.sequenceViewport.getBoundingClientRect();
+    const actorRect = actorHeader.getBoundingClientRect();
+    const top = stickyViewportTop();
+    return {
+      height,
+      top,
+      viewportRect,
+      visible: actorRect.top <= top && viewportRect.bottom >= top + height,
+    };
+  }
+
+  function syncStickyActorHeader() {
+    const geometry = stickyActorHeaderGeometry();
+    elements.stickyActorHeader.classList.toggle("is-visible", Boolean(geometry?.visible));
+    if (!geometry?.visible) return;
+    elements.stickyActorHeader.style.top = `${geometry.top}px`;
+    elements.stickyActorHeader.style.left = `${geometry.viewportRect.left}px`;
+    elements.stickyActorHeader.style.width = `${geometry.viewportRect.width}px`;
+    elements.stickyActorSvg.style.transform = `translate3d(${-elements.sequenceViewport.scrollLeft}px, 0, 0)`;
+  }
+
+  function scheduleVerticalCallReveal(callId) {
+    window.cancelAnimationFrame(state.revealFrame);
+    state.revealFrame = window.requestAnimationFrame(() => {
+      state.revealFrame = null;
+      const target = elements.sequenceSvg.querySelector(`[data-call-id="${CSS.escape(callId)}"]`);
+      if (!target) return;
+      const rect = target.getBoundingClientRect();
+      const stickyActorGeometry = stickyActorHeaderGeometry();
+      const visibleTop = (stickyActorGeometry?.top ?? stickyViewportTop())
+        + (stickyActorGeometry?.visible ? stickyActorGeometry.height : 0);
+      const visibleBottom = window.innerHeight;
+      let delta = 0;
+      if (rect.top < visibleTop) delta = rect.top - visibleTop;
+      else if (rect.bottom > visibleBottom) delta = rect.bottom - visibleBottom;
+      if (Math.abs(delta) > 0.5) {
+        const root = document.documentElement;
+        const previousScrollBehavior = root.style.scrollBehavior;
+        root.style.scrollBehavior = "auto";
+        window.scrollBy({ top: delta, behavior: "auto" });
+        root.style.scrollBehavior = previousScrollBehavior;
+      }
+    });
+  }
+
+  function stabilizeCallInspectorHeight() {
+    const width = Math.round(elements.callInspector.getBoundingClientRect().width);
+    if (!width) return;
+    const key = `${state.documentId}/${state.sequenceId}/${width}`;
+    let height = state.inspectorHeights.get(key);
+    if (!height) {
+      const measure = document.createElement("aside");
+      measure.className = "call-inspector inspector-card call-inspector-measure";
+      measure.setAttribute("aria-hidden", "true");
+      measure.inert = true;
+      measure.style.width = `${width}px`;
+      document.body.appendChild(measure);
+      height = 410;
+      currentSequence().calls.forEach((call) => {
+        measure.classList.toggle("is-host", call.kind === "host");
+        measure.innerHTML = callInspectorMarkup(call);
+        height = Math.max(height, Math.ceil(measure.getBoundingClientRect().height));
+      });
+      measure.remove();
+      state.inspectorHeights.set(key, height);
+    }
+    elements.callInspector.style.setProperty("--call-inspector-height", `${height}px`);
   }
 
   function renderSequenceSvg() {
@@ -324,6 +449,7 @@
 
       const group = svgElement("g", {
         class: `svg-actor${focused ? " is-focused" : ""}${dim ? " is-dim" : ""}`,
+        "data-actor-id": actor.id,
         role: "button", tabindex: "0", "aria-description": `Focus ${actor.label} calls.`,
       });
       const rect = svgElement("rect", { x: x - 72, y: 14, width: 144, height: 52, rx: 13 });
@@ -347,6 +473,8 @@
       });
       elements.sequenceSvg.appendChild(group);
     });
+
+    renderStickyActorHeader(width);
 
     calls.forEach((call) => {
       const y = headerHeight + call.index * rowHeight + rowHeight / 2;
@@ -418,7 +546,7 @@
     const calls = visibleCalls(sequence);
     const actors = participantMap(sequence);
     const index = call ? calls.findIndex((item) => item.id === call.id) : -1;
-    const controls = [elements.previousCall, elements.nextCall, elements.playPause, elements.stepScrubber];
+    const controls = [elements.resetSequence, elements.previousCall, elements.nextCall, elements.playPause, elements.stepScrubber];
 
     if (!call) {
       elements.callNow.className = "call-now";
@@ -438,12 +566,7 @@
     controls.forEach((control) => { control.disabled = false; });
   }
 
-  function renderCallInspector(call) {
-    if (!call) {
-      elements.callInspector.className = "inspector-card";
-      elements.callInspector.innerHTML = '<div class="inspector-empty">No calls match the current filter.</div>';
-      return;
-    }
+  function callInspectorMarkup(call) {
     const sequence = currentSequence();
     const actors = participantMap(sequence);
     const fn = functionsById.get(call.function);
@@ -451,8 +574,7 @@
       ...call.context.map((context) => `<li><strong>${escapeHtml(context.type)}</strong> · ${escapeHtml(context.branch)}</li>`),
       ...call.notes.map((note) => `<li>${escapeHtml(note.text)}</li>`),
     ];
-    elements.callInspector.className = `inspector-card${call.kind === "host" ? " is-host" : ""}`;
-    elements.callInspector.innerHTML = `
+    return `
       <div class="inspector-type-row">
         <span class="kind-badge ${call.kind}"><i class="legend-dot ${call.kind}"></i>${call.kind === "i3" ? "I3 function" : "Host boundary code"}</span>
         <span class="inspector-step">${String(call.index + 1).padStart(2, "0")} / ${String(sequence.calls.length).padStart(2, "0")}</span>
@@ -474,15 +596,24 @@
       </div>
       ${contextItems.length ? `<div class="context-block"><h3>Context at this step</h3><ul class="context-list">${contextItems.join("")}</ul></div>` : ""}
       <div class="inspector-actions">
-        <button class="quiet-button" type="button" id="mapThisPair">Map this pair</button>
-        <button class="quiet-button" type="button" id="openThisFunction">Open function</button>
+        <button class="quiet-button" type="button" data-inspector-action="map">Map this pair</button>
+        <button class="quiet-button" type="button" data-inspector-action="function">Open function</button>
       </div>
     `;
-    document.getElementById("mapThisPair")?.addEventListener("click", () => {
+  }
+
+  function renderCallInspector(call) {
+    elements.callInspector.className = `call-inspector inspector-card${call?.kind === "host" ? " is-host" : ""}`;
+    if (!call) {
+      elements.callInspector.innerHTML = '<div class="inspector-empty">No calls match the current filter.</div>';
+      return;
+    }
+    elements.callInspector.innerHTML = callInspectorMarkup(call);
+    elements.callInspector.querySelector('[data-inspector-action="map"]')?.addEventListener("click", () => {
       state.mapFocus = { type: "edge", key: `${call.from}→${call.to}` };
       setView("map");
     });
-    document.getElementById("openThisFunction")?.addEventListener("click", () => openFunction(call.function));
+    elements.callInspector.querySelector('[data-inspector-action="function"]')?.addEventListener("click", () => openFunction(call.function));
   }
 
   function updatePlayback(call) {
@@ -491,6 +622,7 @@
     elements.stepScrubber.max = String(Math.max(0, calls.length - 1));
     elements.stepScrubber.value = String(Math.max(0, index));
     elements.stepProgress.textContent = calls.length ? `${index + 1} / ${calls.length}` : "0 / 0";
+    elements.resetSequence.disabled = !calls.length || index <= 0;
     elements.previousCall.disabled = !calls.length || index <= 0;
     elements.nextCall.disabled = !calls.length || index >= calls.length - 1;
     elements.playPause.disabled = !calls.length;
@@ -500,26 +632,34 @@
 
   }
 
-  function setCurrentCall(callId) {
+  function setCurrentCall(callId, options = {}) {
     if (!currentSequence().calls.some((call) => call.id === callId)) return;
     state.callId = callId;
-    renderTrace();
+    renderTrace({ revealCall: options.reveal !== false });
+    updateUrl(options.history || "push");
   }
 
-  function stepCall(direction) {
+  function stepCall(direction, options = {}) {
     const calls = visibleCalls();
     if (!calls.length) return;
     const currentIndex = Math.max(0, calls.findIndex((call) => call.id === state.callId));
     const nextIndex = Math.max(0, Math.min(calls.length - 1, currentIndex + direction));
     if (nextIndex === currentIndex && state.playing) stopPlayback();
-    setCurrentCall(calls[nextIndex].id);
+    setCurrentCall(calls[nextIndex].id, options);
+  }
+
+  function resetSequence(options = {}) {
+    const first = visibleCalls()[0];
+    if (!first) return;
+    stopPlayback();
+    setCurrentCall(first.id, { history: options.history || "push", reveal: true });
   }
 
   function startPlayback() {
     const calls = visibleCalls();
     if (!calls.length) return;
     const index = calls.findIndex((call) => call.id === state.callId);
-    if (index === calls.length - 1) state.callId = calls[0].id;
+    if (index === calls.length - 1) setCurrentCall(calls[0].id, { history: "replace", reveal: true });
     state.playing = true;
     updatePlayback(ensureCurrentCall());
     window.clearInterval(state.timer);
@@ -530,7 +670,7 @@
         stopPlayback();
         return;
       }
-      setCurrentCall(activeCalls[activeIndex + 1].id);
+      setCurrentCall(activeCalls[activeIndex + 1].id, { history: "replace", reveal: true });
     }, SPEEDS[state.speedIndex].delay);
   }
 
@@ -555,7 +695,8 @@
       button.setAttribute("aria-pressed", String(active));
     });
     state.callId = visibleCalls()[0]?.id || null;
-    renderTrace();
+    renderTrace({ revealCall: true });
+    updateUrl("replace");
   }
 
   function setActorFilter(actorId) {
@@ -563,7 +704,8 @@
     state.actorFilter = actorId;
     elements.actorFilter.value = actorId;
     state.callId = visibleCalls()[0]?.id || null;
-    renderTrace();
+    renderTrace({ revealCall: true });
+    updateUrl("replace");
   }
 
   function setZoom(nextZoom) {
@@ -574,10 +716,32 @@
     renderTrace();
   }
 
+  function renderCurrentView(options = {}) {
+    if (state.view === "trace") renderTrace({ revealCall: Boolean(options.revealCall) });
+    else if (state.view === "map") renderMap();
+    else {
+      if (!state.selectedFunctionId) state.selectedFunctionId = ensureCurrentCall()?.function || data.functions[0].id;
+      renderFunctionCatalog();
+    }
+  }
+
+  function syncViewPanels() {
+    document.querySelectorAll(".view-tab").forEach((button) => {
+      const active = button.dataset.view === state.view;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    document.querySelectorAll("[data-view-panel]").forEach((panel) => {
+      const active = panel.dataset.viewPanel === state.view;
+      panel.classList.toggle("is-active", active);
+      panel.hidden = !active;
+    });
+  }
+
   function setDocument(documentId, options = {}) {
     if (!documentsById.has(documentId)) return;
     if (documentId === state.documentId) {
-      if (options.sequenceId) setSequence(options.sequenceId);
+      if (options.sequenceId) setSequence(options.sequenceId, options);
       return;
     }
 
@@ -612,14 +776,12 @@
       button.setAttribute("aria-pressed", String(active));
     });
     syncFunctionFilterButtons();
-    if (state.view === "trace") renderTrace();
-    else if (state.view === "map") renderMap();
-    else renderFunctionCatalog();
-    updateUrl();
+    renderCurrentView();
+    updateUrl(options.history || "push");
     if (options.announce !== false) toast(`${data.name} workspace opened`);
   }
 
-  function setSequence(sequenceId) {
+  function setSequence(sequenceId, options = {}) {
     if (!sequenceIds.has(sequenceId) || sequenceId === state.sequenceId) return;
     stopPlayback();
     state.sequenceId = sequenceId;
@@ -636,33 +798,64 @@
       button.classList.toggle("is-active", active);
       button.setAttribute("aria-pressed", String(active));
     });
-    if (state.view === "trace") renderTrace();
-    else if (state.view === "map") renderMap();
-    else renderFunctionCatalog();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    renderCurrentView();
+    updateUrl(options.history || "push");
+    if (options.scroll !== false) window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function setView(view) {
+  function setView(view, options = {}) {
     if (!["trace", "map", "functions"].includes(view)) return;
     stopPlayback();
     state.view = view;
-    document.querySelectorAll(".view-tab").forEach((button) => {
-      const active = button.dataset.view === view;
+    syncViewPanels();
+    renderCurrentView({ revealCall: options.revealCall });
+    updateUrl(options.history || "push");
+  }
+
+  function restoreFromLocation() {
+    window.clearInterval(state.timer);
+    state.timer = null;
+    state.playing = false;
+    window.cancelAnimationFrame(state.revealFrame);
+    state.revealFrame = null;
+
+    const nextParams = new URLSearchParams(window.location.search);
+    const requestedDocumentId = nextParams.get("doc");
+    state.documentId = documentsById.has(requestedDocumentId) ? requestedDocumentId : atlas.defaultDocumentId;
+    data = documentsById.get(state.documentId);
+    sequenceIds = new Set(data.sequences.map((sequence) => sequence.id));
+    functionIds = new Set(data.functions.map((fn) => fn.id));
+    functionsById = new Map(data.functions.map((fn) => [fn.id, fn]));
+
+    const requestedSequenceId = nextParams.get("diagram");
+    state.sequenceId = sequenceIds.has(requestedSequenceId) ? requestedSequenceId : data.sequences[0].id;
+    const requestedView = nextParams.get("view");
+    state.view = ["trace", "map", "functions"].includes(requestedView) ? requestedView : "trace";
+    const requestedCallId = nextParams.get("call");
+    state.callId = currentSequence().calls.some((call) => call.id === requestedCallId)
+      ? requestedCallId
+      : currentSequence().calls[0]?.id || null;
+    const requestedFunctionId = nextParams.get("function");
+    state.selectedFunctionId = state.view === "functions" && functionIds.has(requestedFunctionId) ? requestedFunctionId : null;
+    state.callFilter = "all";
+    state.actorFilter = "";
+    state.mapFocus = null;
+    state.functionFilter = "all";
+    state.functionQuery = "";
+    elements.functionSearch.value = "";
+
+    populateStaticChrome();
+    renderSceneHeader();
+    renderActorFilter();
+    elements.callFilter.querySelectorAll("button").forEach((button) => {
+      const active = button.dataset.filter === "all";
       button.classList.toggle("is-active", active);
       button.setAttribute("aria-pressed", String(active));
     });
-    document.querySelectorAll("[data-view-panel]").forEach((panel) => {
-      const active = panel.dataset.viewPanel === view;
-      panel.classList.toggle("is-active", active);
-      panel.hidden = !active;
-    });
-    if (view === "trace") renderTrace();
-    else if (view === "map") renderMap();
-    else if (view === "functions") {
-      if (!state.selectedFunctionId) state.selectedFunctionId = ensureCurrentCall()?.function || data.functions[0].id;
-      renderFunctionCatalog();
-    }
-    updateUrl();
+    syncFunctionFilterButtons();
+    syncViewPanels();
+    renderCurrentView();
+    updateUrl("replace");
   }
 
   function groupMapEdges(sequence) {
@@ -882,7 +1075,7 @@
     elements.functionList.querySelectorAll("[data-function-id]").forEach((button) => button.addEventListener("click", () => {
       state.selectedFunctionId = button.dataset.functionId;
       renderFunctionCatalog();
-      updateUrl();
+      updateUrl("push");
     }));
     renderFunctionDetail();
   }
@@ -920,7 +1113,6 @@
     elements.functionSearch.value = "";
     syncFunctionFilterButtons();
     setView("functions");
-    renderFunctionCatalog();
   }
 
   function openCall(callId) {
@@ -934,13 +1126,12 @@
       button.classList.toggle("is-active", active);
       button.setAttribute("aria-pressed", String(active));
     });
-    setView("trace");
-    renderTrace();
+    setView("trace", { revealCall: true });
   }
 
   function setSequenceAndCall(sequenceId, callId) {
     if (sequenceId !== state.sequenceId) {
-      setSequence(sequenceId);
+      setSequence(sequenceId, { history: "none", scroll: false });
     }
     openCall(callId);
   }
@@ -1012,7 +1203,7 @@
       if (documentId === state.documentId) setSequence(id);
       else setDocument(documentId, { sequenceId: id });
     } else {
-      if (documentId !== state.documentId) setDocument(documentId, { announce: false });
+      if (documentId !== state.documentId) setDocument(documentId, { announce: false, history: "none" });
       openFunction(id);
     }
   }
@@ -1065,14 +1256,17 @@
     elements.actorFilter.addEventListener("change", () => setActorFilter(elements.actorFilter.value));
     elements.zoomOut.addEventListener("click", () => setZoom(state.zoom - 0.1));
     elements.zoomIn.addEventListener("click", () => setZoom(state.zoom + 0.1));
+    elements.resetSequence.addEventListener("click", resetSequence);
     elements.previousCall.addEventListener("click", () => stepCall(-1));
     elements.nextCall.addEventListener("click", () => stepCall(1));
     elements.playPause.addEventListener("click", togglePlayback);
     elements.stepScrubber.addEventListener("input", () => {
+      const index = Number(elements.stepScrubber.value);
       stopPlayback();
-      const call = visibleCalls()[Number(elements.stepScrubber.value)];
-      if (call) setCurrentCall(call.id);
+      const call = visibleCalls()[index];
+      if (call) setCurrentCall(call.id, { history: "none", reveal: true });
     });
+    elements.stepScrubber.addEventListener("change", () => updateUrl("push"));
     elements.speedButton.addEventListener("click", () => {
       const wasPlaying = state.playing;
       stopPlayback();
@@ -1113,6 +1307,7 @@
       else if (event.key === " ") { event.preventDefault(); if (state.view === "trace") togglePlayback(); }
       else if (event.key === "ArrowLeft" && state.view === "trace") { event.preventDefault(); stopPlayback(); stepCall(-1); }
       else if (event.key === "ArrowRight" && state.view === "trace") { event.preventDefault(); stopPlayback(); stepCall(1); }
+      else if (event.key === "Home" && state.view === "trace") { event.preventDefault(); resetSequence(); }
       else if (event.key === "1") setView("trace");
       else if (event.key === "2") setView("map");
       else if (event.key === "3") setView("functions");
@@ -1122,8 +1317,13 @@
       window.cancelAnimationFrame(state.resizeFrame);
       state.resizeFrame = window.requestAnimationFrame(() => {
         if (state.view === "map") renderMap();
+        else if (state.view === "trace") stabilizeCallInspectorHeight();
+        syncStickyActorHeader();
       });
     });
+    window.addEventListener("scroll", syncStickyActorHeader, { passive: true });
+    elements.sequenceViewport.addEventListener("scroll", syncStickyActorHeader, { passive: true });
+    window.addEventListener("popstate", restoreFromLocation);
 
     elements.sequenceViewport.addEventListener("touchstart", (event) => {
       if (event.touches.length !== 1) return;
@@ -1149,8 +1349,8 @@
     elements.zoomValue.textContent = "100%";
     elements.zoomOut.disabled = false;
     elements.zoomIn.disabled = false;
-    setView(state.view);
-    updateUrl();
+    setView(state.view, { history: "none" });
+    updateUrl("replace");
   }
 
   initialise();

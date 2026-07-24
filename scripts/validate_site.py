@@ -102,8 +102,8 @@ def validate_html_and_assets(payload: dict) -> None:
 
     required_ids = {
         "documentSwitcher", "mobileDocumentSelect", "mobileSceneSelect", "journeyList",
-        "sourceDocumentLink", "footerSource", "sequenceViewport", "sequenceSvg",
-        "playPause", "stepScrubber", "mapViewport", "mapSvg", "functionList",
+        "sourceDocumentLink", "footerSource", "stickyActorHeader", "stickyActorSvg", "sequenceViewport", "sequenceSvg",
+        "resetSequence", "playPause", "stepScrubber", "mapViewport", "mapSvg", "functionList",
         "functionDetail", "searchDialog", "helpDialog",
     }
     ids = re.findall(r'\bid="([^"]+)"', html)
@@ -122,9 +122,19 @@ def validate_html_and_assets(payload: dict) -> None:
     if "window.LIFECYCLE_ATLAS_DATA" not in app or "state.documentId" not in app or "data-document-id" not in app:
         fail("app.js does not implement document-aware state/navigation")
     if "window.CHAMBERS_DATA" in app or "scrollCallIntoView" in app:
-        fail("legacy single-document or auto-focus scrolling code remains")
-    if "viewportPosition" not in app:
-        fail("sequence selection no longer explicitly preserves viewport position")
+        fail("legacy single-document or disruptive canvas auto-focus code remains")
+    interaction_markers = [
+        "horizontalPosition",
+        "scheduleVerticalCallReveal",
+        "syncStickyActorHeader",
+        'overflow-y: clip',
+        'id="resetSequence"',
+        'window.history.pushState',
+        'window.addEventListener("popstate"',
+    ]
+    missing_interaction_markers = [marker for marker in interaction_markers if marker not in html + css + app]
+    if missing_interaction_markers:
+        fail(f"trace interaction/history contract is incomplete: {missing_interaction_markers}")
     if ".document-switcher" not in css or "body[data-document=\"cardflow\"]" not in css:
         fail("document workspace styling is missing")
 

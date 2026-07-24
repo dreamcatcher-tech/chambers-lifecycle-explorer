@@ -133,6 +133,23 @@ class BuildDataTests(unittest.TestCase):
         self.assertIn("contract-extension-required", statuses)
         self.assertIn("existing", statuses)
 
+    def test_trace_interaction_contract_is_present(self) -> None:
+        app = (ROOT / "site" / "app.js").read_text(encoding="utf-8")
+        css = (ROOT / "site" / "styles.css").read_text(encoding="utf-8")
+        html = (ROOT / "site" / "index.html").read_text(encoding="utf-8")
+        self.assertIn('id="resetSequence"', html)
+        self.assertIn('id="stickyActorHeader"', html)
+        self.assertIn("scheduleVerticalCallReveal", app)
+        self.assertIn("syncStickyActorHeader", app)
+        self.assertIn("stabilizeCallInspectorHeight", app)
+        self.assertIn('window.history.pushState', app)
+        self.assertIn('window.addEventListener("popstate"', app)
+        self.assertEqual(1, app.count(".scrollIntoView("))
+        self.assertIn("results[state.searchIndex].scrollIntoView", app)
+        self.assertIn("overflow-y: clip", css)
+        self.assertIn("touch-action: pan-x pan-y", css)
+        self.assertIn("height: var(--call-inspector-height", css)
+
 
 if __name__ == "__main__":
     unittest.main()

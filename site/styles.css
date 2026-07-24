@@ -416,18 +416,30 @@
   .trace-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-items: start; }
   .map-grid { display: grid; grid-template-columns: minmax(0, 1fr) 316px; gap: 12px; align-items: start; }
   #callInspector {
+    height: var(--call-inspector-height, 410px);
+    min-height: var(--call-inspector-height, 410px);
+  }
+  .call-inspector {
     position: relative;
     top: auto;
     display: grid;
     grid-template-columns: minmax(230px, 0.8fr) minmax(280px, 1.2fr);
     gap: 20px;
-    min-height: 0;
   }
-  #callInspector .inspector-type-row, #callInspector .inspector-function, #callInspector .inspector-route, #callInspector .function-meta { grid-column: 1; }
-  #callInspector .contract-block, #callInspector .context-block, #callInspector .inspector-actions { grid-column: 2; }
-  #callInspector .contract-block { grid-row: 1 / span 3; margin-top: 0; padding-top: 0; border-top: 0; }
-  #callInspector .context-block { margin-top: 0; }
-  #callInspector .inspector-actions { align-self: end; }
+  .call-inspector .inspector-type-row, .call-inspector .inspector-function, .call-inspector .inspector-route, .call-inspector .function-meta { grid-column: 1; }
+  .call-inspector .contract-block, .call-inspector .context-block, .call-inspector .inspector-actions { grid-column: 2; }
+  .call-inspector .contract-block { grid-row: 1 / span 3; margin-top: 0; padding-top: 0; border-top: 0; }
+  .call-inspector .context-block { margin-top: 0; }
+  .call-inspector .inspector-actions { align-self: end; }
+  .call-inspector-measure {
+    position: fixed !important;
+    top: 0 !important;
+    left: -200vw !important;
+    height: auto !important;
+    min-height: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
   .stage-card, .map-card, .inspector-card {
     border: 1px solid var(--line);
     border-radius: var(--radius-xl);
@@ -458,16 +470,39 @@
 
   .sequence-viewport {
     position: relative;
-    height: clamp(455px, 59vh, 690px);
-    min-height: 455px;
-    overflow: auto;
-    overscroll-behavior: contain;
+    height: auto;
+    min-height: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overflow-y: clip;
+    overscroll-behavior-x: contain;
     background:
       radial-gradient(circle at 50% 0, rgba(100, 231, 239, 0.035), transparent 44%),
       linear-gradient(180deg, rgba(2, 9, 14, 0.22), rgba(3, 10, 15, 0.4));
-    scrollbar-gutter: stable;
     touch-action: pan-x pan-y;
   }
+  .sequence-actor-header {
+    position: fixed;
+    z-index: 30;
+    display: none;
+    overflow: hidden;
+    pointer-events: none;
+    background: rgba(7, 17, 23, 0.96);
+    border-top: 1px solid rgba(126, 165, 180, 0.2);
+    border-bottom: 1px solid rgba(126, 165, 180, 0.2);
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.34);
+    backdrop-filter: blur(12px);
+  }
+  .sequence-actor-header.is-visible { display: block; }
+  #stickyActorSvg {
+    display: block;
+    max-width: none;
+    transform-origin: 0 0;
+    will-change: transform;
+  }
+  #stickyActorSvg .svg-actor { cursor: default; }
+  #stickyActorSvg .sticky-actor-background { fill: rgba(7, 17, 23, 0.98); }
+  #stickyActorSvg .sticky-actor-rule { stroke: rgba(126, 165, 180, 0.22); stroke-width: 1; }
   .sequence-viewport::after {
     position: sticky;
     bottom: 8px;
@@ -485,8 +520,8 @@
     opacity: 0.7;
     backdrop-filter: blur(8px);
   }
-  #sequenceSvg { overflow: visible; }
-  #sequenceSvg text, #mapSvg text { user-select: none; }
+  #sequenceSvg { display: block; overflow: visible; }
+  #sequenceSvg text, #stickyActorSvg text, #mapSvg text { user-select: none; }
   .sequence-lane { stroke: rgba(155, 192, 207, 0.17); stroke-width: 1; stroke-dasharray: 3 7; }
   .sequence-lane.is-focused { stroke: rgba(100, 231, 239, 0.5); }
   .svg-actor { cursor: pointer; }
@@ -534,6 +569,7 @@
   }
   .transport { display: flex; align-items: center; gap: 6px; }
   .transport-button { width: 44px; height: 44px; border-radius: 12px; color: var(--muted-strong); }
+  .reset-button { color: var(--i3); }
   .transport-button svg, .play-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
   .play-button { width: 48px; height: 48px; border-color: rgba(100, 231, 239, 0.32); border-radius: 15px; background: var(--i3); color: #041116; box-shadow: 0 7px 23px rgba(100, 231, 239, 0.16); }
   .play-button:hover { background: #85f4fa; }
@@ -768,13 +804,13 @@
   @media (max-width: 1240px) {
     .trace-grid, .map-grid { grid-template-columns: minmax(0, 1fr); }
     .inspector-card { position: relative; top: auto; min-height: 0; }
-    #callInspector, .map-detail { display: grid; grid-template-columns: minmax(230px, 0.8fr) minmax(280px, 1.2fr); gap: 20px; }
-    #callInspector .inspector-type-row, #callInspector .inspector-function, #callInspector .inspector-route, #callInspector .function-meta,
+    .call-inspector, .map-detail { display: grid; grid-template-columns: minmax(230px, 0.8fr) minmax(280px, 1.2fr); gap: 20px; }
+    .call-inspector .inspector-type-row, .call-inspector .inspector-function, .call-inspector .inspector-route, .call-inspector .function-meta,
     .map-detail > .kind-badge, .map-detail > h3, .map-detail > p { grid-column: 1; }
-    #callInspector .contract-block, #callInspector .context-block, #callInspector .inspector-actions, .map-detail .map-call-list { grid-column: 2; }
-    #callInspector .contract-block { grid-row: 1 / span 3; margin-top: 0; padding-top: 0; border-top: 0; }
-    #callInspector .context-block { margin-top: 0; }
-    #callInspector .inspector-actions { align-self: end; }
+    .call-inspector .contract-block, .call-inspector .context-block, .call-inspector .inspector-actions, .map-detail .map-call-list { grid-column: 2; }
+    .call-inspector .contract-block { grid-row: 1 / span 3; margin-top: 0; padding-top: 0; border-top: 0; }
+    .call-inspector .context-block { margin-top: 0; }
+    .call-inspector .inspector-actions { align-self: end; }
     .catalog-grid { grid-template-columns: minmax(0, 1fr) 330px; }
   }
 
@@ -825,9 +861,9 @@
     .call-now-branch { grid-column: 1 / -1; max-width: 100%; padding-left: 2px; }
     .playback { grid-template-columns: auto minmax(0, 1fr); }
     .speed-button { grid-column: 1 / -1; grid-row: 2; display: flex; justify-self: end; min-height: 44px; }
-    #callInspector, .map-detail { display: block; }
-    #callInspector .contract-block { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
-    #callInspector .context-block { margin-top: 18px; }
+    .call-inspector, .map-detail { display: block; }
+    .call-inspector .contract-block { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
+    .call-inspector .context-block { margin-top: 18px; }
     .map-intro, .catalog-heading { display: grid; align-items: start; }
     .role-legend { justify-content: start; }
     .catalog-search { width: 100%; max-width: none; }
@@ -870,7 +906,6 @@
     .call-now { min-height: 70px; padding: 10px 12px; }
     .call-now-index { width: 47px; height: 46px; }
     .call-now-route code { font-size: 0.72rem; }
-    .sequence-viewport { height: 55vh; min-height: 420px; }
     .playback { gap: 10px; min-height: 80px; padding: 11px 12px; }
     .transport { gap: 3px; }
     .transport-button { width: 44px; height: 44px; }

@@ -146,6 +146,9 @@
 
               <div class="playback" aria-label="Sequence playback controls">
                 <div class="transport">
+                  <button class="transport-button reset-button" type="button" id="resetSequence" aria-label="Reset to first call" title="Reset to first call (Home)">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5v5h5M5.6 16.5A8 8 0 1 0 6 7.2L4 10" /></svg>
+                  </button>
                   <button class="transport-button" type="button" id="previousCall" aria-label="Previous call" title="Previous call (left arrow)">
                     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5v14m12-13-9 6 9 6V6Z" /></svg>
                   </button>
@@ -161,10 +164,14 @@
                   <input id="stepScrubber" type="range" min="0" max="0" value="0" step="1" aria-label="Current call" />
                   <div class="scrubber-meta">
                     <span id="stepProgress">0 / 0</span>
-                    <span id="stepHint">Selection stays put · scroll manually</span>
+                    <span id="stepHint">Vertical follow · only when needed</span>
                   </div>
                 </div>
                 <button class="speed-button" type="button" id="speedButton" title="Change playback speed"><span>Speed</span><strong>1×</strong></button>
+              </div>
+
+              <div class="sequence-actor-header" id="stickyActorHeader" aria-hidden="true">
+                <svg id="stickyActorSvg" focusable="false"></svg>
               </div>
 
               <div class="sequence-viewport" id="sequenceViewport" tabindex="0" aria-label="Interactive sequence lanes">
@@ -172,7 +179,7 @@
               </div>
             </article>
 
-            <aside class="inspector-card" id="callInspector" aria-label="Selected function detail">
+            <aside class="call-inspector inspector-card" id="callInspector" aria-label="Selected function detail">
               <div class="inspector-empty">Choose a call to inspect it.</div>
             </aside>
           </div>
@@ -263,10 +270,11 @@
       <div class="shortcut-table" aria-label="Keyboard shortcuts">
         <div><kbd>space</kbd><span>Play or pause</span></div>
         <div><kbd>←</kbd><kbd>→</kbd><span>Step backward or forward</span></div>
+        <div><kbd>home</kbd><span>Reset to first call</span></div>
         <div><kbd>/</kbd><span>Search</span></div>
         <div><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><span>Trace, map, functions</span></div>
       </div>
-      <p class="help-note">Choose Chambers or Cardflow first. On touch screens, swipe to step or deliberately pan a wide canvas. Selecting and playing calls preserves your canvas position.</p>
+      <p class="help-note">Choose Chambers or Cardflow first. On touch screens, swipe to step or deliberately pan a wide canvas. Selection preserves horizontal position and moves the primary page only by the minimum needed to reveal the active call.</p>
     </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
