@@ -134,6 +134,7 @@ def validate_html_and_assets(payload: dict) -> None:
         "event.defaultPrevented",
         'overflow-y: clip',
         'overflow-anchor: none',
+        'call-function-meta',
         'id="resetSequence"',
         'window.history.pushState',
         'window.addEventListener("popstate"',
@@ -141,6 +142,8 @@ def validate_html_and_assets(payload: dict) -> None:
     missing_interaction_markers = [marker for marker in interaction_markers if marker not in html + css + app]
     if missing_interaction_markers:
         fail(f"trace interaction/history contract is incomplete: {missing_interaction_markers}")
+    if 'id="currentBranch"' in html or "branch-chip" in app:
+        fail("the stable selected-call summary must not duplicate wrapping branch context")
     if ".document-switcher" not in css or "body[data-document=\"cardflow\"]" not in css:
         fail("document workspace styling is missing")
 

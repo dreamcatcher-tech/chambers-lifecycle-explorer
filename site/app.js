@@ -77,7 +77,7 @@
       "sourceDocumentLink", "mobileSceneSelect", "mobileSceneCount", "sceneKicker", "sceneStatus",
       "sceneTitle", "sceneSummary", "sceneQuestion", "sceneMetrics", "callFilter", "hostCallFilter", "actorFilter",
       "zoomOut", "zoomIn", "zoomValue", "callNow", "currentStepNumber", "currentRoute",
-      "currentFunction", "currentBranch", "stickyActorHeader", "stickyActorSvg", "sequenceViewport", "sequenceSvg", "resetSequence", "previousCall",
+      "currentFunction", "stickyActorHeader", "stickyActorSvg", "sequenceViewport", "sequenceSvg", "resetSequence", "previousCall",
       "playPause", "nextCall", "stepScrubber", "stepProgress", "stepHint", "speedButton",
       "callInspector", "mapScope", "clearMapFocus", "mapViewport", "mapSvg", "mapDetail",
       "roleLegend", "mapIntroTitle", "mapIntroText", "functionHeading", "functionIntro", "functionSearch",
@@ -609,16 +609,19 @@
       elements.currentStepNumber.textContent = "—";
       elements.currentRoute.textContent = "No calls match this filter";
       elements.currentFunction.textContent = "Adjust ‘Show’ or actor focus";
-      elements.currentBranch.replaceChildren();
+      elements.currentRoute.removeAttribute("title");
+      elements.currentFunction.removeAttribute("title");
       controls.forEach((control) => { control.disabled = true; });
       return;
     }
 
+    const route = `${actors.get(call.from).label} → ${actors.get(call.to).label}`;
     elements.callNow.className = `call-now${call.kind === "host" ? " is-host" : ""}`;
     elements.currentStepNumber.textContent = `${String(index + 1).padStart(2, "0")}/${String(calls.length).padStart(2, "0")}`;
-    elements.currentRoute.textContent = `${actors.get(call.from).label} → ${actors.get(call.to).label}`;
+    elements.currentRoute.textContent = route;
+    elements.currentRoute.title = route;
     elements.currentFunction.textContent = call.function;
-    elements.currentBranch.innerHTML = call.context.map((context) => `<span class="branch-chip" title="${escapeHtml(context.label)}">${escapeHtml(context.type)} · ${escapeHtml(context.branch)}</span>`).join("");
+    elements.currentFunction.title = call.function;
     controls.forEach((control) => { control.disabled = false; });
   }
 
@@ -641,11 +644,11 @@
         <span class="route-arrow">→</span>
         <span class="route-node">${escapeHtml(actors.get(call.to).label)}</span>
       </div>
-      <div class="function-meta">
-        <span class="owner-badge">Owner · ${escapeHtml(fn.owner)}</span>
-        <span class="usage-badge">${fn.usages.length} usage${fn.usages.length === 1 ? "" : "s"}</span>
-        <span class="owner-badge">${escapeHtml(functionStatusLabel(fn))}</span>
-      </div>
+      <dl class="call-function-meta" aria-label="Function details">
+        <div><dt>Owner</dt><dd>${escapeHtml(fn.owner)}</dd></div>
+        <div><dt>Used in</dt><dd>${fn.usages.length} call${fn.usages.length === 1 ? "" : "s"}</dd></div>
+        <div><dt>Status</dt><dd>${escapeHtml(fn.implementationStatus === "existing" ? "Existing" : functionStatusLabel(fn))}</dd></div>
+      </dl>
       <div class="contract-block">
         <h3>Critical contract</h3>
         <p>${escapeHtml(fn.contract)}</p>

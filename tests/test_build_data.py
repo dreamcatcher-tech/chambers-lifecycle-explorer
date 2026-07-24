@@ -155,6 +155,10 @@ class BuildDataTests(unittest.TestCase):
         self.assertIn("overflow-anchor: none", css)
         self.assertIn("touch-action: pan-x pan-y", css)
         self.assertIn("height: var(--call-inspector-height", css)
+        self.assertIn("call-function-meta", app)
+        self.assertIn("call-function-meta", css)
+        self.assertNotIn('id="currentBranch"', html)
+        self.assertNotIn("branch-chip", app)
 
 
 if __name__ == "__main__":
