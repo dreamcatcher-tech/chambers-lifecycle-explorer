@@ -1349,7 +1349,7 @@
     elements.zoomValue.textContent = "100%";
     elements.zoomOut.disabled = false;
     elements.zoomIn.disabled = false;
-    setView(state.view, { history: "none" });
+    setView(state.view, { history: "none", revealCall: state.view === "trace" && Boolean(params.get("call")) });
     updateUrl("replace");
   }
 
