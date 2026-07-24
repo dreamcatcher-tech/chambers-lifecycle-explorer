@@ -9,7 +9,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 SITE = ROOT / "site"
@@ -144,6 +144,31 @@ def validate_html_and_assets(payload: dict) -> None:
         fail("generated exact-source URL registry is incomplete")
 
 
+def validate_documented_deep_links(payload: dict) -> None:
+    text = (ROOT / "README.md").read_text(encoding="utf-8")
+    examples = re.findall(r"^\?([^\s`]+)$", text, flags=re.MULTILINE)
+    if len(examples) < 4:
+        fail("README must retain document-aware deep-link examples")
+    documents = {document["id"]: document for document in payload["documents"]}
+    for example in examples:
+        params = parse_qs(example)
+        document_id = params.get("doc", [payload["defaultDocumentId"]])[0]
+        document = documents.get(document_id)
+        if not document:
+            fail(f"README deep link names unknown document {document_id!r}")
+        sequences = {sequence["id"]: sequence for sequence in document["sequences"]}
+        functions = {function["id"] for function in document["functions"]}
+        diagram_id = params.get("diagram", [document["sequences"][0]["id"]])[0]
+        if diagram_id not in sequences:
+            fail(f"README deep link names unknown {document_id} diagram {diagram_id!r}")
+        function_id = params.get("function", [None])[0]
+        if function_id and function_id not in functions:
+            fail(f"README deep link names unknown {document_id} function {function_id!r}")
+        call_id = params.get("call", [None])[0]
+        if call_id and call_id not in {call["id"] for call in sequences[diagram_id]["calls"]}:
+            fail(f"README deep link names unknown {document_id}/{diagram_id} call {call_id!r}")
+
+
 def run_build_check() -> None:
     result = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "build_data.py"), "--check"],
@@ -163,6 +188,7 @@ def main() -> None:
     payload = load_bundle()
     validate_manifest_and_bundle(payload)
     validate_html_and_assets(payload)
+    validate_documented_deep_links(payload)
     print("PASS: two exact source snapshots, generated data, app shell, navigation, and publication assets are valid")
 
 

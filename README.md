@@ -50,8 +50,8 @@ Useful document-aware deep links:
 
 ```text
 ?doc=chambers&diagram=selection-rollback&call=selection-rollback-call-5
-?doc=cardflow&diagram=mode-2-queue-inspect-and-wait
-?doc=cardflow&diagram=mode-6-release-and-handoff&view=map
+?doc=cardflow&diagram=queue-inspect-wait
+?doc=cardflow&diagram=release-handoff&view=map
 ?doc=cardflow&view=functions&function=cardflow%3A%3Aresource%3A%3Aclaim
 ```
 
