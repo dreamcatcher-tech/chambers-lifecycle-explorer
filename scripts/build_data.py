@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the static Chambers Atlas data bundle from the authoritative Markdown copy."""
+"""Build the static Lifecycle Atlas bundle from exact authoritative Markdown snapshots."""
 
 from __future__ import annotations
 
@@ -14,11 +14,11 @@ from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE_PATH = ROOT / "source" / "chambers-lifecycle-sequences.md"
-METADATA_PATH = ROOT / "source" / "metadata.json"
+SOURCE_DIR = ROOT / "source"
+MANIFEST_PATH = SOURCE_DIR / "manifest.json"
 OUTPUT_PATH = ROOT / "site" / "data.js"
 
-SEQUENCE_META: dict[str, dict[str, str]] = {
+CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
     "Chamber activation kernel": {
         "id": "activation-kernel",
         "shortTitle": "Activation kernel",
@@ -93,6 +93,118 @@ SEQUENCE_META: dict[str, dict[str, str]] = {
     },
 }
 
+CARDFLOW_SEQUENCE_META: dict[str, dict[str, str]] = {
+    "Mode 1 - Register and claim logical resources": {
+        "id": "register-claim",
+        "shortTitle": "Register and claim",
+        "kicker": "Mode 1",
+        "summary": "How canonical resources become one all-or-none logical lease set for a card.",
+        "question": "How does Cardflow grant a bounded mutation claim without leaking physical authority?",
+        "status": "working",
+    },
+    "Mode 2 - Queue, inspect, and wait": {
+        "id": "queue-inspect-wait",
+        "shortTitle": "Queue, inspect, and wait",
+        "kicker": "Mode 2",
+        "summary": "How blocked cards inspect a revisioned queue, yield durably, and wake without polling.",
+        "question": "How can a waiter remain observable and resumable without holding a live worker?",
+        "status": "working",
+    },
+    "Mode 3 - Materialize the first Chamber session": {
+        "id": "materialize-session",
+        "shortTitle": "Materialize first session",
+        "kicker": "Mode 3",
+        "summary": "How an active logical lease becomes an exact writable workspace and fresh Chamber session.",
+        "question": "Where does Cardflow authority stop and physical owner authority begin?",
+        "status": "working",
+    },
+    "Mode 4 - Continue through another Chamber lease": {
+        "id": "continue-session",
+        "shortTitle": "Continue in a fresh Chamber",
+        "kicker": "Mode 4",
+        "summary": "How one logical holder continues the same workspace lineage through a fresh Chamber.",
+        "question": "Which identities remain stable, and which physical authorities must be minted again?",
+        "status": "working",
+    },
+    "Mode 5 - Renew bounded leases": {
+        "id": "renew-leases",
+        "shortTitle": "Renew bounded leases",
+        "kicker": "Mode 5",
+        "summary": "How Cardflow, Chambers, and Filesystem renew one exact session without widening scope.",
+        "question": "How is every physical deadline kept within the logical lease deadline?",
+        "status": "working",
+    },
+    "Mode 6 - Release and hand off to the next card": {
+        "id": "release-handoff",
+        "shortTitle": "Release and hand off",
+        "kicker": "Mode 6",
+        "summary": "How physical cleanup reaches terminal receipts before logical ownership advances.",
+        "question": "What barrier prevents the next card from inheriting unresolved physical effects?",
+        "status": "working",
+    },
+    "Mode 7 - Cancel, expire, or terminalize": {
+        "id": "cancel-expire",
+        "shortTitle": "Cancel or expire",
+        "kicker": "Mode 7",
+        "summary": "How queued cancellation and active expiry diverge into safe terminal paths.",
+        "question": "When can Cardflow finish locally, and when must it revoke and reconcile a session?",
+        "status": "working",
+    },
+    "Mode 8 - Recover and reconcile": {
+        "id": "recover-reconcile",
+        "shortTitle": "Recover and reconcile",
+        "kicker": "Mode 8",
+        "summary": "How startup recovery compares durable intent with owner observations before acting.",
+        "question": "How does reconciliation avoid blindly replaying materialization after a crash?",
+        "status": "working",
+    },
+    "Mode 9 - Reject bypass and stale authority": {
+        "id": "reject-bypass",
+        "shortTitle": "Reject bypass and staleness",
+        "kicker": "Mode 9",
+        "summary": "How owner gates reject unauthorized acquisition, stale dispatch, and stale mutation.",
+        "question": "Which layer rejects each attempt to bypass current logical or physical authority?",
+        "status": "working",
+    },
+}
+
+DOCUMENT_CONFIGS: OrderedDict[str, dict[str, Any]] = OrderedDict(
+    [
+        (
+            "chambers",
+            {
+                "id": "chambers",
+                "name": "Chambers",
+                "title": "Chambers lifecycle",
+                "subtitle": "Immutable Realizations, fresh Chambers, evidence, selection, and wake",
+                "description": "Explore how exact Realizations become admitted Chambers and move through development, verification, selection, rollback, and quiescence.",
+                "functionHeading": "Engine function table",
+                "functionIntro": "Every I3 and conventional host-boundary function named by the Chambers lifecycle sequences.",
+                "manifestSnapshot": "chambers-lifecycle-sequences.md",
+                "sequenceMeta": CHAMBERS_SEQUENCE_META,
+                "accent": "cyan",
+                "statusLabel": "Current architecture",
+            },
+        ),
+        (
+            "cardflow",
+            {
+                "id": "cardflow",
+                "name": "Cardflow",
+                "title": "Cardflow filesystem leases",
+                "subtitle": "Logical claims, physical sessions, cleanup barriers, and recovery",
+                "description": "Explore the two-layer lease architecture joining Cardflow's logical ownership to Filesystem and Chambers physical authority.",
+                "functionHeading": "I3 function table",
+                "functionIntro": "Every namespaced I3 contract used to claim, wait, materialize, renew, release, reconcile, and reject stale authority.",
+                "manifestSnapshot": "cardflow-filesystem-lease-sequences.md",
+                "sequenceMeta": CARDFLOW_SEQUENCE_META,
+                "accent": "violet",
+                "statusLabel": "Working architecture",
+            },
+        ),
+    ]
+)
+
 
 def clean_markdown(value: str) -> str:
     """Reduce Markdown/table prose to display-safe plain text."""
@@ -119,25 +231,37 @@ def participant_role(label: str, participant_id: str) -> str:
         return "resource"
     if any(
         word in text
-        for word in ("verifier", "tester", "acceptor", "promoter", "attestation", "inspector")
+        for word in ("verifier", "tester", "acceptor", "promoter", "attestation", "inspector", "recovery")
     ):
         return "assurance"
-    if "supervisor" in text:
-        return "control"
-    if "engine" in text:
-        return "engine"
+    if any(word in text for word in ("supervisor", "cardflow", "engine")):
+        return "control" if "engine" not in text else "engine"
     if any(word in text for word in ("chamber", "builder", "candidate", "fixture", "developer", "members")):
         return "chamber"
     return "caller"
 
 
-def parse_function_table(lines: list[str]) -> OrderedDict[str, dict[str, Any]]:
+def implementation_status(raw_function_cell: str) -> str:
+    lowered = raw_function_cell.lower()
+    if "contract extension required" in lowered:
+        return "contract-extension-required"
+    if re.search(r"\brequired\b", lowered):
+        return "required"
+    if "optional later" in lowered or "later" in lowered:
+        return "optional-later"
+    return "existing"
+
+
+def parse_function_table(
+    lines: list[str], table_heading: str
+) -> OrderedDict[str, dict[str, Any]]:
     registry: OrderedDict[str, dict[str, Any]] = OrderedDict()
     in_table_section = False
     owner = ""
+    target = f"## {table_heading}"
 
     for line_number, line in enumerate(lines, start=1):
-        if line.startswith("## Engine function table"):
+        if line.startswith(target):
             in_table_section = True
             continue
         if in_table_section and line.startswith("## "):
@@ -160,21 +284,21 @@ def parse_function_table(lines: list[str]) -> OrderedDict[str, dict[str, Any]]:
         function_id = match.group(1).strip()
         invocation_path = clean_markdown(cells[1])
         contract = clean_markdown(" | ".join(cells[2:]))
+        status = implementation_status(cells[0])
         kind = "host" if "not I3" in invocation_path else "i3"
-        later = "optional later" in cells[0].lower() or "later" in cells[0].lower()
         registry[function_id] = {
             "id": function_id,
-            "owner": owner,
+            "owner": owner or "Document contract",
             "path": invocation_path,
             "kind": kind,
-            "later": later,
+            "implementationStatus": status,
             "contract": contract,
             "sourceLine": line_number,
             "usages": [],
         }
 
     if not registry:
-        raise ValueError("No Engine function-table rows were parsed")
+        raise ValueError(f"No rows were parsed from {table_heading!r}")
     return registry
 
 
@@ -187,8 +311,9 @@ def parse_mermaid_sequence(
     title: str,
     registry: OrderedDict[str, dict[str, Any]],
     ordinal: int,
+    sequence_meta: dict[str, dict[str, str]],
 ) -> dict[str, Any]:
-    meta = dict(SEQUENCE_META.get(title, {}))
+    meta = dict(sequence_meta.get(title, {}))
     diagram_id = meta.pop("id", slugify(title))
     meta.setdefault("shortTitle", title)
     meta.setdefault("kicker", f"Sequence {ordinal}")
@@ -220,8 +345,6 @@ def parse_mermaid_sequence(
                 "type": participant_type,
                 "role": participant_role(label, participant_id),
                 "order": len(participants),
-                "outgoing": [],
-                "incoming": [],
             }
             participants.append(participant)
             participant_index[participant_id] = participant
@@ -311,9 +434,6 @@ def parse_mermaid_sequence(
                 "to": receiver,
                 "function": function_id,
                 "kind": function["kind"],
-                "owner": function["owner"],
-                "later": function["later"],
-                "contract": function["contract"],
                 "context": context_snapshot(fragments),
                 "notes": [],
                 "sourceLine": source_line,
@@ -324,7 +444,6 @@ def parse_mermaid_sequence(
     if not participants or not calls:
         raise ValueError(f"Sequence {title!r} has no participants or calls")
 
-    # Attach each concise diagram note to its nearest call so playback has context without prose walls.
     for note in notes:
         nearest = min(calls, key=lambda call: (abs(call["sourceLine"] - note["sourceLine"]), call["sourceLine"]))
         nearest["notes"].append(note)
@@ -340,18 +459,6 @@ def parse_mermaid_sequence(
             "to": call["to"],
         }
         function["usages"].append(usage)
-        participant_index[call["from"]]["outgoing"].append(call["function"])
-        participant_index[call["to"]]["incoming"].append(call["function"])
-
-    for participant in participants:
-        outgoing_counts = Counter(participant["outgoing"])
-        incoming_counts = Counter(participant["incoming"])
-        participant["outgoing"] = [
-            {"function": name, "count": count} for name, count in outgoing_counts.items()
-        ]
-        participant["incoming"] = [
-            {"function": name, "count": count} for name, count in incoming_counts.items()
-        ]
 
     kinds = Counter(call["kind"] for call in calls)
     return {
@@ -384,7 +491,9 @@ def parse_mermaid_sequence(
 
 
 def parse_sequences(
-    lines: list[str], registry: OrderedDict[str, dict[str, Any]]
+    lines: list[str],
+    registry: OrderedDict[str, dict[str, Any]],
+    sequence_meta: dict[str, dict[str, str]],
 ) -> list[dict[str, Any]]:
     sequences: list[dict[str, Any]] = []
     current_h2 = ""
@@ -402,7 +511,9 @@ def parse_sequences(
                 cursor += 1
             if block and block[0][1].strip() == "sequenceDiagram":
                 sequences.append(
-                    parse_mermaid_sequence(block, current_h2, registry, len(sequences) + 1)
+                    parse_mermaid_sequence(
+                        block, current_h2, registry, len(sequences) + 1, sequence_meta
+                    )
                 )
             index = cursor
         index += 1
@@ -412,46 +523,60 @@ def parse_sequences(
     ids = [sequence["id"] for sequence in sequences]
     if len(ids) != len(set(ids)):
         raise ValueError(f"Duplicate sequence ids: {ids}")
+    expected_titles = set(sequence_meta)
+    actual_titles = {sequence["title"] for sequence in sequences}
+    if expected_titles != actual_titles:
+        raise ValueError(
+            f"Sequence metadata/source mismatch; missing={sorted(expected_titles - actual_titles)}, "
+            f"unexpected={sorted(actual_titles - expected_titles)}"
+        )
     return sequences
 
 
-def build_payload() -> dict[str, Any]:
-    if not SOURCE_PATH.exists():
-        raise FileNotFoundError(f"Missing source document: {SOURCE_PATH}")
-    if not METADATA_PATH.exists():
-        raise FileNotFoundError(f"Missing source metadata: {METADATA_PATH}")
-
-    source_bytes = SOURCE_PATH.read_bytes()
-    source_text = source_bytes.decode("utf-8")
-    lines = source_text.splitlines()
-    metadata = json.loads(METADATA_PATH.read_text(encoding="utf-8"))
+def build_document(
+    config: dict[str, Any], manifest: dict[str, Any], source_entry: dict[str, Any]
+) -> dict[str, Any]:
+    source_path = SOURCE_DIR / source_entry["snapshotPath"]
+    if source_path.parent != SOURCE_DIR or not source_path.exists():
+        raise FileNotFoundError(f"Missing or invalid source snapshot: {source_path}")
+    source_bytes = source_path.read_bytes()
     actual_digest = hashlib.sha256(source_bytes).hexdigest()
-    if metadata.get("documentSha256") != actual_digest:
-        raise ValueError(
-            "source/metadata.json documentSha256 does not match the authoritative Markdown copy"
-        )
-    source_metadata = dict(metadata)
-    source_metadata["url"] = (
-        f"https://github.com/{metadata['repository']}/blob/"
-        f"{metadata['sourceCommit']}/{metadata['path']}"
-    )
+    if source_entry.get("documentSha256") != actual_digest:
+        raise ValueError(f"Manifest digest does not match {source_entry['snapshotPath']}")
 
-    registry = parse_function_table(lines)
-    sequences = parse_sequences(lines, registry)
+    lines = source_bytes.decode("utf-8").splitlines()
+    registry = parse_function_table(lines, config["functionHeading"])
+    sequences = parse_sequences(lines, registry, config["sequenceMeta"])
     function_list = list(registry.values())
     all_calls = [call for sequence in sequences for call in sequence["calls"]]
     kinds = Counter(call["kind"] for call in all_calls)
+    source = dict(source_entry)
+    source["repository"] = manifest["repository"]
+    source["repositoryHead"] = manifest["repositoryHead"]
+    source["url"] = (
+        f"https://github.com/{manifest['repository']}/blob/"
+        f"{source_entry['sourceCommit']}/{source_entry['path']}"
+    )
 
     return {
-        "schemaVersion": 1,
-        "product": {
-            "name": "Chambers Atlas",
-            "subtitle": "Interactive lifecycle sequence explorer",
-        },
-        "source": source_metadata,
+        "id": config["id"],
+        "name": config["name"],
+        "title": config["title"],
+        "subtitle": config["subtitle"],
+        "description": config["description"],
+        "functionIntro": config["functionIntro"],
+        "accent": config["accent"],
+        "statusLabel": config["statusLabel"],
+        "source": source,
         "stats": {
             "sequences": len(sequences),
-            "actors": len({participant["label"] for sequence in sequences for participant in sequence["participants"]}),
+            "actors": len(
+                {
+                    participant["label"]
+                    for sequence in sequences
+                    for participant in sequence["participants"]
+                }
+            ),
             "calls": len(all_calls),
             "i3Calls": kinds.get("i3", 0),
             "hostCalls": kinds.get("host", 0),
@@ -463,11 +588,45 @@ def build_payload() -> dict[str, Any]:
     }
 
 
+def build_payload() -> dict[str, Any]:
+    if not MANIFEST_PATH.exists():
+        raise FileNotFoundError(f"Missing source manifest: {MANIFEST_PATH}")
+    manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    if manifest.get("schemaVersion") != 2:
+        raise ValueError("source/manifest.json must use schemaVersion 2")
+
+    entries = {entry["id"]: entry for entry in manifest.get("documents", [])}
+    if set(entries) != set(DOCUMENT_CONFIGS):
+        raise ValueError(
+            f"Manifest documents must be exactly {sorted(DOCUMENT_CONFIGS)}; got {sorted(entries)}"
+        )
+    documents = [
+        build_document(config, manifest, entries[document_id])
+        for document_id, config in DOCUMENT_CONFIGS.items()
+    ]
+    combined = {
+        "documents": len(documents),
+        "sequences": sum(document["stats"]["sequences"] for document in documents),
+        "calls": sum(document["stats"]["calls"] for document in documents),
+        "functions": sum(document["stats"]["functions"] for document in documents),
+    }
+    return {
+        "schemaVersion": 2,
+        "product": {
+            "name": "Lifecycle Atlas",
+            "subtitle": "Chambers and Cardflow sequence explorer",
+        },
+        "defaultDocumentId": "chambers",
+        "stats": combined,
+        "documents": documents,
+    }
+
+
 def render_bundle(payload: dict[str, Any]) -> str:
     serialized = json.dumps(payload, indent=2, ensure_ascii=False)
     return (
         "/* Generated by scripts/build_data.py. Do not edit by hand. */\n"
-        f"window.CHAMBERS_DATA = {serialized};\n"
+        f"window.LIFECYCLE_ATLAS_DATA = {serialized};\n"
     )
 
 
@@ -480,7 +639,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         payload = build_payload()
         rendered = render_bundle(payload)
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError, KeyError, json.JSONDecodeError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 1
 
@@ -488,18 +647,24 @@ def main(argv: list[str] | None = None) -> int:
         if not OUTPUT_PATH.exists() or OUTPUT_PATH.read_text(encoding="utf-8") != rendered:
             print("ERROR: site/data.js is stale; run python3 scripts/build_data.py", file=sys.stderr)
             return 1
-        print("PASS: site/data.js exactly matches the source document")
+        print("PASS: site/data.js exactly matches both source documents")
     else:
         OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
         OUTPUT_PATH.write_text(rendered, encoding="utf-8")
         print(f"Wrote {OUTPUT_PATH.relative_to(ROOT)}")
 
     if args.print_summary:
+        for document in payload["documents"]:
+            stats = document["stats"]
+            print(
+                f"{document['name']}: {stats['sequences']} sequences · {stats['calls']} calls · "
+                f"{stats['i3Calls']} I3 · {stats['hostCalls']} host-boundary · "
+                f"{stats['functions']} functions"
+            )
         stats = payload["stats"]
         print(
-            f"{stats['sequences']} sequences · {stats['calls']} calls · "
-            f"{stats['i3Calls']} I3 · {stats['hostCalls']} host-boundary · "
-            f"{stats['functions']} functions"
+            f"Combined: {stats['documents']} documents · {stats['sequences']} sequences · "
+            f"{stats['calls']} calls · {stats['functions']} functions"
         )
     return 0
 

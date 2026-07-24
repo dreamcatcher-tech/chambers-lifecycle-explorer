@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta
       name="description"
-      content="Chambers Atlas — an interactive, playable explorer for the Chambers lifecycle sequence diagrams."
+      content="Lifecycle Atlas — an interactive explorer for authoritative Chambers and Cardflow sequence diagrams."
     />
     <meta name="theme-color" content="#071019" />
     <meta name="color-scheme" content="dark" />
-    <title>Chambers Atlas · Lifecycle sequence explorer</title>
+    <title>Lifecycle Atlas · Chambers and Cardflow</title>
     <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
     <link rel="stylesheet" href="./styles.css" />
     <script src="./data.js" defer></script>
@@ -21,20 +21,17 @@
     <div class="ambient ambient-two" aria-hidden="true"></div>
 
     <header class="topbar">
-      <a class="brand" href="./" aria-label="Chambers Atlas lifecycle explorer home">
+      <a class="brand" href="./" title="Lifecycle Atlas home">
         <span class="brand-mark" aria-hidden="true">
           <span></span><span></span><span></span>
         </span>
         <span class="brand-copy">
-          <strong>Chambers Atlas</strong>
-          <small>Lifecycle explorer</small>
+          <strong>Lifecycle Atlas</strong>
+          <small>Chambers × Cardflow</small>
         </span>
       </a>
 
-      <div class="source-pulse" id="sourcePulse" title="Loaded source snapshot">
-        <span class="pulse-dot" aria-hidden="true"></span>
-        <span id="sourcePulseText">Loading source…</span>
-      </div>
+      <nav class="document-switcher" id="documentSwitcher" aria-label="Source document"></nav>
 
       <div class="top-actions">
         <button class="quiet-button command-button" id="searchButton" type="button" aria-label="Search scenes and functions">
@@ -44,14 +41,14 @@
         <button class="icon-button" id="shareButton" type="button" aria-label="Copy a link to this view" title="Copy link">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 12.8 15.7 17m-7.2-5.8L15.7 7M18 20a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm12-5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" /></svg>
         </button>
-        <button class="icon-button" id="helpButton" type="button" aria-label="How to use Chambers Atlas" title="Help">
+        <button class="icon-button" id="helpButton" type="button" aria-label="How to use Lifecycle Atlas" title="Help">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.4 9a2.8 2.8 0 1 1 4.3 2.4c-1 .6-1.7 1.1-1.7 2.4M12 18h.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z" /></svg>
         </button>
       </div>
     </header>
 
     <div class="mobile-scene-bar">
-      <label for="mobileSceneSelect">Journey</label>
+      <select id="mobileDocumentSelect" aria-label="Choose source document"></select>
       <select id="mobileSceneSelect" aria-label="Choose a lifecycle sequence"></select>
       <span id="mobileSceneCount"></span>
     </div>
@@ -59,15 +56,15 @@
     <div class="workspace">
       <aside class="journey-panel" aria-label="Lifecycle sequences">
         <div class="journey-heading">
-          <span class="eyebrow">Explore the journey</span>
-          <p>Select a sequence, then play its calls.</p>
+          <span class="eyebrow" id="journeyEyebrow">Explore the journey</span>
+          <p id="journeyDescription">Select a sequence, then play its calls.</p>
         </div>
         <nav class="journey-list" id="journeyList" aria-label="Sequence list"></nav>
         <div class="source-card">
           <div class="source-card-top">
             <span class="source-icon" aria-hidden="true">⌁</span>
             <div>
-              <strong>Source snapshot</strong>
+              <strong id="sourceFileName">Source snapshot</strong>
               <span id="sourceCommit">—</span>
             </div>
           </div>
@@ -76,7 +73,7 @@
             <div><dt>Calls</dt><dd id="sourceCallCount">—</dd></div>
             <div><dt>Functions</dt><dd id="sourceFunctionCount">—</dd></div>
           </dl>
-          <span class="source-mode">Committed copy · regenerated on publish</span>
+          <span class="source-mode" id="sourceMode">Committed copy · regenerated on publish</span>
           <a class="source-document-link" id="sourceDocumentLink" href="#" target="_blank" rel="noopener noreferrer">
             Open source document <span aria-hidden="true">↗</span>
           </a>
@@ -122,7 +119,7 @@
               <div class="segmented compact" id="callFilter">
                 <button type="button" data-filter="all" class="is-active" aria-pressed="true">All calls</button>
                 <button type="button" data-filter="i3" aria-pressed="false"><i class="legend-dot i3"></i>I3</button>
-                <button type="button" data-filter="host" aria-pressed="false"><i class="legend-dot host"></i>Host code</button>
+                <button type="button" id="hostCallFilter" data-filter="host" aria-pressed="false"><i class="legend-dot host"></i>Host code</button>
               </div>
             </div>
             <label class="select-control">
@@ -147,10 +144,6 @@
                 <div class="call-now-branch" id="currentBranch"></div>
               </div>
 
-              <div class="sequence-viewport" id="sequenceViewport" tabindex="0" aria-label="Interactive sequence lanes">
-                <svg id="sequenceSvg" role="img" aria-labelledby="sequenceSvgTitle sequenceSvgDesc"></svg>
-              </div>
-
               <div class="playback" aria-label="Sequence playback controls">
                 <div class="transport">
                   <button class="transport-button" type="button" id="previousCall" aria-label="Previous call" title="Previous call (left arrow)">
@@ -168,10 +161,14 @@
                   <input id="stepScrubber" type="range" min="0" max="0" value="0" step="1" aria-label="Current call" />
                   <div class="scrubber-meta">
                     <span id="stepProgress">0 / 0</span>
-                    <span id="stepHint">Use ← → or swipe</span>
+                    <span id="stepHint">Selection stays put · scroll manually</span>
                   </div>
                 </div>
-                <button class="speed-button" type="button" id="speedButton" aria-label="Playback speed"><span>Speed</span><strong>1×</strong></button>
+                <button class="speed-button" type="button" id="speedButton" title="Change playback speed"><span>Speed</span><strong>1×</strong></button>
+              </div>
+
+              <div class="sequence-viewport" id="sequenceViewport" tabindex="0" aria-label="Interactive sequence lanes">
+                <svg id="sequenceSvg" role="img" aria-labelledby="sequenceSvgTitle sequenceSvgDesc"></svg>
               </div>
             </article>
 
@@ -185,8 +182,8 @@
           <div class="map-intro">
             <div>
               <span class="eyebrow">Relationship map</span>
-              <h2>Who calls whom?</h2>
-              <p>Line weight is call frequency. Select an actor or connection to isolate its surface.</p>
+              <h2 id="mapIntroTitle">Who calls whom?</h2>
+              <p id="mapIntroText">Line weight is call frequency. Select an actor or connection to isolate its surface.</p>
             </div>
             <div class="role-legend" id="roleLegend" aria-label="Actor role legend"></div>
           </div>
@@ -208,8 +205,8 @@
           <div class="catalog-heading">
             <div>
               <span class="eyebrow">Function surface</span>
-              <h2>Every named lifecycle call</h2>
-              <p>I3 functions and the four critical host-boundary code calls, linked to every diagram usage.</p>
+              <h2 id="functionHeading">Every named lifecycle call</h2>
+              <p id="functionIntro">Every function is linked to its diagram usages.</p>
             </div>
             <label class="catalog-search">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" /></svg>
@@ -221,7 +218,7 @@
             <div class="segmented compact" id="functionFilter" aria-label="Function kind filter">
               <button type="button" data-function-filter="all" class="is-active" aria-pressed="true">All</button>
               <button type="button" data-function-filter="i3" aria-pressed="false"><i class="legend-dot i3"></i>I3</button>
-              <button type="button" data-function-filter="host" aria-pressed="false"><i class="legend-dot host"></i>Host code</button>
+              <button type="button" id="hostFunctionFilter" data-function-filter="host" aria-pressed="false"><i class="legend-dot host"></i>Host code</button>
               <button type="button" data-function-filter="unused" aria-pressed="false">Not pictured</button>
             </div>
             <span id="functionResultCount"></span>
@@ -233,7 +230,7 @@
         </section>
 
         <footer class="site-footer">
-          <span>Chambers Atlas</span>
+          <span id="footerProduct">Lifecycle Atlas</span>
           <a class="footer-source" id="footerSource" href="#" target="_blank" rel="noopener noreferrer">Source loading… ↗</a>
           <button class="text-button" type="button" id="footerHelp">Keyboard &amp; touch guide</button>
         </footer>
@@ -247,7 +244,7 @@
       </div>
       <label class="command-search">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" /></svg>
-        <input id="globalSearch" type="search" placeholder="Try “selection”, “Filesystem”, or “wake_engine”" autocomplete="off" />
+        <input id="globalSearch" type="search" placeholder="Try “selection”, “resource::claim”, or “wake_engine”" autocomplete="off" />
       </label>
       <div class="search-results" id="searchResults"></div>
       <div class="modal-foot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>enter</kbd> open</span><span><kbd>esc</kbd> close</span></div>
@@ -255,7 +252,7 @@
 
     <dialog class="modal help-modal" id="helpDialog" aria-labelledby="helpTitle">
       <div class="modal-head">
-        <div><span class="eyebrow">Orientation</span><h2 id="helpTitle">Read the lifecycle three ways</h2></div>
+        <div><span class="eyebrow">Orientation</span><h2 id="helpTitle">Explore two authorities three ways</h2></div>
         <button class="icon-button" type="button" data-close-dialog="helpDialog" aria-label="Close help">×</button>
       </div>
       <div class="help-grid">
@@ -269,10 +266,10 @@
         <div><kbd>/</kbd><span>Search</span></div>
         <div><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><span>Trace, map, functions</span></div>
       </div>
-      <p class="help-note">On touch screens, swipe across the sequence canvas to step. The diagram itself scrolls horizontally when many actors are present.</p>
+      <p class="help-note">Choose Chambers or Cardflow first. On touch screens, swipe to step or deliberately pan a wide canvas. Selecting and playing calls preserves your canvas position.</p>
     </dialog>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <noscript>This interactive explorer requires JavaScript. The source snapshot remains available in the repository.</noscript>
+    <noscript>This interactive explorer requires JavaScript. The source snapshots remain available in the repository.</noscript>
   </body>
 </html>

@@ -1,11 +1,20 @@
 (() => {
   "use strict";
 
-  const data = window.CHAMBERS_DATA;
-  if (!data || !Array.isArray(data.sequences)) {
+  const atlas = window.LIFECYCLE_ATLAS_DATA;
+  if (!atlas || !Array.isArray(atlas.documents) || atlas.documents.length < 2) {
     document.body.innerHTML = '<main style="padding:2rem;color:#fff">Unable to load the generated lifecycle data.</main>';
     return;
   }
+
+  const params = new URLSearchParams(window.location.search);
+  const documentsById = new Map(atlas.documents.map((documentData) => [documentData.id, documentData]));
+  const requestedDocument = params.get("doc");
+  const initialDocumentId = documentsById.has(requestedDocument) ? requestedDocument : atlas.defaultDocumentId;
+  let data = documentsById.get(initialDocumentId);
+  let sequenceIds = new Set(data.sequences.map((sequence) => sequence.id));
+  let functionIds = new Set(data.functions.map((fn) => fn.id));
+  let functionsById = new Map(data.functions.map((fn) => [fn.id, fn]));
 
   const SVG_NS = "http://www.w3.org/2000/svg";
   const ROLE_COLORS = {
@@ -33,13 +42,11 @@
     { label: "2×", delay: 610 },
   ];
 
-  const params = new URLSearchParams(window.location.search);
-  const sequenceIds = new Set(data.sequences.map((sequence) => sequence.id));
-  const functionIds = new Set(data.functions.map((fn) => fn.id));
   const requestedSequence = params.get("diagram");
   const requestedView = params.get("view");
 
   const state = {
+    documentId: initialDocumentId,
     sequenceId: sequenceIds.has(requestedSequence) ? requestedSequence : data.sequences[0].id,
     view: ["trace", "map", "functions"].includes(requestedView) ? requestedView : "trace",
     callId: params.get("call"),
@@ -55,20 +62,23 @@
     selectedFunctionId: functionIds.has(params.get("function")) ? params.get("function") : null,
     searchIndex: 0,
     toastTimer: null,
+    resizeFrame: null,
     touch: null,
   };
 
   const elements = Object.fromEntries(
     [
-      "sourcePulseText", "journeyList", "sourceCommit", "sourceSequenceCount", "sourceCallCount",
-      "sourceFunctionCount", "sourceDocumentLink", "mobileSceneSelect", "mobileSceneCount", "sceneKicker", "sceneStatus",
-      "sceneTitle", "sceneSummary", "sceneQuestion", "sceneMetrics", "callFilter", "actorFilter",
+      "documentSwitcher", "mobileDocumentSelect", "journeyEyebrow", "journeyDescription", "journeyList",
+      "sourceFileName", "sourceCommit", "sourceSequenceCount", "sourceCallCount", "sourceFunctionCount", "sourceMode",
+      "sourceDocumentLink", "mobileSceneSelect", "mobileSceneCount", "sceneKicker", "sceneStatus",
+      "sceneTitle", "sceneSummary", "sceneQuestion", "sceneMetrics", "callFilter", "hostCallFilter", "actorFilter",
       "zoomOut", "zoomIn", "zoomValue", "callNow", "currentStepNumber", "currentRoute",
       "currentFunction", "currentBranch", "sequenceViewport", "sequenceSvg", "previousCall",
       "playPause", "nextCall", "stepScrubber", "stepProgress", "stepHint", "speedButton",
       "callInspector", "mapScope", "clearMapFocus", "mapViewport", "mapSvg", "mapDetail",
-      "roleLegend", "functionSearch", "functionFilter", "functionResultCount", "functionList",
-      "functionDetail", "footerSource", "searchButton", "shareButton", "helpButton", "footerHelp",
+      "roleLegend", "mapIntroTitle", "mapIntroText", "functionHeading", "functionIntro", "functionSearch",
+      "functionFilter", "hostFunctionFilter", "functionResultCount", "functionList", "functionDetail", "footerProduct",
+      "footerSource", "searchButton", "shareButton", "helpButton", "footerHelp",
       "searchDialog", "globalSearch", "searchResults", "helpDialog", "toast",
     ].map((id) => [id, document.getElementById(id)])
   );
@@ -95,12 +105,6 @@
   function participantMap(sequence = currentSequence()) {
     return new Map(sequence.participants.map((participant) => [participant.id, participant]));
   }
-
-  function functionMap() {
-    return new Map(data.functions.map((fn) => [fn.id, fn]));
-  }
-
-  const functionsById = functionMap();
 
   function visibleCalls(sequence = currentSequence()) {
     return sequence.calls.filter((call) => {
@@ -139,8 +143,18 @@
     return lines;
   }
 
+  function functionStatusLabel(fn) {
+    return {
+      "contract-extension-required": "Contract extension required",
+      required: "Required",
+      "optional-later": "Optional later",
+      existing: fn.usages.length ? "Existing · pictured" : "Existing · not pictured",
+    }[fn.implementationStatus] || (fn.usages.length ? "Pictured" : "Not pictured");
+  }
+
   function updateUrl() {
     const next = new URL(window.location.href);
+    next.searchParams.set("doc", state.documentId);
     next.searchParams.set("diagram", state.sequenceId);
     if (state.view === "trace") next.searchParams.delete("view");
     else next.searchParams.set("view", state.view);
@@ -161,16 +175,39 @@
   function populateStaticChrome() {
     const source = data.source;
     const commit = source.sourceCommit.slice(0, 12);
-    elements.sourcePulseText.textContent = `${commit} · exact snapshot`;
+    document.body.dataset.document = data.id;
+
+    elements.documentSwitcher.innerHTML = atlas.documents.map((documentData) => `
+      <button class="document-tab${documentData.id === state.documentId ? " is-active" : ""}" type="button" data-document-id="${escapeHtml(documentData.id)}" aria-pressed="${documentData.id === state.documentId}">
+        <span>${escapeHtml(documentData.name)}</span>
+        <small>${documentData.stats.sequences} sequences</small>
+      </button>
+    `).join("");
+    elements.mobileDocumentSelect.innerHTML = atlas.documents.map((documentData) => `
+      <option value="${escapeHtml(documentData.id)}">${escapeHtml(documentData.name)}</option>
+    `).join("");
+    elements.mobileDocumentSelect.value = state.documentId;
+
+    elements.journeyEyebrow.textContent = `${data.name} sequences`;
+    elements.journeyDescription.textContent = data.subtitle;
+    elements.sourceFileName.textContent = source.path;
     elements.sourceCommit.textContent = commit;
     elements.sourceSequenceCount.textContent = data.stats.sequences;
     elements.sourceCallCount.textContent = data.stats.calls;
     elements.sourceFunctionCount.textContent = data.stats.functions;
+    elements.sourceMode.textContent = `Exact committed copy · SHA-256 ${source.documentSha256.slice(0, 8)}`;
     elements.sourceDocumentLink.href = source.url;
     elements.sourceDocumentLink.title = `Open ${source.path} at ${commit}`;
-    elements.mobileSceneCount.textContent = `${data.stats.sequences} views`;
+    elements.mobileSceneCount.textContent = `${data.stats.sequences} sequences`;
+    elements.footerProduct.textContent = `Lifecycle Atlas · ${data.name}`;
     elements.footerSource.href = source.url;
-    elements.footerSource.textContent = `${source.repository} · ${commit} · open source ↗`;
+    elements.footerSource.textContent = `${source.repository} · ${commit} · open ${data.name} source ↗`;
+    elements.hostCallFilter.hidden = data.stats.hostCalls === 0;
+    elements.hostFunctionFilter.hidden = data.stats.hostCalls === 0;
+    elements.mapIntroTitle.textContent = `${data.name} relationships`;
+    elements.mapIntroText.textContent = "Line weight is call frequency. Select an actor or connection to isolate its surface.";
+    elements.functionHeading.textContent = `Every named ${data.name} call`;
+    elements.functionIntro.textContent = data.functionIntro;
 
     elements.journeyList.innerHTML = data.sequences.map((sequence, index) => `
       <button class="journey-item${sequence.id === state.sequenceId ? " is-active" : ""}" type="button" data-sequence-id="${escapeHtml(sequence.id)}" aria-current="${sequence.id === state.sequenceId ? "page" : "false"}">
@@ -193,9 +230,18 @@
 
   function renderSceneHeader() {
     const sequence = currentSequence();
-    elements.sceneKicker.textContent = sequence.kicker;
-    elements.sceneStatus.textContent = sequence.status === "later" ? "Later" : sequence.status === "core" ? "Shared kernel" : "Current design";
-    elements.sceneStatus.className = `status-pill${sequence.status === "later" ? " is-later" : sequence.status === "core" ? " is-core" : ""}`;
+    const statusText = {
+      later: "Later",
+      core: "Shared kernel",
+      working: "Working design",
+      current: "Current design",
+    }[sequence.status] || data.statusLabel;
+    const metric = sequence.stats.hostCalls > 0
+      ? [sequence.stats.hostCalls, "Host calls"]
+      : [sequence.stats.i3Calls, "I3 calls"];
+    elements.sceneKicker.textContent = `${data.name} · ${sequence.kicker}`;
+    elements.sceneStatus.textContent = statusText;
+    elements.sceneStatus.className = `status-pill${sequence.status === "later" ? " is-later" : sequence.status === "core" ? " is-core" : sequence.status === "working" ? " is-working" : ""}`;
     elements.sceneTitle.textContent = sequence.shortTitle;
     elements.sceneSummary.textContent = sequence.summary;
     elements.sceneQuestion.textContent = sequence.question;
@@ -203,9 +249,9 @@
       [sequence.stats.actors, "Actors"],
       [sequence.stats.calls, "Calls"],
       [sequence.stats.branches, "Branches"],
-      [sequence.stats.hostCalls, "Host calls"],
+      metric,
     ].map(([value, label]) => `<div class="metric"><strong>${value}</strong><span>${label}</span></div>`).join("");
-    document.title = `${sequence.shortTitle} · Chambers Atlas`;
+    document.title = `${sequence.shortTitle} · ${data.name} · Lifecycle Atlas`;
   }
 
   function renderActorFilter() {
@@ -226,14 +272,18 @@
     elements.mobileSceneSelect.value = state.sequenceId;
   }
 
-  function renderTrace(options = {}) {
+  function renderTrace() {
+    const viewportPosition = {
+      left: elements.sequenceViewport.scrollLeft,
+      top: elements.sequenceViewport.scrollTop,
+    };
     const call = ensureCurrentCall();
     renderSequenceSvg();
+    elements.sequenceViewport.scrollTo({ ...viewportPosition, behavior: "auto" });
     renderCallNow(call);
     renderCallInspector(call);
     updatePlayback(call);
     updateUrl();
-    if (call && options.scroll !== false) window.requestAnimationFrame(() => scrollCallIntoView(call.id, options.smooth !== false));
   }
 
   function renderSequenceSvg() {
@@ -247,7 +297,7 @@
     const left = 54;
     const right = 54;
     const headerHeight = 94;
-    const rowHeight = 74;
+    const rowHeight = 82;
     const width = Math.max(760, left + right + actors.length * laneWidth);
     const height = headerHeight + calls.length * rowHeight + 52;
     const positions = new Map(actors.map((actor, index) => [actor.id, left + laneWidth * index + laneWidth / 2]));
@@ -274,7 +324,7 @@
 
       const group = svgElement("g", {
         class: `svg-actor${focused ? " is-focused" : ""}${dim ? " is-dim" : ""}`,
-        role: "button", tabindex: "0", "aria-label": `${actor.label} ${actor.role.replace("assurance", "gate")}. Focus actor.`,
+        role: "button", tabindex: "0", "aria-description": `Focus ${actor.label} calls.`,
       });
       const rect = svgElement("rect", { x: x - 72, y: 14, width: 144, height: 52, rx: 13 });
       rect.style.stroke = ROLE_COLORS[actor.role];
@@ -300,6 +350,7 @@
 
     calls.forEach((call) => {
       const y = headerHeight + call.index * rowHeight + rowHeight / 2;
+      const lineY = y + 8;
       const x1 = positions.get(call.from);
       const x2 = positions.get(call.to);
       const direction = x2 >= x1 ? 1 : -1;
@@ -312,29 +363,28 @@
       const isCurrent = call.id === state.callId;
       const isPast = currentIndex >= 0 && call.index < currentIndex;
       const branch = call.context.map((context) => context.branch).filter(Boolean).join(" / ");
-      const visibleKind = call.kind === "i3" ? "I3" : "HOST BOUNDARY";
       const group = svgElement("g", {
         class: `call-row ${call.kind}${call.kind === "host" ? " is-host" : ""}${isCurrent ? " is-current" : ""}${!isVisible ? " is-dim" : ""}${isPast ? " is-past" : ""}`,
         "data-call-id": call.id,
         role: "button", tabindex: isVisible ? "0" : "-1",
-        "aria-label": `${String(call.index + 1).padStart(2, "0")} ${call.function} ${visibleKind}${branch ? ` ↳ ${truncate(branch, 52)}` : ""}. Step ${call.index + 1}, ${call.from} to ${call.to}.`,
+        "aria-description": `Step ${call.index + 1}, ${call.from} to ${call.to}.`,
       });
-      group.appendChild(svgElement("rect", { x: 5, y: y - 33, width: width - 10, height: 66, rx: 12, class: "row-hit" }));
-      group.appendChild(svgElement("rect", { x: 8, y: y - 31, width: width - 16, height: 62, rx: 12, class: "row-focus" }));
-      group.appendChild(svgElement("text", { x: 23, y: y + 3, class: "step-number" }, String(call.index + 1).padStart(2, "0")));
-      group.appendChild(svgElement("circle", { cx: start, cy: y, r: 3.6, class: `endpoint ${call.kind}` }));
+      group.appendChild(svgElement("rect", { x: 5, y: y - 38, width: width - 10, height: 76, rx: 12, class: "row-hit" }));
+      group.appendChild(svgElement("rect", { x: 8, y: y - 36, width: width - 16, height: 72, rx: 12, class: "row-focus" }));
+      group.appendChild(svgElement("text", { x: 23, y: lineY + 3, class: "step-number" }, String(call.index + 1).padStart(2, "0")));
+      group.appendChild(svgElement("circle", { cx: start, cy: lineY, r: 3.6, class: `endpoint ${call.kind}` }));
       group.appendChild(svgElement("line", {
-        x1: start, y1: y, x2: end, y2: y, class: `call-line ${call.kind}`,
+        x1: start, y1: lineY, x2: end, y2: lineY, class: `call-line ${call.kind}`,
         "marker-end": `url(#sequence-arrow-${call.kind})`,
       }));
       group.appendChild(svgElement("rect", {
-        x: labelMid - pillWidth / 2, y: y - 24, width: pillWidth, height: 25, rx: 8, class: "call-pill",
+        x: labelMid - pillWidth / 2, y: y - 28, width: pillWidth, height: 25, rx: 8, class: "call-pill",
       }));
-      group.appendChild(svgElement("text", { x: labelMid, y: y - 8, class: "call-text" }, call.function));
+      group.appendChild(svgElement("text", { x: labelMid, y: y - 12, class: "call-text" }, call.function));
       group.appendChild(svgElement("text", {
-        x: labelMid, y: y + 18, class: "svg-kind", fill: call.kind === "i3" ? "#64e7ef" : "#ffb866",
+        x: labelMid, y: y + 28, class: "svg-kind", fill: call.kind === "i3" ? "#64e7ef" : "#ffb866",
       }, call.kind === "i3" ? "I3" : "HOST BOUNDARY"));
-      if (branch) group.appendChild(svgElement("text", { x: 42, y: y + 24, class: "svg-branch" }, `↳ ${truncate(branch, 52)}`));
+      if (branch) group.appendChild(svgElement("text", { x: 42, y: y + 29, class: "svg-branch" }, `↳ ${truncate(branch, 52)}`));
 
       group.addEventListener("click", () => isVisible && setCurrentCall(call.id));
       group.addEventListener("keydown", (event) => {
@@ -416,7 +466,7 @@
       <div class="function-meta">
         <span class="owner-badge">Owner · ${escapeHtml(fn.owner)}</span>
         <span class="usage-badge">${fn.usages.length} usage${fn.usages.length === 1 ? "" : "s"}</span>
-        ${fn.later ? '<span class="owner-badge">Later</span>' : ""}
+        <span class="owner-badge">${escapeHtml(functionStatusLabel(fn))}</span>
       </div>
       <div class="contract-block">
         <h3>Critical contract</h3>
@@ -447,29 +497,13 @@
     elements.playPause.classList.toggle("is-playing", state.playing);
     elements.playPause.setAttribute("aria-label", state.playing ? "Pause sequence" : "Play sequence");
     elements.speedButton.querySelector("strong").textContent = SPEEDS[state.speedIndex].label;
-    elements.speedButton.setAttribute("aria-label", `Speed ${SPEEDS[state.speedIndex].label} · playback speed`);
+
   }
 
-  function scrollCallIntoView(callId, smooth = true) {
-    const row = elements.sequenceSvg.querySelector(`[data-call-id="${CSS.escape(callId)}"]`);
-    if (!row) return;
-    const sequence = currentSequence();
-    const call = sequence.calls.find((item) => item.id === callId);
-    const actors = participantMap(sequence);
-    const actorIndex = sequence.participants.findIndex((participant) => participant.id === call.from);
-    const actorIndexTo = sequence.participants.findIndex((participant) => participant.id === call.to);
-    const laneWidth = sequence.participants.length <= 4 ? 220 : sequence.participants.length <= 6 ? 190 : 174;
-    const centerX = (54 + laneWidth * actorIndex + laneWidth / 2 + 54 + laneWidth * actorIndexTo + laneWidth / 2) / 2;
-    const centerY = 94 + call.index * 74 + 37;
-    const left = Math.max(0, centerX * state.zoom - elements.sequenceViewport.clientWidth / 2);
-    const top = Math.max(0, centerY * state.zoom - elements.sequenceViewport.clientHeight / 2);
-    elements.sequenceViewport.scrollTo({ left, top, behavior: smooth ? "smooth" : "auto" });
-  }
-
-  function setCurrentCall(callId, options = {}) {
+  function setCurrentCall(callId) {
     if (!currentSequence().calls.some((call) => call.id === callId)) return;
     state.callId = callId;
-    renderTrace({ scroll: options.scroll !== false, smooth: options.smooth !== false });
+    renderTrace();
   }
 
   function stepCall(direction) {
@@ -521,7 +555,7 @@
       button.setAttribute("aria-pressed", String(active));
     });
     state.callId = visibleCalls()[0]?.id || null;
-    renderTrace({ smooth: false });
+    renderTrace();
   }
 
   function setActorFilter(actorId) {
@@ -529,7 +563,7 @@
     state.actorFilter = actorId;
     elements.actorFilter.value = actorId;
     state.callId = visibleCalls()[0]?.id || null;
-    renderTrace({ smooth: false });
+    renderTrace();
   }
 
   function setZoom(nextZoom) {
@@ -537,7 +571,52 @@
     elements.zoomValue.textContent = `${Math.round(state.zoom * 100)}%`;
     elements.zoomOut.disabled = state.zoom <= 0.7;
     elements.zoomIn.disabled = state.zoom >= 1.3;
-    renderTrace({ scroll: false });
+    renderTrace();
+  }
+
+  function setDocument(documentId, options = {}) {
+    if (!documentsById.has(documentId)) return;
+    if (documentId === state.documentId) {
+      if (options.sequenceId) setSequence(options.sequenceId);
+      return;
+    }
+
+    const restoreDocumentFocus = elements.documentSwitcher.contains(document.activeElement);
+    stopPlayback();
+    state.documentId = documentId;
+    data = documentsById.get(documentId);
+    sequenceIds = new Set(data.sequences.map((sequence) => sequence.id));
+    functionIds = new Set(data.functions.map((fn) => fn.id));
+    functionsById = new Map(data.functions.map((fn) => [fn.id, fn]));
+    state.sequenceId = sequenceIds.has(options.sequenceId) ? options.sequenceId : data.sequences[0].id;
+    state.callId = currentSequence().calls[0]?.id || null;
+    state.callFilter = "all";
+    state.actorFilter = "";
+    state.mapFocus = null;
+    state.functionFilter = "all";
+    state.functionQuery = "";
+    state.selectedFunctionId = null;
+    elements.functionSearch.value = "";
+    elements.sequenceViewport.scrollTo({ left: 0, top: 0, behavior: "auto" });
+    elements.mapViewport.scrollTo({ left: 0, top: 0, behavior: "auto" });
+
+    populateStaticChrome();
+    if (restoreDocumentFocus) {
+      elements.documentSwitcher.querySelector(`[data-document-id="${CSS.escape(documentId)}"]`)?.focus({ preventScroll: true });
+    }
+    renderSceneHeader();
+    renderActorFilter();
+    elements.callFilter.querySelectorAll("button").forEach((button) => {
+      const active = button.dataset.filter === "all";
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    syncFunctionFilterButtons();
+    if (state.view === "trace") renderTrace();
+    else if (state.view === "map") renderMap();
+    else renderFunctionCatalog();
+    updateUrl();
+    if (options.announce !== false) toast(`${data.name} workspace opened`);
   }
 
   function setSequence(sequenceId) {
@@ -548,6 +627,7 @@
     state.actorFilter = "";
     state.mapFocus = null;
     state.callId = currentSequence().calls[0]?.id || null;
+    elements.sequenceViewport.scrollTo({ left: 0, top: 0, behavior: "auto" });
     updateJourneySelection();
     renderSceneHeader();
     renderActorFilter();
@@ -556,7 +636,7 @@
       button.classList.toggle("is-active", active);
       button.setAttribute("aria-pressed", String(active));
     });
-    if (state.view === "trace") renderTrace({ smooth: false });
+    if (state.view === "trace") renderTrace();
     else if (state.view === "map") renderMap();
     else renderFunctionCatalog();
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -576,7 +656,7 @@
       panel.classList.toggle("is-active", active);
       panel.hidden = !active;
     });
-    if (view === "trace") renderTrace({ scroll: false });
+    if (view === "trace") renderTrace();
     else if (view === "map") renderMap();
     else if (view === "functions") {
       if (!state.selectedFunctionId) state.selectedFunctionId = ensureCurrentCall()?.function || data.functions[0].id;
@@ -600,11 +680,12 @@
     const actors = sequence.participants;
     const actorById = participantMap(sequence);
     const edges = groupMapEdges(sequence);
-    const width = 1000;
-    const height = 640;
+    const availableWidth = elements.mapViewport.clientWidth || 1000;
+    const width = Math.max(680, Math.min(1000, availableWidth));
+    const height = width < 820 ? 590 : 640;
     const center = { x: width / 2, y: height / 2 + 5 };
-    const radiusX = actors.length <= 4 ? 310 : 355;
-    const radiusY = actors.length <= 4 ? 205 : 245;
+    const radiusX = Math.max(230, width / 2 - (actors.length <= 4 ? 112 : 98));
+    const radiusY = actors.length <= 4 ? height / 2 - 92 : height / 2 - 62;
     const positions = new Map();
     actors.forEach((actor, index) => {
       const angle = -Math.PI / 2 + (Math.PI * 2 * index) / actors.length;
@@ -654,7 +735,7 @@
         "data-edge-key": edge.key,
         tabindex: "0",
         role: "button",
-        "aria-label": `${actorById.get(edge.from).label} to ${actorById.get(edge.to).label}: ${edge.calls.length} calls`,
+        "aria-label": `${actorById.get(edge.from).label} to ${actorById.get(edge.to).label}: ${edge.calls.length} ${edge.calls.length === 1 ? "call" : "calls"}`,
       });
       group.appendChild(svgElement("path", {
         d: path,
@@ -684,7 +765,7 @@
       const group = svgElement("g", {
         class: `map-node${focused || edgeFocused ? " is-focused" : ""}${dim ? " is-dim" : ""}`,
         transform: `translate(${position.x} ${position.y})`, role: "button", tabindex: "0",
-        "aria-label": `${actor.label} ${actor.role.toUpperCase()} ${incidentCounts.get(actor.id)} calls. Focus actor.`,
+        "aria-description": `Focus ${actor.label} relationships.`,
       });
       group.appendChild(svgElement("rect", { x: -80, y: -36, width: 160, height: 72, rx: 15, stroke: ROLE_COLORS[actor.role] }));
       group.appendChild(svgElement("rect", { x: -42, y: -36, width: 84, height: 2.5, rx: 2, fill: ROLE_COLORS[actor.role] }));
@@ -693,7 +774,8 @@
       lines.forEach((line, index) => label.appendChild(svgElement("tspan", { x: 0, dy: index ? 13 : 0 }, line)));
       group.append(label);
       group.appendChild(svgElement("text", { x: 0, y: 19, class: "map-role" }, actor.role.toUpperCase()));
-      group.appendChild(svgElement("text", { x: 0, y: 31, class: "map-activity" }, `${incidentCounts.get(actor.id)} calls`));
+      const incidentCount = incidentCounts.get(actor.id);
+      group.appendChild(svgElement("text", { x: 0, y: 31, class: "map-activity" }, `${incidentCount} ${incidentCount === 1 ? "call" : "calls"}`));
       group.addEventListener("click", () => setMapFocus({ type: "actor", id: actor.id }));
       group.addEventListener("keydown", (event) => {
         if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setMapFocus({ type: "actor", id: actor.id }); }
@@ -735,7 +817,7 @@
       elements.mapScope.textContent = "All actors · all calls";
       elements.mapDetail.innerHTML = `
         <span class="kind-badge"><i class="legend-dot i3"></i>Sequence surface</span>
-        <h3>${sequence.stats.actors} actors · ${edges.length} relationships</h3>
+        <h3>${sequence.stats.actors} actors · ${edges.length} relationship${edges.length === 1 ? "" : "s"}</h3>
         <p>Select any actor to see its incoming and outgoing functions, or select a line to inspect every call on that connection.</p>
         <div class="contract-block"><h3>Reading the map</h3><p>Direction follows the arrow. Thicker lines carry more calls. Cyan is I3, amber is host-boundary code, and violet is a mixed connection.</p></div>
       `;
@@ -794,7 +876,7 @@
         <span class="function-card-top"><span class="kind-badge ${fn.kind}"><i class="legend-dot ${fn.kind}"></i>${fn.kind === "i3" ? "I3" : "Host"}</span><span class="usage-badge">${fn.usages.length}×</span></span>
         <code>${escapeHtml(fn.id)}</code>
         <p>${escapeHtml(fn.contract)}</p>
-        <span class="function-card-foot"><span>${escapeHtml(fn.owner)}</span><span>${fn.later ? "Later" : fn.usages.length ? "Pictured" : "Not pictured"}</span></span>
+        <span class="function-card-foot"><span>${escapeHtml(fn.owner)}</span><span>${escapeHtml(functionStatusLabel(fn))}</span></span>
       </button>
     `).join("") : '<div class="empty-results">No function matches those filters.</div>';
     elements.functionList.querySelectorAll("[data-function-id]").forEach((button) => button.addEventListener("click", () => {
@@ -818,7 +900,7 @@
         <span class="usage-badge">${fn.usages.length} usage${fn.usages.length === 1 ? "" : "s"}</span>
       </div>
       <h2 class="inspector-function">${escapeHtml(fn.id)}</h2>
-      <div class="function-meta"><span class="owner-badge">${escapeHtml(fn.owner)}</span><span class="owner-badge">${escapeHtml(fn.path)}</span>${fn.later ? '<span class="owner-badge">Optional later</span>' : ""}</div>
+      <div class="function-meta"><span class="owner-badge">${escapeHtml(fn.owner)}</span><span class="owner-badge">${escapeHtml(fn.path)}</span><span class="owner-badge">${escapeHtml(functionStatusLabel(fn))}</span></div>
       <div class="contract-block"><h3>Critical contract</h3><p>${escapeHtml(fn.contract)}</p></div>
       <div class="context-block">
         <h3>${fn.usages.length ? "Diagram usages" : "Diagram coverage"}</h3>
@@ -873,26 +955,35 @@
 
   function renderGlobalSearch() {
     const query = elements.globalSearch.value.trim().toLowerCase();
-    const sequenceResults = data.sequences.filter((sequence) => !query || `${sequence.shortTitle} ${sequence.summary} ${sequence.question}`.toLowerCase().includes(query));
-    const functions = [...data.functions].sort((a, b) => b.usages.length - a.usages.length || a.id.localeCompare(b.id));
-    const functionResults = functions.filter((fn) => !query || `${fn.id} ${fn.owner} ${fn.contract}`.toLowerCase().includes(query));
-    const limitedSequences = sequenceResults.slice(0, query ? 6 : 5);
-    const limitedFunctions = functionResults.slice(0, query ? 10 : 6);
+    const sequenceResults = atlas.documents.flatMap((documentData) => documentData.sequences.map((sequence) => ({
+      documentId: documentData.id,
+      documentName: documentData.name,
+      sequence,
+    }))).filter(({ documentName, sequence }) => !query || `${documentName} ${sequence.shortTitle} ${sequence.summary} ${sequence.question}`.toLowerCase().includes(query));
+    const functionResults = atlas.documents.flatMap((documentData) => documentData.functions.map((fn) => ({
+      documentId: documentData.id,
+      documentName: documentData.name,
+      fn,
+    }))).filter(({ documentName, fn }) => !query || `${documentName} ${fn.id} ${fn.owner} ${fn.contract}`.toLowerCase().includes(query));
+    sequenceResults.sort((a, b) => Number(b.documentId === state.documentId) - Number(a.documentId === state.documentId) || a.sequence.ordinal - b.sequence.ordinal);
+    functionResults.sort((a, b) => Number(b.documentId === state.documentId) - Number(a.documentId === state.documentId) || b.fn.usages.length - a.fn.usages.length || a.fn.id.localeCompare(b.fn.id));
+    const limitedSequences = sequenceResults.slice(0, query ? 8 : 6);
+    const limitedFunctions = functionResults.slice(0, query ? 12 : 8);
     let html = "";
     if (limitedSequences.length) {
-      html += '<span class="search-section-label">Sequences</span>' + limitedSequences.map((sequence) => `
-        <button class="search-result" type="button" data-search-type="sequence" data-search-id="${escapeHtml(sequence.id)}">
+      html += '<span class="search-section-label">Sequences · both documents</span>' + limitedSequences.map(({ documentId, documentName, sequence }) => `
+        <button class="search-result" type="button" data-search-type="sequence" data-search-document="${escapeHtml(documentId)}" data-search-id="${escapeHtml(sequence.id)}">
           <span class="search-result-icon">${String(sequence.ordinal).padStart(2, "0")}</span>
           <span class="search-result-copy"><strong>${escapeHtml(sequence.shortTitle)}</strong><small>${escapeHtml(sequence.summary)}</small></span>
-          <span class="search-result-kind">${sequence.stats.calls} calls</span>
+          <span class="search-result-kind">${escapeHtml(documentName)} · ${sequence.stats.calls} calls</span>
         </button>
       `).join("");
     }
     if (limitedFunctions.length) {
-      html += '<span class="search-section-label">Functions</span>' + limitedFunctions.map((fn) => `
-        <button class="search-result" type="button" data-search-type="function" data-search-id="${escapeHtml(fn.id)}">
+      html += '<span class="search-section-label">Functions · both documents</span>' + limitedFunctions.map(({ documentId, documentName, fn }) => `
+        <button class="search-result" type="button" data-search-type="function" data-search-document="${escapeHtml(documentId)}" data-search-id="${escapeHtml(fn.id)}">
           <span class="search-result-icon" style="color:${fn.kind === "i3" ? "var(--i3)" : "var(--host)"};background:${fn.kind === "i3" ? "var(--i3-soft)" : "var(--host-soft)"}">${fn.kind === "i3" ? "I3" : "H"}</span>
-          <span class="search-result-copy"><strong><code>${escapeHtml(fn.id)}</code></strong><small>${escapeHtml(fn.owner)} · ${escapeHtml(fn.contract)}</small></span>
+          <span class="search-result-copy"><strong><code>${escapeHtml(fn.id)}</code></strong><small>${escapeHtml(documentName)} · ${escapeHtml(fn.owner)} · ${escapeHtml(fn.contract)}</small></span>
           <span class="search-result-kind">${fn.usages.length}×</span>
         </button>
       `).join("");
@@ -914,10 +1005,16 @@
 
   function activateSearchResult(button) {
     const type = button.dataset.searchType;
+    const documentId = button.dataset.searchDocument;
     const id = button.dataset.searchId;
     elements.searchDialog.close();
-    if (type === "sequence") setSequence(id);
-    else openFunction(id);
+    if (type === "sequence") {
+      if (documentId === state.documentId) setSequence(id);
+      else setDocument(documentId, { sequenceId: id });
+    } else {
+      if (documentId !== state.documentId) setDocument(documentId, { announce: false });
+      openFunction(id);
+    }
   }
 
   function openSearch() {
@@ -950,6 +1047,11 @@
   }
 
   function bindEvents() {
+    elements.documentSwitcher.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-document-id]");
+      if (button) setDocument(button.dataset.documentId);
+    });
+    elements.mobileDocumentSelect.addEventListener("change", () => setDocument(elements.mobileDocumentSelect.value));
     elements.journeyList.addEventListener("click", (event) => {
       const button = event.target.closest("[data-sequence-id]");
       if (button) setSequence(button.dataset.sequenceId);
@@ -1014,6 +1116,13 @@
       else if (event.key === "1") setView("trace");
       else if (event.key === "2") setView("map");
       else if (event.key === "3") setView("functions");
+    });
+
+    window.addEventListener("resize", () => {
+      window.cancelAnimationFrame(state.resizeFrame);
+      state.resizeFrame = window.requestAnimationFrame(() => {
+        if (state.view === "map") renderMap();
+      });
     });
 
     elements.sequenceViewport.addEventListener("touchstart", (event) => {
