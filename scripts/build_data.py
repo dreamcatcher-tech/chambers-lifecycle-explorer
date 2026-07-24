@@ -430,6 +430,11 @@ def build_payload() -> dict[str, Any]:
         raise ValueError(
             "source/metadata.json documentSha256 does not match the authoritative Markdown copy"
         )
+    source_metadata = dict(metadata)
+    source_metadata["url"] = (
+        f"https://github.com/{metadata['repository']}/blob/"
+        f"{metadata['sourceCommit']}/{metadata['path']}"
+    )
 
     registry = parse_function_table(lines)
     sequences = parse_sequences(lines, registry)
@@ -443,7 +448,7 @@ def build_payload() -> dict[str, Any]:
             "name": "Chambers Atlas",
             "subtitle": "Interactive lifecycle sequence explorer",
         },
-        "source": metadata,
+        "source": source_metadata,
         "stats": {
             "sequences": len(sequences),
             "actors": len({participant["label"] for sequence in sequences for participant in sequence["participants"]}),

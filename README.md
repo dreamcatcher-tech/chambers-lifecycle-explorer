@@ -10,6 +10,7 @@ A polished, playable explorer for the Chambers lifecycle sequence reference.
 - **Map** — an actor relationship graph with directed, frequency-weighted connections and call drill-down.
 - **Functions** — the complete function table, including all I3 functions, the four critical conventional host calls, and defined functions not pictured in a diagram.
 - **Exact provenance** — every generated call resolves to the copied function table and the snapshot is bound to its Fundamentals source commit and SHA-256.
+- **Source jump** — the snapshot card and footer open the exact private GitHub source document in a new page for viewers with repository access.
 - **No runtime dependencies** — the published artifact is plain HTML, CSS, JavaScript, and generated data. No CDN or Mermaid runtime is needed.
 
 ## Source and update model

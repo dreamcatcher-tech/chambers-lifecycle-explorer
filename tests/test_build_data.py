@@ -72,6 +72,10 @@ class BuildDataTests(unittest.TestCase):
         digest = hashlib.sha256(source.read_bytes()).hexdigest()
         self.assertEqual(metadata["documentSha256"], digest)
         self.assertEqual(self.payload["source"]["sourceCommit"], metadata["sourceCommit"])
+        self.assertEqual(
+            self.payload["source"]["url"],
+            f"https://github.com/{metadata['repository']}/blob/{metadata['sourceCommit']}/{metadata['path']}",
+        )
 
     def test_playback_has_branch_and_note_context(self) -> None:
         calls = [call for sequence in self.payload["sequences"] for call in sequence["calls"]]

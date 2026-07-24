@@ -12,7 +12,8 @@ window.CHAMBERS_DATA = {
     "sourceCommit": "eb49c29c81db787a0c0353d97a206bd7cd7cb8e2",
     "sourceCommitDate": "2026-07-20T13:06:09Z",
     "documentSha256": "26ab97e41bd47a4eddb8fbe22065fe363aefe250b8ffad78775d5fad83322769",
-    "updateMode": "Committed source snapshot copied from the private Fundamentals repository"
+    "updateMode": "Committed source snapshot copied from the private Fundamentals repository",
+    "url": "https://github.com/dreamcatcher-tech/fundamentals/blob/eb49c29c81db787a0c0353d97a206bd7cd7cb8e2/docs/chambers-lifecycle-sequences.md"
   },
   "stats": {
     "sequences": 9,

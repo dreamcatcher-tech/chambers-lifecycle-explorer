@@ -61,7 +61,7 @@
   const elements = Object.fromEntries(
     [
       "sourcePulseText", "journeyList", "sourceCommit", "sourceSequenceCount", "sourceCallCount",
-      "sourceFunctionCount", "mobileSceneSelect", "mobileSceneCount", "sceneKicker", "sceneStatus",
+      "sourceFunctionCount", "sourceDocumentLink", "mobileSceneSelect", "mobileSceneCount", "sceneKicker", "sceneStatus",
       "sceneTitle", "sceneSummary", "sceneQuestion", "sceneMetrics", "callFilter", "actorFilter",
       "zoomOut", "zoomIn", "zoomValue", "callNow", "currentStepNumber", "currentRoute",
       "currentFunction", "currentBranch", "sequenceViewport", "sequenceSvg", "previousCall",
@@ -166,8 +166,11 @@
     elements.sourceSequenceCount.textContent = data.stats.sequences;
     elements.sourceCallCount.textContent = data.stats.calls;
     elements.sourceFunctionCount.textContent = data.stats.functions;
+    elements.sourceDocumentLink.href = source.url;
+    elements.sourceDocumentLink.title = `Open ${source.path} at ${commit}`;
     elements.mobileSceneCount.textContent = `${data.stats.sequences} views`;
-    elements.footerSource.textContent = `${source.repository} · ${commit}`;
+    elements.footerSource.href = source.url;
+    elements.footerSource.textContent = `${source.repository} · ${commit} · open source ↗`;
 
     elements.journeyList.innerHTML = data.sequences.map((sequence, index) => `
       <button class="journey-item${sequence.id === state.sequenceId ? " is-active" : ""}" type="button" data-sequence-id="${escapeHtml(sequence.id)}" aria-current="${sequence.id === state.sequenceId ? "page" : "false"}">
@@ -271,7 +274,7 @@
 
       const group = svgElement("g", {
         class: `svg-actor${focused ? " is-focused" : ""}${dim ? " is-dim" : ""}`,
-        role: "button", tabindex: "0", "aria-label": `Focus ${actor.label}`,
+        role: "button", tabindex: "0", "aria-label": `${actor.label} ${actor.role.replace("assurance", "gate")}. Focus actor.`,
       });
       const rect = svgElement("rect", { x: x - 72, y: 14, width: 144, height: 52, rx: 13 });
       rect.style.stroke = ROLE_COLORS[actor.role];
@@ -308,11 +311,13 @@
       const isVisible = visibleIds.has(call.id);
       const isCurrent = call.id === state.callId;
       const isPast = currentIndex >= 0 && call.index < currentIndex;
+      const branch = call.context.map((context) => context.branch).filter(Boolean).join(" / ");
+      const visibleKind = call.kind === "i3" ? "I3" : "HOST BOUNDARY";
       const group = svgElement("g", {
         class: `call-row ${call.kind}${call.kind === "host" ? " is-host" : ""}${isCurrent ? " is-current" : ""}${!isVisible ? " is-dim" : ""}${isPast ? " is-past" : ""}`,
         "data-call-id": call.id,
         role: "button", tabindex: isVisible ? "0" : "-1",
-        "aria-label": `Step ${call.index + 1}: ${call.function}, ${call.from} to ${call.to}`,
+        "aria-label": `${String(call.index + 1).padStart(2, "0")} ${call.function} ${visibleKind}${branch ? ` ↳ ${truncate(branch, 52)}` : ""}. Step ${call.index + 1}, ${call.from} to ${call.to}.`,
       });
       group.appendChild(svgElement("rect", { x: 5, y: y - 33, width: width - 10, height: 66, rx: 12, class: "row-hit" }));
       group.appendChild(svgElement("rect", { x: 8, y: y - 31, width: width - 16, height: 62, rx: 12, class: "row-focus" }));
@@ -329,7 +334,6 @@
       group.appendChild(svgElement("text", {
         x: labelMid, y: y + 18, class: "svg-kind", fill: call.kind === "i3" ? "#64e7ef" : "#ffb866",
       }, call.kind === "i3" ? "I3" : "HOST BOUNDARY"));
-      const branch = call.context.map((context) => context.branch).filter(Boolean).join(" / ");
       if (branch) group.appendChild(svgElement("text", { x: 42, y: y + 24, class: "svg-branch" }, `↳ ${truncate(branch, 52)}`));
 
       group.addEventListener("click", () => isVisible && setCurrentCall(call.id));
@@ -443,6 +447,7 @@
     elements.playPause.classList.toggle("is-playing", state.playing);
     elements.playPause.setAttribute("aria-label", state.playing ? "Pause sequence" : "Play sequence");
     elements.speedButton.querySelector("strong").textContent = SPEEDS[state.speedIndex].label;
+    elements.speedButton.setAttribute("aria-label", `Speed ${SPEEDS[state.speedIndex].label} · playback speed`);
   }
 
   function scrollCallIntoView(callId, smooth = true) {
@@ -551,9 +556,9 @@
       button.classList.toggle("is-active", active);
       button.setAttribute("aria-pressed", String(active));
     });
-    renderTrace({ smooth: false });
-    renderMap();
-    if (state.view === "functions") renderFunctionCatalog();
+    if (state.view === "trace") renderTrace({ smooth: false });
+    else if (state.view === "map") renderMap();
+    else renderFunctionCatalog();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -571,8 +576,9 @@
       panel.classList.toggle("is-active", active);
       panel.hidden = !active;
     });
-    if (view === "map") renderMap();
-    if (view === "functions") {
+    if (view === "trace") renderTrace({ scroll: false });
+    else if (view === "map") renderMap();
+    else if (view === "functions") {
       if (!state.selectedFunctionId) state.selectedFunctionId = ensureCurrentCall()?.function || data.functions[0].id;
       renderFunctionCatalog();
     }
@@ -643,16 +649,22 @@
       const actorFocused = state.mapFocus?.type === "actor" && (state.mapFocus.id === edge.from || state.mapFocus.id === edge.to);
       const hasFocus = Boolean(state.mapFocus);
       const dim = hasFocus && !focused && !actorFocused;
-      const group = svgElement("g", { class: "map-edge-group", "data-edge-key": edge.key });
+      const group = svgElement("g", {
+        class: "map-edge-group",
+        "data-edge-key": edge.key,
+        tabindex: "0",
+        role: "button",
+        "aria-label": `${actorById.get(edge.from).label} to ${actorById.get(edge.to).label}: ${edge.calls.length} calls`,
+      });
       group.appendChild(svgElement("path", {
         d: path,
         class: `map-edge ${kind === "mixed" ? "is-mixed" : kind}${focused || actorFocused ? " is-focused" : ""}${dim ? " is-dim" : ""}`,
         "stroke-width": Math.min(5.4, 1.4 + edge.calls.length * 0.65),
         "marker-end": `url(#map-arrow-${kind === "host" ? "host" : kind === "mixed" ? "mixed" : "i3"})`,
       }));
-      const hit = svgElement("path", { d: path, class: "map-edge-hit", tabindex: "0", role: "button", "aria-label": `${actorById.get(edge.from).label} to ${actorById.get(edge.to).label}: ${edge.calls.length} calls` });
-      hit.addEventListener("click", () => setMapFocus({ type: "edge", key: edge.key }));
-      hit.addEventListener("keydown", (event) => {
+      const hit = svgElement("path", { d: path, class: "map-edge-hit" });
+      group.addEventListener("click", () => setMapFocus({ type: "edge", key: edge.key }));
+      group.addEventListener("keydown", (event) => {
         if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setMapFocus({ type: "edge", key: edge.key }); }
       });
       group.appendChild(hit);
@@ -672,7 +684,7 @@
       const group = svgElement("g", {
         class: `map-node${focused || edgeFocused ? " is-focused" : ""}${dim ? " is-dim" : ""}`,
         transform: `translate(${position.x} ${position.y})`, role: "button", tabindex: "0",
-        "aria-label": `${actor.label}, ${incidentCounts.get(actor.id)} calls`,
+        "aria-label": `${actor.label} ${actor.role.toUpperCase()} ${incidentCounts.get(actor.id)} calls. Focus actor.`,
       });
       group.appendChild(svgElement("rect", { x: -80, y: -36, width: 160, height: 72, rx: 15, stroke: ROLE_COLORS[actor.role] }));
       group.appendChild(svgElement("rect", { x: -42, y: -36, width: 84, height: 2.5, rx: 2, fill: ROLE_COLORS[actor.role] }));
@@ -1024,10 +1036,11 @@
     renderSceneHeader();
     renderActorFilter();
     bindEvents();
-    setZoom(1);
-    renderMap();
+    state.zoom = 1;
+    elements.zoomValue.textContent = "100%";
+    elements.zoomOut.disabled = false;
+    elements.zoomIn.disabled = false;
     setView(state.view);
-    if (state.view !== "trace") renderTrace({ scroll: false });
     updateUrl();
   }
 

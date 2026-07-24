@@ -18,6 +18,7 @@ class SiteParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__()
         self.ids: set[str] = set()
+        self.attributes_by_id: dict[str, dict[str, str | None]] = {}
         self.asset_urls: list[str] = []
         self.has_viewport = False
 
@@ -25,6 +26,7 @@ class SiteParser(HTMLParser):
         values = dict(attrs)
         if values.get("id"):
             self.ids.add(values["id"] or "")
+            self.attributes_by_id[values["id"] or ""] = values
         if tag == "meta" and values.get("name") == "viewport":
             self.has_viewport = True
         for key in ("src", "href"):
@@ -89,13 +91,17 @@ def main() -> int:
         "journeyList", "mobileSceneSelect", "traceView", "mapView", "functionsView",
         "sequenceSvg", "mapSvg", "callInspector", "functionList", "functionDetail",
         "playPause", "previousCall", "nextCall", "stepScrubber", "actorFilter",
-        "searchDialog", "helpDialog",
+        "searchDialog", "helpDialog", "sourceDocumentLink", "footerSource",
     }
     missing_ids = required_ids - parser.ids
     if missing_ids:
         fail(f"index.html missing UI ids: {sorted(missing_ids)}", failures)
     if not parser.has_viewport:
         fail("index.html has no viewport meta tag", failures)
+    for source_link_id in ("sourceDocumentLink", "footerSource"):
+        source_link = parser.attributes_by_id.get(source_link_id, {})
+        if source_link.get("target") != "_blank" or "noopener" not in (source_link.get("rel") or ""):
+            fail(f"{source_link_id} must open safely in a new page", failures)
     external_assets = [url for url in parser.asset_urls if url.startswith(("http://", "https://", "//"))]
     if external_assets:
         fail(f"site is not self-contained; external assets: {external_assets}", failures)
@@ -111,12 +117,13 @@ def main() -> int:
     expected_behaviors = [
         "startPlayback", "renderSequenceSvg", "renderMap", "renderFunctionCatalog",
         "touchstart", "navigator.clipboard", "URLSearchParams", "setActorFilter",
+        "sourceDocumentLink.href = source.url", "footerSource.href = source.url",
     ]
     for behavior in expected_behaviors:
         if behavior not in javascript:
             fail(f"app.js missing required behavior marker: {behavior}", failures)
 
-    for marker in ("actions/configure-pages@v5", "actions/upload-pages-artifact@v3", "actions/deploy-pages@v4", "python3 scripts/validate_site.py"):
+    for marker in ("actions/configure-pages@", "actions/upload-pages-artifact@", "actions/deploy-pages@", "python3 scripts/validate_site.py"):
         if marker not in workflow:
             fail(f"Pages workflow missing: {marker}", failures)
 

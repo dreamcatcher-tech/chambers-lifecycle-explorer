@@ -21,7 +21,7 @@
     <div class="ambient ambient-two" aria-hidden="true"></div>
 
     <header class="topbar">
-      <a class="brand" href="./" aria-label="Chambers Atlas home">
+      <a class="brand" href="./" aria-label="Chambers Atlas lifecycle explorer home">
         <span class="brand-mark" aria-hidden="true">
           <span></span><span></span><span></span>
         </span>
@@ -77,6 +77,9 @@
             <div><dt>Functions</dt><dd id="sourceFunctionCount">—</dd></div>
           </dl>
           <span class="source-mode">Committed copy · regenerated on publish</span>
+          <a class="source-document-link" id="sourceDocumentLink" href="#" target="_blank" rel="noopener noreferrer">
+            Open source document <span aria-hidden="true">↗</span>
+          </a>
         </div>
       </aside>
 
@@ -124,7 +127,7 @@
             </div>
             <label class="select-control">
               <span>Focus actor</span>
-              <select id="actorFilter"><option value="">Every actor</option></select>
+              <select id="actorFilter" aria-label="Focus actor"><option value="">Every actor</option></select>
             </label>
             <div class="zoom-control" aria-label="Diagram zoom">
               <button class="icon-button small" type="button" id="zoomOut" aria-label="Zoom out">−</button>
@@ -231,7 +234,7 @@
 
         <footer class="site-footer">
           <span>Chambers Atlas</span>
-          <span id="footerSource">Source loading…</span>
+          <a class="footer-source" id="footerSource" href="#" target="_blank" rel="noopener noreferrer">Source loading… ↗</a>
           <button class="text-button" type="button" id="footerHelp">Keyboard &amp; touch guide</button>
         </footer>
       </main>
