@@ -2,7 +2,7 @@
 
 @layer reset {
   *, *::before, *::after { box-sizing: border-box; }
-  html { min-width: 320px; scroll-behavior: smooth; }
+  html { min-width: 320px; scroll-behavior: smooth; overflow-anchor: none; }
   body, h1, h2, h3, p, dl, dd { margin: 0; }
   button, input, select { font: inherit; }
   button { color: inherit; }

@@ -64,6 +64,8 @@
     toastTimer: null,
     resizeFrame: null,
     revealFrame: null,
+    historyScrollFrame: null,
+    scrubbing: false,
     inspectorHeights: new Map(),
     touch: null,
   };
@@ -154,7 +156,43 @@
     }[fn.implementationStatus] || (fn.usages.length ? "Pictured" : "Not pictured");
   }
 
-  function updateUrl(mode = "replace") {
+  function withInstantPageScroll(callback) {
+    const root = document.documentElement;
+    const previousScrollBehavior = root.style.scrollBehavior;
+    root.style.scrollBehavior = "auto";
+    callback();
+    root.style.scrollBehavior = previousScrollBehavior;
+  }
+
+  function scrollPageTo(top) {
+    withInstantPageScroll(() => window.scrollTo({ top, behavior: "auto" }));
+  }
+
+  function scrollPageBy(delta) {
+    withInstantPageScroll(() => window.scrollBy({ top: delta, behavior: "auto" }));
+  }
+
+  function cancelHistoryScrollSnapshot() {
+    window.cancelAnimationFrame(state.historyScrollFrame);
+    state.historyScrollFrame = null;
+  }
+
+  function persistCurrentHistoryScroll() {
+    if (!window.history.state?.lifecycleAtlas) return;
+    const scrollY = window.scrollY;
+    if (window.history.state.scrollY === scrollY) return;
+    window.history.replaceState({ ...window.history.state, scrollY }, "", window.location.href);
+  }
+
+  function scheduleHistoryScrollSnapshot() {
+    if (state.historyScrollFrame !== null) return;
+    state.historyScrollFrame = window.requestAnimationFrame(() => {
+      state.historyScrollFrame = null;
+      persistCurrentHistoryScroll();
+    });
+  }
+
+  function updateUrl(mode = "replace", originScrollY = window.scrollY) {
     const next = new URL(window.location.href);
     next.searchParams.set("doc", state.documentId);
     next.searchParams.set("diagram", state.sequenceId);
@@ -172,10 +210,18 @@
       view: state.view,
       callId: state.callId,
       functionId: state.view === "functions" ? state.selectedFunctionId : null,
+      scrollY: window.scrollY,
     };
     if (mode === "none") return;
-    if (mode === "push" && next.href !== window.location.href) window.history.pushState(historyState, "", next);
-    else window.history.replaceState(historyState, "", next);
+    cancelHistoryScrollSnapshot();
+    if (mode === "push" && next.href !== window.location.href) {
+      if (window.history.state?.lifecycleAtlas) {
+        window.history.replaceState({ ...window.history.state, scrollY: originScrollY }, "", window.location.href);
+      }
+      window.history.pushState(historyState, "", next);
+    } else {
+      window.history.replaceState(historyState, "", next);
+    }
   }
 
   function toast(message) {
@@ -285,7 +331,22 @@
     elements.mobileSceneSelect.value = state.sequenceId;
   }
 
+  function sequenceFocusIdentity() {
+    const active = document.activeElement;
+    if (!active || !elements.sequenceSvg.contains(active)) return null;
+    if (active.dataset.callId) return { attribute: "data-call-id", value: active.dataset.callId };
+    if (active.dataset.actorId) return { attribute: "data-actor-id", value: active.dataset.actorId };
+    return null;
+  }
+
+  function restoreSequenceFocus(identity) {
+    if (!identity) return;
+    const target = elements.sequenceSvg.querySelector(`[${identity.attribute}="${CSS.escape(identity.value)}"]`);
+    if (target?.getAttribute("tabindex") !== "-1") target?.focus({ preventScroll: true });
+  }
+
   function renderTrace(options = {}) {
+    const focusedControl = sequenceFocusIdentity();
     const horizontalPosition = elements.sequenceViewport.scrollLeft;
     const call = ensureCurrentCall();
     renderSequenceSvg();
@@ -294,6 +355,7 @@
     renderCallInspector(call);
     stabilizeCallInspectorHeight();
     updatePlayback(call);
+    restoreSequenceFocus(focusedControl);
     if (options.revealCall && call) scheduleVerticalCallReveal(call.id);
   }
 
@@ -377,13 +439,7 @@
       let delta = 0;
       if (rect.top < visibleTop) delta = rect.top - visibleTop;
       else if (rect.bottom > visibleBottom) delta = rect.bottom - visibleBottom;
-      if (Math.abs(delta) > 0.5) {
-        const root = document.documentElement;
-        const previousScrollBehavior = root.style.scrollBehavior;
-        root.style.scrollBehavior = "auto";
-        window.scrollBy({ top: delta, behavior: "auto" });
-        root.style.scrollBehavior = previousScrollBehavior;
-      }
+      if (Math.abs(delta) > 0.5) scrollPageBy(delta);
     });
   }
 
@@ -634,9 +690,10 @@
 
   function setCurrentCall(callId, options = {}) {
     if (!currentSequence().calls.some((call) => call.id === callId)) return;
+    const originScrollY = Number.isFinite(options.originScrollY) ? options.originScrollY : window.scrollY;
     state.callId = callId;
     renderTrace({ revealCall: options.reveal !== false });
-    updateUrl(options.history || "push");
+    updateUrl(options.history || "push", originScrollY);
   }
 
   function stepCall(direction, options = {}) {
@@ -686,6 +743,16 @@
     else startPlayback();
   }
 
+  function reconcileFilteredCallSelection() {
+    const originScrollY = window.scrollY;
+    const previousCallId = state.callId;
+    const calls = visibleCalls();
+    if (!calls.some((call) => call.id === state.callId)) state.callId = calls[0]?.id || null;
+    const selectionChanged = state.callId !== previousCallId;
+    renderTrace({ revealCall: selectionChanged });
+    updateUrl(selectionChanged ? "push" : "replace", originScrollY);
+  }
+
   function setCallFilter(filter) {
     stopPlayback();
     state.callFilter = filter;
@@ -694,18 +761,14 @@
       button.classList.toggle("is-active", active);
       button.setAttribute("aria-pressed", String(active));
     });
-    state.callId = visibleCalls()[0]?.id || null;
-    renderTrace({ revealCall: true });
-    updateUrl("replace");
+    reconcileFilteredCallSelection();
   }
 
   function setActorFilter(actorId) {
     stopPlayback();
     state.actorFilter = actorId;
     elements.actorFilter.value = actorId;
-    state.callId = visibleCalls()[0]?.id || null;
-    renderTrace({ revealCall: true });
-    updateUrl("replace");
+    reconcileFilteredCallSelection();
   }
 
   function setZoom(nextZoom) {
@@ -745,8 +808,10 @@
       return;
     }
 
+    const originScrollY = Number.isFinite(options.originScrollY) ? options.originScrollY : window.scrollY;
     const restoreDocumentFocus = elements.documentSwitcher.contains(document.activeElement);
     stopPlayback();
+    state.scrubbing = false;
     state.documentId = documentId;
     data = documentsById.get(documentId);
     sequenceIds = new Set(data.sequences.map((sequence) => sequence.id));
@@ -777,13 +842,15 @@
     });
     syncFunctionFilterButtons();
     renderCurrentView();
-    updateUrl(options.history || "push");
+    updateUrl(options.history || "push", originScrollY);
     if (options.announce !== false) toast(`${data.name} workspace opened`);
   }
 
   function setSequence(sequenceId, options = {}) {
     if (!sequenceIds.has(sequenceId) || sequenceId === state.sequenceId) return;
+    const originScrollY = Number.isFinite(options.originScrollY) ? options.originScrollY : window.scrollY;
     stopPlayback();
+    state.scrubbing = false;
     state.sequenceId = sequenceId;
     state.callFilter = "all";
     state.actorFilter = "";
@@ -799,25 +866,34 @@
       button.setAttribute("aria-pressed", String(active));
     });
     renderCurrentView();
-    updateUrl(options.history || "push");
-    if (options.scroll !== false) window.scrollTo({ top: 0, behavior: "smooth" });
+    updateUrl(options.history || "push", originScrollY);
+    if (options.scroll !== false) {
+      scrollPageTo(0);
+      persistCurrentHistoryScroll();
+    }
   }
 
   function setView(view, options = {}) {
     if (!["trace", "map", "functions"].includes(view)) return;
+    const originScrollY = Number.isFinite(options.originScrollY) ? options.originScrollY : window.scrollY;
     stopPlayback();
+    state.scrubbing = false;
     state.view = view;
     syncViewPanels();
     renderCurrentView({ revealCall: options.revealCall });
-    updateUrl(options.history || "push");
+    updateUrl(options.history || "push", originScrollY);
   }
 
-  function restoreFromLocation() {
+  function restoreFromLocation(event) {
     window.clearInterval(state.timer);
     state.timer = null;
     state.playing = false;
+    state.scrubbing = false;
     window.cancelAnimationFrame(state.revealFrame);
     state.revealFrame = null;
+    cancelHistoryScrollSnapshot();
+    scrollPageTo(window.scrollY);
+    const restoredScrollY = Number.isFinite(event?.state?.scrollY) ? event.state.scrollY : window.scrollY;
 
     const nextParams = new URLSearchParams(window.location.search);
     const requestedDocumentId = nextParams.get("doc");
@@ -855,6 +931,8 @@
     syncFunctionFilterButtons();
     syncViewPanels();
     renderCurrentView();
+    scrollPageTo(restoredScrollY);
+    syncStickyActorHeader();
     updateUrl("replace");
   }
 
@@ -1062,7 +1140,6 @@
       if (!query) return true;
       return `${fn.id} ${fn.owner} ${fn.contract} ${fn.path}`.toLowerCase().includes(query);
     });
-    if (!filtered.some((fn) => fn.id === state.selectedFunctionId)) state.selectedFunctionId = filtered[0]?.id || null;
     elements.functionResultCount.textContent = `${filtered.length} of ${data.functions.length} functions`;
     elements.functionList.innerHTML = filtered.length ? filtered.map((fn) => `
       <button class="function-card ${fn.kind}${fn.id === state.selectedFunctionId ? " is-selected" : ""}" type="button" role="listitem" data-function-id="${escapeHtml(fn.id)}">
@@ -1073,9 +1150,10 @@
       </button>
     `).join("") : '<div class="empty-results">No function matches those filters.</div>';
     elements.functionList.querySelectorAll("[data-function-id]").forEach((button) => button.addEventListener("click", () => {
+      const originScrollY = window.scrollY;
       state.selectedFunctionId = button.dataset.functionId;
       renderFunctionCatalog();
-      updateUrl("push");
+      updateUrl("push", originScrollY);
     }));
     renderFunctionDetail();
   }
@@ -1105,18 +1183,20 @@
     }));
   }
 
-  function openFunction(functionId) {
+  function openFunction(functionId, options = {}) {
     if (!functionIds.has(functionId)) return;
+    const originScrollY = Number.isFinite(options.originScrollY) ? options.originScrollY : window.scrollY;
     state.selectedFunctionId = functionId;
     state.functionQuery = "";
     state.functionFilter = "all";
     elements.functionSearch.value = "";
     syncFunctionFilterButtons();
-    setView("functions");
+    setView("functions", { originScrollY });
   }
 
-  function openCall(callId) {
+  function openCall(callId, options = {}) {
     if (!currentSequence().calls.some((call) => call.id === callId)) return;
+    const originScrollY = Number.isFinite(options.originScrollY) ? options.originScrollY : window.scrollY;
     state.callFilter = "all";
     state.actorFilter = "";
     state.callId = callId;
@@ -1126,14 +1206,15 @@
       button.classList.toggle("is-active", active);
       button.setAttribute("aria-pressed", String(active));
     });
-    setView("trace", { revealCall: true });
+    setView("trace", { revealCall: true, originScrollY });
   }
 
   function setSequenceAndCall(sequenceId, callId) {
+    const originScrollY = window.scrollY;
     if (sequenceId !== state.sequenceId) {
-      setSequence(sequenceId, { history: "none", scroll: false });
+      setSequence(sequenceId, { history: "none", scroll: false, originScrollY });
     }
-    openCall(callId);
+    openCall(callId, { originScrollY });
   }
 
   function syncFunctionFilterButtons() {
@@ -1203,8 +1284,9 @@
       if (documentId === state.documentId) setSequence(id);
       else setDocument(documentId, { sequenceId: id });
     } else {
-      if (documentId !== state.documentId) setDocument(documentId, { announce: false, history: "none" });
-      openFunction(id);
+      const originScrollY = window.scrollY;
+      if (documentId !== state.documentId) setDocument(documentId, { announce: false, history: "none", originScrollY });
+      openFunction(id, { originScrollY });
     }
   }
 
@@ -1264,9 +1346,16 @@
       const index = Number(elements.stepScrubber.value);
       stopPlayback();
       const call = visibleCalls()[index];
-      if (call) setCurrentCall(call.id, { history: "none", reveal: true });
+      if (!call || call.id === state.callId) return;
+      const historyMode = state.scrubbing ? "replace" : "push";
+      state.scrubbing = true;
+      setCurrentCall(call.id, { history: historyMode, reveal: true });
     });
-    elements.stepScrubber.addEventListener("change", () => updateUrl("push"));
+    elements.stepScrubber.addEventListener("change", () => {
+      if (!state.scrubbing) return;
+      state.scrubbing = false;
+      updateUrl("replace");
+    });
     elements.speedButton.addEventListener("click", () => {
       const wasPlaying = state.playing;
       stopPlayback();
@@ -1300,9 +1389,9 @@
     });
 
     document.addEventListener("keydown", (event) => {
-      const tag = event.target.tagName;
-      const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(tag) || event.target.isContentEditable;
-      if (typing || elements.searchDialog.open || elements.helpDialog.open) return;
+      const target = event.target instanceof Element ? event.target : null;
+      const interactive = target?.closest("button, a, input, textarea, select, summary, [role='button'], [contenteditable='true']");
+      if (event.defaultPrevented || interactive || elements.searchDialog.open || elements.helpDialog.open) return;
       if (event.key === "/") { event.preventDefault(); openSearch(); }
       else if (event.key === " ") { event.preventDefault(); if (state.view === "trace") togglePlayback(); }
       else if (event.key === "ArrowLeft" && state.view === "trace") { event.preventDefault(); stopPlayback(); stepCall(-1); }
@@ -1321,7 +1410,10 @@
         syncStickyActorHeader();
       });
     });
-    window.addEventListener("scroll", syncStickyActorHeader, { passive: true });
+    window.addEventListener("scroll", () => {
+      syncStickyActorHeader();
+      scheduleHistoryScrollSnapshot();
+    }, { passive: true });
     elements.sequenceViewport.addEventListener("scroll", syncStickyActorHeader, { passive: true });
     window.addEventListener("popstate", restoreFromLocation);
 
@@ -1340,6 +1432,7 @@
   }
 
   function initialise() {
+    if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
     if (!currentSequence().calls.some((call) => call.id === state.callId)) state.callId = currentSequence().calls[0]?.id || null;
     populateStaticChrome();
     renderSceneHeader();

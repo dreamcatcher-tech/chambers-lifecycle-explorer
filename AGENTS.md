@@ -16,7 +16,8 @@ This repository publishes a public interactive projection of deliberately regist
 - Never auto-pan the sequence canvas horizontally or center selected calls. A selected call may use the primary page scrollbar for the minimum vertical reveal needed to become fully visible; preserve `scrollLeft` exactly and do not move when the call is already vertically visible. The sequence graphic itself must not own a vertical scrollbar.
 - While the primary page scroll passes through a sequence diagram, keep a non-interactive actor-label strip sticky below the page's sticky controls and horizontally synchronized with the diagram. Account for this physical overlay when minimally revealing selected calls.
 - Keep dynamic structural panels stable during within-sequence exploration. The selected-call I3/host inspector reserves the maximum height needed by the active sequence; a sequence change may legitimately establish a different height.
-- Meaningful document, sequence, view, call, and function navigation must create browser-history entries. Back/Forward must restore URL-addressed application state; automated playback may replace the current entry rather than flooding history.
+- Meaningful document, sequence, view, call, and function navigation must create browser-history entries. Back/Forward must restore each URL-addressed application state and its recorded primary-page scroll position; automatic playback may replace the current entry rather than flooding history. Treat one continuous scrub as one entry, and never let filtering silently change a selected call or function without matching URL/history state.
+- Local SVG controls own their Enter/Space keys and must retain focus across sequence rerenders. Global shortcuts must ignore handled events and native/ARIA interactive controls.
 - Keep `site/` self-contained and GitHub Pages compatible; do not add CDN/runtime dependencies unless expressly required.
 - Before publishing, run:
 
