@@ -34,7 +34,7 @@
       <nav class="document-switcher" id="documentSwitcher" aria-label="Source document"></nav>
 
       <div class="top-actions">
-        <button class="quiet-button command-button" id="searchButton" type="button" aria-label="Search scenes and functions">
+        <button class="quiet-button command-button" id="searchButton" type="button" aria-label="Search sequences, functions, and dictionary terms">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" /></svg>
           <span>Search</span><kbd>/</kbd>
         </button>
@@ -72,6 +72,7 @@
             <div><dt>Sequences</dt><dd id="sourceSequenceCount">—</dd></div>
             <div><dt>Calls</dt><dd id="sourceCallCount">—</dd></div>
             <div><dt>Functions</dt><dd id="sourceFunctionCount">—</dd></div>
+            <div><dt>Terms</dt><dd id="sourceDictionaryCount">—</dd></div>
           </dl>
           <span class="source-mode" id="sourceMode">Committed copy · regenerated on publish</span>
           <a class="source-document-link" id="sourceDocumentLink" href="#" target="_blank" rel="noopener noreferrer">
@@ -109,6 +110,11 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4 3 12l5 8m8-16 5 8-5 8M14 3 10 21" /></svg>
             <span>Functions</span>
             <small>Browse the surface</small>
+          </button>
+          <button class="view-tab" type="button" data-view="dictionary" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A3.5 3.5 0 0 1 7.5 2H11v17H7.5A3.5 3.5 0 0 0 4 22V5.5Zm16 0A3.5 3.5 0 0 0 16.5 2H13v17h3.5A3.5 3.5 0 0 1 20 22V5.5Z" /></svg>
+            <span>Dictionary</span>
+            <small>Know every term</small>
           </button>
         </nav>
 
@@ -235,6 +241,29 @@
           </div>
         </section>
 
+        <section class="explorer-view" id="dictionaryView" data-view-panel="dictionary" aria-label="Canonical dictionary" hidden>
+          <div class="catalog-heading dictionary-heading">
+            <div>
+              <span class="eyebrow">Canonical terminology</span>
+              <h2 id="dictionaryHeading">Words with one meaning</h2>
+              <p id="dictionaryIntro">Every definition is generated from this document's authoritative Dictionary section.</p>
+            </div>
+            <label class="catalog-search dictionary-search">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" /></svg>
+              <span class="sr-only">Filter dictionary terms</span>
+              <input id="dictionarySearch" type="search" placeholder="Filter by term, definition, or relation…" autocomplete="off" />
+            </label>
+          </div>
+          <div class="dictionary-toolbar">
+            <span class="dictionary-authority">Generated from <code>## Dictionary</code> in the exact source snapshot</span>
+            <span id="dictionaryResultCount"></span>
+          </div>
+          <div class="dictionary-grid">
+            <div class="dictionary-list" id="dictionaryList" role="list"></div>
+            <aside class="dictionary-detail inspector-card" id="dictionaryDetail" aria-label="Dictionary term detail"></aside>
+          </div>
+        </section>
+
         <footer class="site-footer">
           <span id="footerProduct">Lifecycle Atlas</span>
           <a class="footer-source" id="footerSource" href="#" target="_blank" rel="noopener noreferrer">Source loading… ↗</a>
@@ -250,7 +279,7 @@
       </div>
       <label class="command-search">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m21 21-4.4-4.4m2.4-5.1a7.5 7.5 0 1 1-15 0 7.5 7.5 0 0 1 15 0Z" /></svg>
-        <input id="globalSearch" type="search" placeholder="Try “selection”, “resource::claim”, or “wake_engine”" autocomplete="off" />
+        <input id="globalSearch" type="search" placeholder="Try “Realization”, “resource::claim”, or “wake_engine”" autocomplete="off" />
       </label>
       <div class="search-results" id="searchResults"></div>
       <div class="modal-foot"><span><kbd>↑</kbd><kbd>↓</kbd> move</span><span><kbd>enter</kbd> open</span><span><kbd>esc</kbd> close</span></div>
@@ -258,20 +287,21 @@
 
     <dialog class="modal help-modal" id="helpDialog" aria-labelledby="helpTitle">
       <div class="modal-head">
-        <div><span class="eyebrow">Orientation</span><h2 id="helpTitle">Explore two authorities three ways</h2></div>
+        <div><span class="eyebrow">Orientation</span><h2 id="helpTitle">Explore two authorities four ways</h2></div>
         <button class="icon-button" type="button" data-close-dialog="helpDialog" aria-label="Close help">×</button>
       </div>
       <div class="help-grid">
         <article><span class="help-number">01</span><h3>Trace</h3><p>Play calls in order. Bright cyan is I3; amber crosses the trusted host boundary.</p></article>
         <article><span class="help-number">02</span><h3>Map</h3><p>See actor relationships at once. Click a node or connection to isolate its calls.</p></article>
         <article><span class="help-number">03</span><h3>Functions</h3><p>Search the full contract table, including functions defined but not pictured.</p></article>
+        <article><span class="help-number">04</span><h3>Dictionary</h3><p>Read source-defined meanings, follow related terms, and jump to the exact defining line.</p></article>
       </div>
       <div class="shortcut-table" aria-label="Keyboard shortcuts">
         <div><kbd>space</kbd><span>Play or pause</span></div>
         <div><kbd>←</kbd><kbd>→</kbd><span>Step backward or forward</span></div>
         <div><kbd>home</kbd><span>Reset to first call</span></div>
         <div><kbd>/</kbd><span>Search</span></div>
-        <div><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><span>Trace, map, functions</span></div>
+        <div><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd><span>Trace, map, functions, dictionary</span></div>
       </div>
       <p class="help-note">Choose Chambers or Cardflow first. On touch screens, swipe to step or deliberately pan a wide canvas. Selection preserves horizontal position and moves the primary page only by the minimum needed to reveal the active call.</p>
     </dialog>

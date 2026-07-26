@@ -67,7 +67,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     documents = payload.get("documents", [])
     if [document.get("id") for document in documents] != ["chambers", "cardflow"]:
         fail("bundle must contain Chambers and Cardflow in that order")
-    if payload.get("stats") != {"documents": 2, "sequences": 19, "calls": 165, "functions": 74}:
+    if payload.get("stats") != {"documents": 2, "sequences": 19, "calls": 166, "functions": 74, "dictionaryTerms": 74}:
         fail(f"unexpected combined stats: {payload.get('stats')}")
 
     manifest_by_id = {entry["id"]: entry for entry in manifest.get("documents", [])}
@@ -83,15 +83,26 @@ def validate_manifest_and_bundle(payload: dict) -> None:
         expected_url = f"https://github.com/{manifest['repository']}/blob/{entry['sourceCommit']}/{entry['path']}"
         if source.get("url") != expected_url:
             fail(f"{document['id']} exact source URL is wrong")
-        if not document.get("sequences") or not document.get("functions"):
-            fail(f"{document['id']} has no generated sequence/function content")
+        if not document.get("sequences") or not document.get("functions") or not document.get("dictionary"):
+            fail(f"{document['id']} has no generated sequence/function/dictionary content")
         if any(call["function"] not in {fn["id"] for fn in document["functions"]} for sequence in document["sequences"] for call in sequence["calls"]):
             fail(f"{document['id']} contains an unresolved call")
+        dictionary_ids = {term["id"] for term in document["dictionary"]}
+        if len(dictionary_ids) != len(document["dictionary"]):
+            fail(f"{document['id']} contains duplicate dictionary ids")
+        if any(related not in dictionary_ids for term in document["dictionary"] for related in term["related"]):
+            fail(f"{document['id']} contains an unresolved related dictionary term")
+        source_lines = snapshot.read_text(encoding="utf-8").splitlines()
+        if any(
+            not source_lines[term["sourceLine"] - 1].startswith(f"| {term['term']} |")
+            for term in document["dictionary"]
+        ):
+            fail(f"{document['id']} dictionary source-line binding failed")
 
     chambers, cardflow = documents
-    if chambers["stats"] != {"sequences": 10, "actors": 26, "calls": 99, "i3Calls": 61, "hostCalls": 38, "functions": 41, "usedFunctions": 40}:
+    if chambers["stats"] != {"sequences": 10, "actors": 25, "calls": 100, "i3Calls": 62, "hostCalls": 38, "functions": 41, "usedFunctions": 40, "dictionaryTerms": 44}:
         fail(f"unexpected Chambers stats: {chambers['stats']}")
-    if cardflow["stats"] != {"sequences": 9, "actors": 19, "calls": 66, "i3Calls": 66, "hostCalls": 0, "functions": 33, "usedFunctions": 31}:
+    if cardflow["stats"] != {"sequences": 9, "actors": 19, "calls": 66, "i3Calls": 66, "hostCalls": 0, "functions": 33, "usedFunctions": 31, "dictionaryTerms": 30}:
         fail(f"unexpected Cardflow stats: {cardflow['stats']}")
 
     if [sequence["id"] for sequence in chambers["sequences"][:3]] != ["host-activation", "core-bootstrap", "activation-kernel"]:
@@ -147,7 +158,8 @@ def validate_html_and_assets(payload: dict) -> None:
         "documentSwitcher", "mobileDocumentSelect", "mobileSceneSelect", "journeyList",
         "sourceDocumentLink", "footerSource", "stickyActorHeader", "stickyActorSvg", "sequenceViewport", "sequenceSvg",
         "resetSequence", "playPause", "stepScrubber", "mapViewport", "mapSvg", "functionList",
-        "functionDetail", "searchDialog", "helpDialog",
+        "functionDetail", "dictionaryView", "dictionarySearch", "dictionaryList", "dictionaryDetail",
+        "searchDialog", "helpDialog",
     }
     ids = re.findall(r'\bid="([^"]+)"', html)
     duplicates = sorted({item for item in ids if ids.count(item) > 1})
@@ -181,6 +193,9 @@ def validate_html_and_assets(payload: dict) -> None:
         'id="resetSequence"',
         'window.history.pushState',
         'window.addEventListener("popstate"',
+        'data-view="dictionary"',
+        "renderDictionaryCatalog",
+        "dictionary-source-link",
     ]
     missing_interaction_markers = [marker for marker in interaction_markers if marker not in html + css + app]
     if missing_interaction_markers:
@@ -221,14 +236,19 @@ def validate_documented_deep_links(payload: dict) -> None:
         document = documents.get(document_id)
         if not document:
             fail(f"README deep link names unknown document {document_id!r}")
+        assert document is not None
         sequences = {sequence["id"]: sequence for sequence in document["sequences"]}
         functions = {function["id"] for function in document["functions"]}
+        dictionary = {term["id"] for term in document["dictionary"]}
         diagram_id = params.get("diagram", [document["sequences"][0]["id"]])[0]
         if diagram_id not in sequences:
             fail(f"README deep link names unknown {document_id} diagram {diagram_id!r}")
         function_id = params.get("function", [None])[0]
         if function_id and function_id not in functions:
             fail(f"README deep link names unknown {document_id} function {function_id!r}")
+        term_id = params.get("term", [None])[0]
+        if term_id and term_id not in dictionary:
+            fail(f"README deep link names unknown {document_id} dictionary term {term_id!r}")
         call_id = params.get("call", [None])[0]
         if call_id and call_id not in {call["id"] for call in sequences[diagram_id]["calls"]}:
             fail(f"README deep link names unknown {document_id}/{diagram_id} call {call_id!r}")

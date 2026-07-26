@@ -300,7 +300,7 @@
   .source-card-top div { display: grid; gap: 2px; }
   .source-card-top strong { font-size: 0.71rem; }
   .source-card-top span { color: var(--muted); font: 0.62rem/1 var(--mono); }
-  .source-card dl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 14px; }
+  .source-card dl { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px 6px; margin-top: 14px; }
   .source-card dl div { display: grid; gap: 3px; }
   .source-card dt { color: var(--muted); font-size: 0.55rem; text-transform: uppercase; }
   .source-card dd { font: 650 0.77rem/1 var(--mono); }
@@ -349,7 +349,7 @@
 
   .view-switcher {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     max-width: 1360px;
     margin: 0 auto 16px;
     padding: 5px;
@@ -652,9 +652,9 @@
   .inspector-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 20px; }
   .inspector-actions button { min-height: 44px; }
 
-  .map-intro, .catalog-heading { display: flex; align-items: end; justify-content: space-between; gap: 25px; margin: 27px 2px 14px; }
-  .map-intro h2, .catalog-heading h2 { margin-top: 6px; font-size: clamp(1.25rem, 2.1vw, 1.75rem); letter-spacing: -0.035em; }
-  .map-intro p, .catalog-heading p { margin-top: 7px; color: var(--muted); font-size: 0.75rem; line-height: 1.5; }
+  .map-intro, .catalog-heading, .dictionary-heading { display: flex; align-items: end; justify-content: space-between; gap: 25px; margin: 27px 2px 14px; }
+  .map-intro h2, .catalog-heading h2, .dictionary-heading h2 { margin-top: 6px; font-size: clamp(1.25rem, 2.1vw, 1.75rem); letter-spacing: -0.035em; }
+  .map-intro p, .catalog-heading p, .dictionary-heading p { margin-top: 7px; color: var(--muted); font-size: 0.75rem; line-height: 1.5; }
   .role-legend { display: flex; flex-wrap: wrap; justify-content: end; gap: 6px 11px; max-width: 510px; }
   .role-legend span { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 0.58rem; }
   .role-legend i { width: 7px; height: 7px; border-radius: 2px; }
@@ -729,6 +729,33 @@
   .usage-link strong { color: var(--i3); font: 0.58rem/1 var(--mono); }
   .usage-link span { min-width: 0; overflow: hidden; color: var(--muted-strong); font-size: 0.62rem; text-overflow: ellipsis; white-space: nowrap; }
   .usage-link small { color: var(--muted); font-size: 0.52rem; }
+  .dictionary-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: rgba(11, 23, 32, 0.6); color: var(--muted); font-size: 0.62rem; }
+  .dictionary-authority code { color: var(--doc-accent); font-size: 0.62rem; }
+  #dictionaryResultCount { flex: 0 0 auto; font: 0.6rem/1 var(--mono); }
+  .dictionary-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 12px; align-items: start; }
+  .dictionary-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .dictionary-card { position: relative; display: grid; gap: 10px; min-width: 0; min-height: 142px; padding: 16px; border: 1px solid var(--line); border-radius: 15px; background: linear-gradient(145deg, rgba(16, 31, 42, 0.76), rgba(9, 19, 27, 0.82)); color: var(--muted-strong); text-align: left; transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease; }
+  .dictionary-card::after { position: absolute; right: 0; bottom: 0; left: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--doc-accent), transparent); content: ""; opacity: 0; }
+  .dictionary-card:hover, .dictionary-card.is-selected { border-color: color-mix(in srgb, var(--doc-accent) 35%, transparent); transform: translateY(-1px); box-shadow: 0 12px 25px rgba(0, 0, 0, 0.17); }
+  .dictionary-card.is-selected::after { opacity: 0.75; }
+  .dictionary-card-top, .dictionary-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .dictionary-card-top strong { min-width: 0; overflow-wrap: anywhere; color: var(--text); font-size: 0.78rem; }
+  .dictionary-card-top span, .dictionary-card-foot { color: var(--muted); font: 0.53rem/1.25 var(--mono); }
+  .dictionary-card p { display: -webkit-box; overflow: hidden; color: var(--muted); font-size: 0.67rem; line-height: 1.55; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+  .dictionary-card-foot { margin-top: auto; }
+  .dictionary-detail { min-height: 480px; }
+  .dictionary-source-badge { display: inline-flex; align-items: center; min-height: 25px; padding: 0 9px; border: 1px solid color-mix(in srgb, var(--doc-accent) 28%, transparent); border-radius: 999px; background: color-mix(in srgb, var(--doc-accent) 8%, transparent); color: var(--doc-accent); font: 700 0.54rem/1 var(--mono); text-transform: uppercase; }
+  .dictionary-term-title { margin-top: 18px; overflow-wrap: anywhere; font-size: 1.35rem; letter-spacing: -0.03em; }
+  .dictionary-definition { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--line); }
+  .dictionary-definition h3, .dictionary-relations h3 { color: var(--muted); font-size: 0.57rem; letter-spacing: 0.13em; text-transform: uppercase; }
+  .dictionary-definition p { margin-top: 9px; color: var(--muted-strong); font-size: 0.77rem; line-height: 1.68; }
+  .dictionary-relations > p { margin-top: 9px; color: var(--muted); font-size: 0.68rem; line-height: 1.5; }
+  .related-term-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+  .related-term-list button { min-height: 36px; padding: 0 11px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255, 255, 255, 0.025); color: var(--muted-strong); font-size: 0.63rem; }
+  .related-term-list button:hover { border-color: color-mix(in srgb, var(--doc-accent) 38%, transparent); color: var(--text); }
+  .dictionary-source-link { display: flex; align-items: center; justify-content: space-between; min-height: 46px; margin-top: 22px; padding: 0 12px; border: 1px solid var(--line); border-radius: 11px; color: var(--muted-strong); font-size: 0.65rem; text-decoration: none; }
+  .dictionary-source-link:hover { border-color: color-mix(in srgb, var(--doc-accent) 38%, transparent); color: var(--doc-accent); }
+  .dictionary-result-icon { color: var(--doc-accent); background: color-mix(in srgb, var(--doc-accent) 11%, transparent); font-weight: 750; }
   .empty-results { grid-column: 1 / -1; display: grid; place-items: center; min-height: 220px; padding: 25px; border: 1px dashed var(--line-strong); border-radius: 16px; color: var(--muted); font-size: 0.72rem; text-align: center; }
 
   .site-footer { display: flex; justify-content: space-between; gap: 20px; max-width: 1360px; margin: 32px auto 0; padding: 18px 2px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.61rem; }
@@ -767,7 +794,7 @@
   .modal-foot span { display: flex; align-items: center; gap: 5px; }
   .modal-foot kbd, .shortcut-table kbd { padding: 4px 6px; border: 1px solid var(--line-strong); border-radius: 6px; background: rgba(255, 255, 255, 0.025); color: var(--muted-strong); font-size: 0.55rem; }
   .help-modal { width: min(780px, calc(100vw - 32px)); padding-bottom: 20px; }
-  .help-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; padding: 3px 22px 18px; }
+  .help-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 9px; padding: 3px 22px 18px; }
   .help-grid article { min-height: 170px; padding: 16px; border: 1px solid var(--line); border-radius: 15px; background: rgba(255, 255, 255, 0.018); }
   .help-number { color: var(--i3); font: 0.62rem/1 var(--mono); }
   .help-grid h3 { margin-top: 25px; font-size: 0.9rem; }
@@ -825,7 +852,7 @@
     .call-inspector .contract-block { grid-row: 1 / span 3; margin-top: 0; padding-top: 0; border-top: 0; }
     .call-inspector .context-block { margin-top: 0; }
     .call-inspector .inspector-actions { align-self: end; }
-    .catalog-grid { grid-template-columns: minmax(0, 1fr) 330px; }
+    .catalog-grid, .dictionary-grid { grid-template-columns: minmax(0, 1fr) 330px; }
   }
 
   @media (max-width: 1040px) {
@@ -851,9 +878,10 @@
     .mobile-scene-bar > span { color: var(--muted); font: 0.58rem/1 var(--mono); }
     main { padding-top: 36px; }
     .scene-heading { align-items: start; }
-    .catalog-grid { grid-template-columns: minmax(0, 1fr); }
-    .function-detail { position: relative; order: -1; }
+    .catalog-grid, .dictionary-grid { grid-template-columns: minmax(0, 1fr); }
+    .function-detail, .dictionary-detail { position: relative; order: -1; }
     .function-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .dictionary-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   }
 
   @media (max-width: 800px) {
@@ -881,6 +909,7 @@
     .role-legend { justify-content: start; }
     .catalog-search { width: 100%; max-width: none; }
     .function-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dictionary-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .site-footer { flex-wrap: wrap; }
   }
 
@@ -903,9 +932,9 @@
     .metric { min-height: 58px; padding: 9px 6px; text-align: center; }
     .metric span { font-size: 0.5rem; }
     .view-switcher { gap: 3px; padding: 4px; }
-    .view-tab { display: flex; min-height: 48px; padding: 7px 8px; }
-    .view-tab svg { width: 18px; height: 18px; }
-    .view-tab span { font-size: 0.67rem; }
+    .view-tab { display: flex; justify-content: center; min-height: 48px; padding: 7px 4px; }
+    .view-tab svg { display: none; }
+    .view-tab span { font-size: 0.62rem; }
     .tool-row { align-items: stretch; padding: 8px; }
     .filter-group { display: grid; width: 100%; }
     .tool-label { display: none; }
@@ -931,10 +960,13 @@
     .map-intro, .catalog-heading { margin-top: 22px; }
     .map-viewport { min-height: 520px; }
     .catalog-toolbar { display: grid; }
+    .dictionary-toolbar { display: grid; }
     #functionFilter { grid-template-columns: repeat(2, 1fr); }
     #functionResultCount { padding: 2px 4px; }
     .function-list { grid-template-columns: 1fr; }
+    .dictionary-list { grid-template-columns: 1fr; }
     .function-card { min-height: 112px; }
+    .dictionary-card { min-height: 126px; }
     .site-footer { display: grid; gap: 9px; }
     .modal { width: calc(100vw - 16px); max-height: calc(100vh - 16px); border-radius: 18px; }
     .modal-head { padding: 17px 16px 13px; }

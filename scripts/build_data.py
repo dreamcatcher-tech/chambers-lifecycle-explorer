@@ -231,6 +231,85 @@ def slugify(value: str) -> str:
     return value.strip("-")
 
 
+def parse_dictionary(lines: list[str]) -> list[dict[str, Any]]:
+    """Parse the one authoritative ``## Dictionary`` table in a source document."""
+    heading_indexes = [index for index, line in enumerate(lines) if line == "## Dictionary"]
+    if len(heading_indexes) != 1:
+        raise ValueError(f"Expected exactly one ## Dictionary section; found {len(heading_indexes)}")
+
+    section_start = heading_indexes[0]
+    section_end = next(
+        (index for index in range(section_start + 1, len(lines)) if lines[index].startswith("## ")),
+        len(lines),
+    )
+    header = "| Term | Definition | Related terms |"
+    header_indexes = [
+        index for index in range(section_start + 1, section_end) if lines[index] == header
+    ]
+    if len(header_indexes) != 1:
+        raise ValueError(
+            f"Dictionary must contain exactly one canonical table header {header!r}; "
+            f"found {len(header_indexes)}"
+        )
+
+    header_index = header_indexes[0]
+    if header_index + 1 >= section_end or lines[header_index + 1] != "| --- | --- | --- |":
+        raise ValueError("Dictionary table must use the canonical three-column separator")
+
+    raw_entries: list[dict[str, Any]] = []
+    for index in range(header_index + 2, section_end):
+        line = lines[index]
+        if not line.startswith("|"):
+            if raw_entries:
+                break
+            continue
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+        if len(cells) != 3:
+            raise ValueError(f"Dictionary row at source line {index + 1} must have exactly three cells")
+        term, definition, related_text = map(clean_markdown, cells)
+        if not term or not definition:
+            raise ValueError(f"Dictionary row at source line {index + 1} has an empty term or definition")
+        raw_entries.append(
+            {
+                "id": slugify(term),
+                "term": term,
+                "definition": definition,
+                "relatedNames": [] if related_text in {"", "—"} else [
+                    clean_markdown(item) for item in related_text.split(";") if clean_markdown(item)
+                ],
+                "sourceLine": index + 1,
+            }
+        )
+
+    if not raw_entries:
+        raise ValueError("Dictionary table has no terms")
+    terms = [entry["term"] for entry in raw_entries]
+    ids = [entry["id"] for entry in raw_entries]
+    if len(terms) != len(set(terms)):
+        raise ValueError(f"Dictionary has duplicate terms: {terms}")
+    if len(ids) != len(set(ids)) or any(not item for item in ids):
+        raise ValueError(f"Dictionary terms do not have unique non-empty slugs: {ids}")
+    if terms != sorted(terms, key=str.casefold):
+        raise ValueError("Dictionary terms must be alphabetized case-insensitively")
+
+    ids_by_term = {entry["term"]: entry["id"] for entry in raw_entries}
+    entries: list[dict[str, Any]] = []
+    for entry in raw_entries:
+        unknown = [name for name in entry["relatedNames"] if name not in ids_by_term]
+        if unknown:
+            raise ValueError(f"Dictionary term {entry['term']!r} names unknown related terms: {unknown}")
+        entries.append(
+            {
+                "id": entry["id"],
+                "term": entry["term"],
+                "definition": entry["definition"],
+                "related": [ids_by_term[name] for name in entry["relatedNames"]],
+                "sourceLine": entry["sourceLine"],
+            }
+        )
+    return entries
+
+
 def participant_role(label: str, participant_id: str) -> str:
     text = f"{label} {participant_id}".lower()
     if (
@@ -589,6 +668,7 @@ def build_document(
         raise ValueError(f"Manifest digest does not match {source_entry['snapshotPath']}")
 
     lines = source_bytes.decode("utf-8").splitlines()
+    dictionary = parse_dictionary(lines)
     registry = parse_function_table(lines, config["functionHeading"])
     sequences = parse_sequences(lines, registry, config["sequenceMeta"])
     function_list = list(registry.values())
@@ -626,9 +706,11 @@ def build_document(
             "hostCalls": kinds.get("host", 0),
             "functions": len(function_list),
             "usedFunctions": sum(bool(function["usages"]) for function in function_list),
+            "dictionaryTerms": len(dictionary),
         },
         "sequences": sequences,
         "functions": function_list,
+        "dictionary": dictionary,
     }
 
 
@@ -653,6 +735,7 @@ def build_payload() -> dict[str, Any]:
         "sequences": sum(document["stats"]["sequences"] for document in documents),
         "calls": sum(document["stats"]["calls"] for document in documents),
         "functions": sum(document["stats"]["functions"] for document in documents),
+        "dictionaryTerms": sum(document["stats"]["dictionaryTerms"] for document in documents),
     }
     return {
         "schemaVersion": 2,
@@ -703,12 +786,13 @@ def main(argv: list[str] | None = None) -> int:
             print(
                 f"{document['name']}: {stats['sequences']} sequences · {stats['calls']} calls · "
                 f"{stats['i3Calls']} I3 · {stats['hostCalls']} host-boundary · "
-                f"{stats['functions']} functions"
+                f"{stats['functions']} functions · {stats['dictionaryTerms']} dictionary terms"
             )
         stats = payload["stats"]
         print(
             f"Combined: {stats['documents']} documents · {stats['sequences']} sequences · "
-            f"{stats['calls']} calls · {stats['functions']} functions"
+            f"{stats['calls']} calls · {stats['functions']} functions · "
+            f"{stats['dictionaryTerms']} dictionary terms"
         )
     return 0
 

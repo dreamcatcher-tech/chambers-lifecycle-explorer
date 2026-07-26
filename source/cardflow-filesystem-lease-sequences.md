@@ -35,6 +35,7 @@ application acquisition path.
 
 ## Contents
 
+- [Dictionary](#dictionary)
 - [Lease axioms](#lease-axioms)
 - [I3 function table](#i3-function-table)
 - [Authoring and state shapes](#authoring-and-state-shapes)
@@ -50,6 +51,46 @@ application acquisition path.
 - [Mode 9 - Reject bypass and stale authority](#mode-9---reject-bypass-and-stale-authority)
 - [Failure and recovery formulas](#failure-and-recovery-formulas)
 - [Implementation handoff](#implementation-handoff)
+
+## Dictionary
+
+This section is the terminology source of truth for this document and every generated projection of it.
+Where a term belongs to Chambers, the definition below deliberately defers to the Chambers lifecycle
+authority rather than creating a Cardflow variant. Each term is unique in this table. **Definition** is
+normative; **Related terms** is navigational and does not alter the definition.
+
+| Term | Definition | Related terms |
+| --- | --- | --- |
+| Attachment generation | Fresh Filesystem and Chambers authority binding one Workspace generation to one exact intended Chamber and mount. | Attachment permit; Chamber session; Workspace generation |
+| Attachment permit | A one-use capability binding an exact Workspace generation, mount name, intended Chamber, access mode, owner, and deadline. | Attachment generation; Chamber session |
+| Attempt ID | The identity of one exact execution attempt by the Holder card. A retry creates a fresh Attempt ID. | Chamber session; Holder card |
+| Card | One durable Cardflow work or resource record. A work Card may hold a logical lease; a Resource card is only the projection of a protected resource. | Holder card; Resource card |
+| Cardflow | The logical workflow and card authority that orders conflicting cards, owns claim and wait state, and grants logical leases. It does not own physical Chamber or Filesystem authority. | Logical lease; Service principal |
+| Chamber | The Chambers-defined ephemeral host-local activation of one exact Realization. Cardflow coordinates references to Chambers but never creates a second physical identity. | Chamber ID; Chamber lease; Realization |
+| Chamber ID | One fresh physical activation identity owned by Chambers. Retry or restart always receives a new Chamber ID. | Chamber; Chamber lease; Chamber session |
+| Chamber lease | Chambers-owned bounded authority for one exact physical Chamber. It is distinct from and cannot outlive the Cardflow logical authority authorizing managed mutation. | Chamber ID; Logical lease |
+| Chamber session | Cardflow's durable coordination link from one Materialization request ID and Attempt ID to exact workspace, attachment, Chamber, lease, and cleanup receipt references as they become known. It is not physical authority. | Attempt ID; Chamber lease; Materialization request ID |
+| Claim request ID | The idempotency identity of one Card request for one exact protected resource set and access mode. | Logical lease set; Resource ID |
+| Covenant | The Chambers-defined location-independent promise. Cardflow may depend on a Covenant but does not alter its lifecycle identity. | Realization |
+| Engine | The I3 transport and routing actor. Sequence arrows name the semantic caller and the actor that registered the target I3 function; ordinary Engine brokerage is intentionally omitted. | I3 function |
+| Filesystem | The authority for mutable workspace identity, writer fencing, attachment capabilities, snapshots, commits, and provider cleanup. | Workspace generation; Workspace identity |
+| Holder card | The exact non-resource Card granted one Logical lease. Child cards and retries do not become new holders implicitly. | Card; Logical lease |
+| I3 function | A named function registered by one owning actor and invoked at that actor. Sequence diagrams omit Engine's ordinary brokerage path and show Engine only for Engine-owned functions. | Engine; Service principal |
+| Logical fence | The monotonically increasing per-resource holder epoch minted by Cardflow whenever logical ownership changes. | Logical lease; Resource ID; Workspace generation |
+| Logical lease | One granted Cardflow claim held by one exact Holder card. It may remain active with zero live Chambers and span several sequential Chamber leases. | Chamber lease; Holder card; Logical fence |
+| Logical lease set | One atomic Cardflow grant over one or more Resource IDs with one Logical fence per resource. | Claim request ID; Logical lease; Resource ID |
+| Materialization request ID | One deterministic Cardflow request to obtain or reconcile an exact physical Chamber session under a current Logical lease. | Chamber session; Logical lease |
+| Owner receipt | Durable evidence produced by the authority that performed an effect and referenced by Cardflow without becoming independently mutable Cardflow state. | Cardflow; Filesystem; Procman |
+| Procman | The Chambers-defined physical lifecycle authority for Chamber admission, activation, stop, reaping, and receipts. Cardflow holds references to its outcomes, not its state. | Chamber lease; Owner receipt |
+| Protected mutable resource | One canonical mutable backing and conflict namespace whose aliases and mount paths do not create independent acquisition scopes. | Resource ID; Workspace identity |
+| Realization | The Chambers-defined immutable executable lifecycle identity from which a Chamber is activated. Cardflow stores exact references but does not define or select it. | Chamber; Covenant |
+| Resource card | The Cardflow projection of one protected resource. It is not the mutable backing, workspace authority, or a lease holder. | Card; Protected mutable resource |
+| Resource ID | The canonical Cardflow identity for one Protected mutable resource and conflict namespace. | Logical lease set; Protected mutable resource |
+| Service principal | The authenticated Cardflow identity that alone may ordinarily call Supervisor workspace materialize, renew, and release functions for Cardflow-managed work. | Cardflow; Supervisor |
+| Supervisor | The Chambers control-plane actor that verifies Cardflow claim references and orchestrates Filesystem and Procman without taking ownership of either lease layer. | Filesystem; Procman; Service principal |
+| Waiter | A conflicting Card request durably ordered behind the active holder for an exact resource set and awakened only after a valid release, expiry, or reconciliation transition. | Card; Logical lease; Resource ID |
+| Workspace generation | Filesystem-owned writer authority for one exact mutable lineage and logical owner. It is distinct from a Cardflow Logical fence and a Chamber attachment generation. | Attachment generation; Logical fence; Workspace identity |
+| Workspace identity | Filesystem-owned mutable backing lineage. It is neither a Cardflow Card nor a Chamber. | Protected mutable resource; Workspace generation |
 
 ## Lease axioms
 
@@ -231,7 +272,10 @@ estimate_reason: current holder may renew
 Every arrow in a `sequenceDiagram` below is an invocation labelled with exactly one function name.
 Function completion and results are implied by the invocation and are not drawn as separate arrows.
 Arguments, outcomes, receipts, and local durable mutations remain in surrounding text or Mermaid notes.
-The I3 Engine transports brokered calls but is shown as a lane only when it owns the represented effect.
+The receiver lane is the actor whose worker registered the target function. The I3 Engine's ordinary
+transport and routing hop is deliberately omitted, just as a network router is omitted from an
+application-level request sequence. Engine is shown as a receiver only for a function registered by an
+Engine worker; this document currently invokes no Engine-owned function and therefore needs no Engine lane.
 
 Every function-table invocation path is `I3`, and every arrow in a `sequenceDiagram` is labelled by one
 of those namespaced I3 functions. Conventional host mechanisms inherited from Chambers appear only in

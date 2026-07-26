@@ -15,6 +15,8 @@
   let sequenceIds = new Set(data.sequences.map((sequence) => sequence.id));
   let functionIds = new Set(data.functions.map((fn) => fn.id));
   let functionsById = new Map(data.functions.map((fn) => [fn.id, fn]));
+  let dictionaryIds = new Set(data.dictionary.map((entry) => entry.id));
+  let dictionaryById = new Map(data.dictionary.map((entry) => [entry.id, entry]));
 
   const SVG_NS = "http://www.w3.org/2000/svg";
   const ROLE_COLORS = {
@@ -44,11 +46,12 @@
 
   const requestedSequence = params.get("diagram");
   const requestedView = params.get("view");
+  const requestedTerm = params.get("term");
 
   const state = {
     documentId: initialDocumentId,
     sequenceId: sequenceIds.has(requestedSequence) ? requestedSequence : data.sequences[0].id,
-    view: ["trace", "map", "functions"].includes(requestedView) ? requestedView : "trace",
+    view: ["trace", "map", "functions", "dictionary"].includes(requestedView) ? requestedView : "trace",
     callId: params.get("call"),
     callFilter: "all",
     actorFilter: "",
@@ -60,6 +63,8 @@
     functionFilter: "all",
     functionQuery: "",
     selectedFunctionId: functionIds.has(params.get("function")) ? params.get("function") : null,
+    dictionaryQuery: "",
+    selectedTermId: dictionaryIds.has(requestedTerm) ? requestedTerm : null,
     searchIndex: 0,
     toastTimer: null,
     resizeFrame: null,
@@ -73,7 +78,7 @@
   const elements = Object.fromEntries(
     [
       "documentSwitcher", "mobileDocumentSelect", "journeyEyebrow", "journeyDescription", "journeyList",
-      "sourceFileName", "sourceCommit", "sourceSequenceCount", "sourceCallCount", "sourceFunctionCount", "sourceMode",
+      "sourceFileName", "sourceCommit", "sourceSequenceCount", "sourceCallCount", "sourceFunctionCount", "sourceDictionaryCount", "sourceMode",
       "sourceDocumentLink", "mobileSceneSelect", "mobileSceneCount", "sceneKicker", "sceneStatus",
       "sceneTitle", "sceneSummary", "sceneQuestion", "sceneMetrics", "callFilter", "hostCallFilter", "actorFilter",
       "zoomOut", "zoomIn", "zoomValue", "callNow", "currentStepNumber", "currentRoute",
@@ -82,6 +87,7 @@
       "callInspector", "mapScope", "clearMapFocus", "mapViewport", "mapSvg", "mapDetail",
       "roleLegend", "mapIntroTitle", "mapIntroText", "functionHeading", "functionIntro", "functionSearch",
       "functionFilter", "hostFunctionFilter", "functionResultCount", "functionList", "functionDetail", "footerProduct",
+      "dictionaryHeading", "dictionaryIntro", "dictionarySearch", "dictionaryResultCount", "dictionaryList", "dictionaryDetail",
       "footerSource", "searchButton", "shareButton", "helpButton", "footerHelp",
       "searchDialog", "globalSearch", "searchResults", "helpDialog", "toast",
     ].map((id) => [id, document.getElementById(id)])
@@ -202,6 +208,8 @@
     else next.searchParams.delete("call");
     if (state.view === "functions" && state.selectedFunctionId) next.searchParams.set("function", state.selectedFunctionId);
     else next.searchParams.delete("function");
+    if (state.view === "dictionary" && state.selectedTermId) next.searchParams.set("term", state.selectedTermId);
+    else next.searchParams.delete("term");
 
     const historyState = {
       lifecycleAtlas: true,
@@ -210,6 +218,7 @@
       view: state.view,
       callId: state.callId,
       functionId: state.view === "functions" ? state.selectedFunctionId : null,
+      termId: state.view === "dictionary" ? state.selectedTermId : null,
       scrollY: window.scrollY,
     };
     if (mode === "none") return;
@@ -254,6 +263,7 @@
     elements.sourceSequenceCount.textContent = data.stats.sequences;
     elements.sourceCallCount.textContent = data.stats.calls;
     elements.sourceFunctionCount.textContent = data.stats.functions;
+    elements.sourceDictionaryCount.textContent = data.stats.dictionaryTerms;
     elements.sourceMode.textContent = `Exact committed copy · SHA-256 ${source.documentSha256.slice(0, 8)}`;
     elements.sourceDocumentLink.href = source.url;
     elements.sourceDocumentLink.title = `Open ${source.path} at ${commit}`;
@@ -267,6 +277,8 @@
     elements.mapIntroText.textContent = "Line weight is call frequency. Select an actor or connection to isolate its surface.";
     elements.functionHeading.textContent = `Every named ${data.name} call`;
     elements.functionIntro.textContent = data.functionIntro;
+    elements.dictionaryHeading.textContent = `${data.name} dictionary`;
+    elements.dictionaryIntro.textContent = `All ${data.stats.dictionaryTerms} definitions come from this document's authoritative Dictionary section.`;
 
     elements.journeyList.innerHTML = data.sequences.map((sequence, index) => `
       <button class="journey-item${sequence.id === state.sequenceId ? " is-active" : ""}" type="button" data-sequence-id="${escapeHtml(sequence.id)}" aria-current="${sequence.id === state.sequenceId ? "page" : "false"}">
@@ -805,9 +817,12 @@
   function renderCurrentView(options = {}) {
     if (state.view === "trace") renderTrace({ revealCall: Boolean(options.revealCall) });
     else if (state.view === "map") renderMap();
-    else {
+    else if (state.view === "functions") {
       if (!state.selectedFunctionId) state.selectedFunctionId = ensureCurrentCall()?.function || data.functions[0].id;
       renderFunctionCatalog();
+    } else {
+      if (!state.selectedTermId) state.selectedTermId = data.dictionary[0]?.id || null;
+      renderDictionaryCatalog();
     }
   }
 
@@ -840,6 +855,8 @@
     sequenceIds = new Set(data.sequences.map((sequence) => sequence.id));
     functionIds = new Set(data.functions.map((fn) => fn.id));
     functionsById = new Map(data.functions.map((fn) => [fn.id, fn]));
+    dictionaryIds = new Set(data.dictionary.map((entry) => entry.id));
+    dictionaryById = new Map(data.dictionary.map((entry) => [entry.id, entry]));
     state.sequenceId = sequenceIds.has(options.sequenceId) ? options.sequenceId : data.sequences[0].id;
     state.callId = currentSequence().calls[0]?.id || null;
     state.callFilter = "all";
@@ -848,7 +865,10 @@
     state.functionFilter = "all";
     state.functionQuery = "";
     state.selectedFunctionId = null;
+    state.dictionaryQuery = "";
+    state.selectedTermId = null;
     elements.functionSearch.value = "";
+    elements.dictionarySearch.value = "";
     elements.sequenceViewport.scrollTo({ left: 0, top: 0, behavior: "auto" });
     elements.mapViewport.scrollTo({ left: 0, top: 0, behavior: "auto" });
 
@@ -897,7 +917,7 @@
   }
 
   function setView(view, options = {}) {
-    if (!["trace", "map", "functions"].includes(view)) return;
+    if (!["trace", "map", "functions", "dictionary"].includes(view)) return;
     const originScrollY = Number.isFinite(options.originScrollY) ? options.originScrollY : window.scrollY;
     stopPlayback();
     state.scrubbing = false;
@@ -925,23 +945,29 @@
     sequenceIds = new Set(data.sequences.map((sequence) => sequence.id));
     functionIds = new Set(data.functions.map((fn) => fn.id));
     functionsById = new Map(data.functions.map((fn) => [fn.id, fn]));
+    dictionaryIds = new Set(data.dictionary.map((entry) => entry.id));
+    dictionaryById = new Map(data.dictionary.map((entry) => [entry.id, entry]));
 
     const requestedSequenceId = nextParams.get("diagram");
     state.sequenceId = sequenceIds.has(requestedSequenceId) ? requestedSequenceId : data.sequences[0].id;
     const requestedView = nextParams.get("view");
-    state.view = ["trace", "map", "functions"].includes(requestedView) ? requestedView : "trace";
+    state.view = ["trace", "map", "functions", "dictionary"].includes(requestedView) ? requestedView : "trace";
     const requestedCallId = nextParams.get("call");
     state.callId = currentSequence().calls.some((call) => call.id === requestedCallId)
       ? requestedCallId
       : currentSequence().calls[0]?.id || null;
     const requestedFunctionId = nextParams.get("function");
     state.selectedFunctionId = state.view === "functions" && functionIds.has(requestedFunctionId) ? requestedFunctionId : null;
+    const requestedTermId = nextParams.get("term");
+    state.selectedTermId = state.view === "dictionary" && dictionaryIds.has(requestedTermId) ? requestedTermId : null;
     state.callFilter = "all";
     state.actorFilter = "";
     state.mapFocus = null;
     state.functionFilter = "all";
     state.functionQuery = "";
+    state.dictionaryQuery = "";
     elements.functionSearch.value = "";
+    elements.dictionarySearch.value = "";
 
     populateStaticChrome();
     renderSceneHeader();
@@ -1248,6 +1274,67 @@
     });
   }
 
+  function relatedDictionaryEntries(entry) {
+    return entry.related.map((termId) => dictionaryById.get(termId)).filter(Boolean);
+  }
+
+  function renderDictionaryCatalog() {
+    const query = state.dictionaryQuery.trim().toLowerCase();
+    const filtered = data.dictionary.filter((entry) => {
+      if (!query) return true;
+      const related = relatedDictionaryEntries(entry).map((item) => item.term).join(" ");
+      return `${entry.term} ${entry.definition} ${related}`.toLowerCase().includes(query);
+    });
+    elements.dictionaryResultCount.textContent = `${filtered.length} of ${data.dictionary.length} terms`;
+    elements.dictionaryList.innerHTML = filtered.length ? filtered.map((entry) => `
+      <button class="dictionary-card${entry.id === state.selectedTermId ? " is-selected" : ""}" type="button" role="listitem" data-term-id="${escapeHtml(entry.id)}">
+        <span class="dictionary-card-top"><strong>${escapeHtml(entry.term)}</strong><span>line ${entry.sourceLine}</span></span>
+        <p>${escapeHtml(entry.definition)}</p>
+        <span class="dictionary-card-foot"><span>${entry.related.length} related</span><span>source-defined</span></span>
+      </button>
+    `).join("") : '<div class="empty-results">No dictionary term matches that search.</div>';
+    elements.dictionaryList.querySelectorAll("[data-term-id]").forEach((button) => button.addEventListener("click", () => {
+      const originScrollY = window.scrollY;
+      state.selectedTermId = button.dataset.termId;
+      renderDictionaryCatalog();
+      updateUrl("push", originScrollY);
+    }));
+    renderDictionaryDetail();
+  }
+
+  function renderDictionaryDetail() {
+    const entry = dictionaryById.get(state.selectedTermId);
+    if (!entry) {
+      elements.dictionaryDetail.innerHTML = '<div class="inspector-empty">Choose a term to read its canonical definition.</div>';
+      return;
+    }
+    const related = relatedDictionaryEntries(entry);
+    const sourceUrl = `${data.source.url}#L${entry.sourceLine}`;
+    elements.dictionaryDetail.innerHTML = `
+      <div class="inspector-type-row">
+        <span class="dictionary-source-badge">Source-defined term</span>
+        <span class="usage-badge">line ${entry.sourceLine}</span>
+      </div>
+      <h2 class="dictionary-term-title">${escapeHtml(entry.term)}</h2>
+      <div class="dictionary-definition"><h3>Canonical definition</h3><p>${escapeHtml(entry.definition)}</p></div>
+      <div class="context-block dictionary-relations">
+        <h3>Related terms</h3>
+        ${related.length ? `<div class="related-term-list">${related.map((item) => `<button type="button" data-related-term="${escapeHtml(item.id)}">${escapeHtml(item.term)}</button>`).join("")}</div>` : '<p>No related terms are declared in the source table.</p>'}
+      </div>
+      <a class="dictionary-source-link" href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener noreferrer">Open the exact defining line <span aria-hidden="true">↗</span></a>
+    `;
+    elements.dictionaryDetail.querySelectorAll("[data-related-term]").forEach((button) => button.addEventListener("click", () => openDictionaryTerm(button.dataset.relatedTerm)));
+  }
+
+  function openDictionaryTerm(termId, options = {}) {
+    if (!dictionaryIds.has(termId)) return;
+    const originScrollY = Number.isFinite(options.originScrollY) ? options.originScrollY : window.scrollY;
+    state.selectedTermId = termId;
+    state.dictionaryQuery = "";
+    elements.dictionarySearch.value = "";
+    setView("dictionary", { originScrollY, history: options.history });
+  }
+
   function renderGlobalSearch() {
     const query = elements.globalSearch.value.trim().toLowerCase();
     const sequenceResults = atlas.documents.flatMap((documentData) => documentData.sequences.map((sequence) => ({
@@ -1260,10 +1347,17 @@
       documentName: documentData.name,
       fn,
     }))).filter(({ documentName, fn }) => !query || `${documentName} ${fn.id} ${fn.owner} ${fn.contract}`.toLowerCase().includes(query));
+    const dictionaryResults = atlas.documents.flatMap((documentData) => documentData.dictionary.map((entry) => ({
+      documentId: documentData.id,
+      documentName: documentData.name,
+      entry,
+    }))).filter(({ documentName, entry }) => !query || `${documentName} ${entry.term} ${entry.definition}`.toLowerCase().includes(query));
     sequenceResults.sort((a, b) => Number(b.documentId === state.documentId) - Number(a.documentId === state.documentId) || a.sequence.ordinal - b.sequence.ordinal);
     functionResults.sort((a, b) => Number(b.documentId === state.documentId) - Number(a.documentId === state.documentId) || b.fn.usages.length - a.fn.usages.length || a.fn.id.localeCompare(b.fn.id));
+    dictionaryResults.sort((a, b) => Number(b.documentId === state.documentId) - Number(a.documentId === state.documentId) || a.entry.term.localeCompare(b.entry.term));
     const limitedSequences = sequenceResults.slice(0, query ? 8 : 6);
     const limitedFunctions = functionResults.slice(0, query ? 12 : 8);
+    const limitedDictionary = dictionaryResults.slice(0, query ? 12 : 8);
     let html = "";
     if (limitedSequences.length) {
       html += '<span class="search-section-label">Sequences · both documents</span>' + limitedSequences.map(({ documentId, documentName, sequence }) => `
@@ -1283,7 +1377,16 @@
         </button>
       `).join("");
     }
-    if (!html) html = '<div class="empty-results">No sequence or function matches that search.</div>';
+    if (limitedDictionary.length) {
+      html += '<span class="search-section-label">Dictionary · both documents</span>' + limitedDictionary.map(({ documentId, documentName, entry }) => `
+        <button class="search-result" type="button" data-search-type="term" data-search-document="${escapeHtml(documentId)}" data-search-id="${escapeHtml(entry.id)}">
+          <span class="search-result-icon dictionary-result-icon">Aa</span>
+          <span class="search-result-copy"><strong>${escapeHtml(entry.term)}</strong><small>${escapeHtml(documentName)} · ${escapeHtml(entry.definition)}</small></span>
+          <span class="search-result-kind">term</span>
+        </button>
+      `).join("");
+    }
+    if (!html) html = '<div class="empty-results">No sequence, function, or dictionary term matches that search.</div>';
     elements.searchResults.innerHTML = html;
     state.searchIndex = 0;
     updateSearchKeyboardSelection();
@@ -1306,10 +1409,14 @@
     if (type === "sequence") {
       if (documentId === state.documentId) setSequence(id);
       else setDocument(documentId, { sequenceId: id });
-    } else {
+    } else if (type === "function") {
       const originScrollY = window.scrollY;
       if (documentId !== state.documentId) setDocument(documentId, { announce: false, history: "none", originScrollY });
       openFunction(id, { originScrollY });
+    } else {
+      const originScrollY = window.scrollY;
+      if (documentId !== state.documentId) setDocument(documentId, { announce: false, history: "none", originScrollY });
+      openDictionaryTerm(id, { originScrollY });
     }
   }
 
@@ -1395,6 +1502,10 @@
       syncFunctionFilterButtons();
       renderFunctionCatalog();
     });
+    elements.dictionarySearch.addEventListener("input", () => {
+      state.dictionaryQuery = elements.dictionarySearch.value;
+      renderDictionaryCatalog();
+    });
     elements.searchButton.addEventListener("click", openSearch);
     elements.shareButton.addEventListener("click", copyShareLink);
     elements.helpButton.addEventListener("click", openHelp);
@@ -1423,6 +1534,7 @@
       else if (event.key === "1") setView("trace");
       else if (event.key === "2") setView("map");
       else if (event.key === "3") setView("functions");
+      else if (event.key === "4") setView("dictionary");
     });
 
     window.addEventListener("resize", () => {

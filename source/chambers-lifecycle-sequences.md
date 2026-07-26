@@ -15,6 +15,7 @@ This status establishes design authority; it does not claim implementation or ru
 
 ## Contents
 
+- [Dictionary](#dictionary)
 - [Lifecycle axioms](#lifecycle-axioms)
 - [Lifecycle call table](#lifecycle-call-table)
 - [Authoring and state shapes](#authoring-and-state-shapes)
@@ -31,6 +32,60 @@ This status establishes design authority; it does not claim implementation or ru
 - [Attested multi-Ark builds (later)](#attested-multi-ark-builds-later)
 - [Failure and recovery formulas](#failure-and-recovery-formulas)
 - [Implementation handoff](#implementation-handoff)
+
+## Dictionary
+
+This section is the terminology source of truth for this document and every generated projection of it.
+Other sections state relationships and invariants between these terms; they do not create aliases or
+alternate meanings. Each term is unique in this table. **Definition** is normative; **Related terms** is
+navigational and does not alter the definition.
+
+| Term | Definition | Related terms |
+| --- | --- | --- |
+| Acceptance receipt | Durable evidence that one exact launch specification or artifact was accepted under one policy and a named set of evidence receipts. | Inspection receipt; Realization |
+| Activation | The operation that creates one fresh Chamber from one exact Realization and lease. It is not a separate lifecycle object or durable identity. | Chamber; Realization; Run receipt |
+| Admission | Procman-owned, lease-scoped authority binding a fresh PeerId to one exact Chamber, Realization, registration contract, Engine listener, epoch, profile, and expiry. | Chamber lease; libp2p PeerId; Registration contract |
+| Artifact-backed launch spec | A normalized launch specification whose executable root is one exact OCI descriptor with an exact provider or bounded rebuild provenance and fixed runtime and security configuration. | Normalized launch spec; OCI digest; Source-composed launch spec |
+| Assembly Covenant | A Covenant that expands to a process-tree subtree. The Assembly itself has no Chamber. | Covenant; Runnable Covenant |
+| Boot capsule | An immutable, bounded boot projection for one exact Engine or Persistence Realization: its Realization ID, normalized launch specification, provider locators, resource revisions, registration contract, and bounded materialization capabilities. It need not contain OCI bytes. | Boot ledger; Boot Seed; Realization |
+| Boot ledger | Procman-owned durable, host-readable state containing the exact current Engine and Persistence revisions and their active Boot capsule references. Only the same fenced selection transaction that changes current may change an active capsule reference. | Boot capsule; Current selection; Procman |
+| Boot Seed | Externally accepted initial or explicit-recovery input that may initialize an empty Boot ledger and supply bounded bootstrap bytes or capabilities. It is not a mutable current selector and is never an automatic fallback from a missing or invalid Boot ledger. | Boot capsule; Boot ledger |
+| Build receipt | Durable evidence binding one build request, Builder Realization, output artifact identity, and evidence root. | Acceptance receipt; Realization |
+| Candidate | One exact accepted or testable Realization retained under a bounded Hold but not selected as current. | Current selection; Hold; Realization |
+| Chamber | One ephemeral host-local activation of one exact Runnable Covenant Realization. Every activation or restart receives a fresh Chamber ID and independent fate. | Activation; Chamber lease; Realization |
+| Chamber lease | Bounded Procman authority for one exact Chamber, including its admission, lifetime, and cleanup scope. | Admission; Chamber |
+| containerd | Disposable host materialization storage and tooling used only behind the Image Materializer. Its tags, image records, content, snapshots, and task state never select what should run. | Image Materializer; OCI digest |
+| Contract Covenant | A promise-only Covenant with no Chamber of its own. | Covenant; Runnable Covenant |
+| Covenant | A location-independent promise describing offered behavior, required dependencies, resources, workers, evidence, and policy without naming the repository that carries it. | Assembly Covenant; Contract Covenant; Runnable Covenant |
+| Covenant locator | Provider coordinates plus an optional logical credential need used to resolve Covenant content. It is not immutable runtime identity. | Covenant; Credential; Provider |
+| Covenant lock | The exact transitive closure of Covenant bytes, provider-native revisions, base-image and build inputs, mounts, workers, hardware, and launch policy. It is an input to candidate formation, not launch authority and not an alias for Realization. | Covenant; Normalized launch spec; Realization |
+| Credential | A named Vault need. It is never a secret value, token, or leased credential embedded in lifecycle identity. | Covenant locator; Provider |
+| Current selection | The sole revisioned named choice `current[name] = {revision, realization}`. It can validly have zero live Chambers and is never inferred from recency, health, routes, OCI tags, or cache state. | Boot ledger; Candidate; Realization; Selection |
+| Engine | The I3 actor that owns typed transport, authenticated Worker Manager admission, function registration, derived routing, and Engine-specific lifecycle functions. Ordinary I3 calls are drawn directly to the actor that registered the target function, not through Engine. | I3 function; Registration contract; Route |
+| Hold | A bounded reference retaining one exact candidate and its custody, owner, expiry, and cleanup authority. | Candidate; Realization |
+| I3 function | A named function registered by one owning actor and invoked at that actor. Sequence diagrams omit Engine's ordinary brokerage path; Engine is the arrow target only for functions registered by Engine workers. | Engine; Registration contract; Worker |
+| Image Materializer | The mechanism-only host component that turns one exact normalized launch specification into a runtime view and is the sole holder of the containerd socket. It cannot select, build, or substitute inputs. | containerd; Normalized launch spec |
+| Immutable identity | A provider-native commit, tree, digest, CID, or snapshot that identifies exact content rather than a moving locator. | Covenant lock; OCI digest; Provider |
+| Inspection receipt | Durable evidence binding one exact artifact, inspection plan, evidence root, and verdict. | Acceptance receipt; OCI digest |
+| Kind | The logical content form being addressed, independent of provider and location. | Provider |
+| Latest | A moving resolution policy. It is never runtime identity or selection authority. | Covenant locator; Current selection |
+| libp2p PeerId | Proof-of-possession transport identity authenticated by Noise. It is neither Chamber identity nor lifecycle authority without a matching live Admission. | Admission; Chamber |
+| Normalized launch spec | One exact source-composed or artifact-backed runtime composition with fixed platform, resources, launcher, runtime, and security inputs. | Artifact-backed launch spec; Source-composed launch spec; Realization |
+| OCI digest | Immutable materialization and verification identity for one OCI object or graph. It does not by itself express a Covenant, acceptance, launch plan, or Ark-local promise to retain bytes. | Artifact-backed launch spec; containerd; Realization |
+| Operation | Durable exact lifecycle intent retained until a matching terminal receipt; retries reconcile that same intent before conflicting work. | Activation; Selection |
+| Persistence | The durable service owning Realization manifests, exact source and resource revisions, provider locators, receipts, and Holds. It does not own current selection or retain rebuildable OCI blobs as ordinary Ark state. | Boot capsule; Hold; Realization |
+| Procman | The non-Chamber host process manager owning current and candidate mutation, Chamber state, Admission, physical activation and reaping, the Engine wake edge, and the durable Boot ledger. | Boot ledger; Current selection; Engine |
+| Provider | An access, authority, and location family capable of resolving or supplying exact content under scoped credentials. | Covenant locator; Credential; Immutable identity |
+| Realization | The sole public immutable executable lifecycle identity: one exact Covenant lock plus one normalized launch specification, acceptance evidence, and launch plan. It is immediately materializable without mutable lookup, dependency choice, build, or substitution. | Covenant lock; Normalized launch spec; Chamber |
+| Realization ID | The digest of the canonical Realization manifest body. | Realization |
+| Registration contract | The digest of the canonical declared worker and export set for one exact Realization. Engine publishes the complete matching set atomically after authenticated admission. | Admission; Realization; Worker |
+| Route | A derived Engine lookup. A stable name routes to an activation factory for its Current selection; an exact Chamber ID routes to one ready Chamber. Route cache state is never selection authority. | Current selection; Engine; Chamber |
+| Run receipt | Durable evidence binding one Realization ID, fresh Chamber ID, host evidence, runtime specification identity, and outcome. | Activation; Chamber; Realization |
+| Runnable Covenant | A Covenant whose selected Realization may have zero or many concurrent Chambers, each containing one or more workers. | Chamber; Covenant; Realization |
+| Selection | A fenced compare-and-swap from an expected Current selection revision to one exact candidate Realization. It changes future activations, never an existing Chamber. | Candidate; Current selection; Realization |
+| Source-composed launch spec | A normalized launch specification that projects exact resource revisions and workers over an exact base OCI descriptor without producing or requiring a derived application image. | Artifact-backed launch spec; Normalized launch spec; OCI digest |
+| Supervisor | The replaceable control-plane actor that proposes ordinary lifecycle work and resolves declared exports into registration contracts but does not own current mutation or physical process effects. | Procman; Registration contract |
+| Worker | One function-registering process or SDK worker inside a Chamber. A Runnable Covenant may declare one or more workers. | Chamber; I3 function; Registration contract |
 
 ## Lifecycle axioms
 
@@ -97,6 +152,10 @@ This status establishes design authority; it does not claim implementation or ru
 
 - `durable named process tree = Assembly-expanded logical names + revisioned current selections`.
 - `current[name] = {revision, realization}`.
+- `core_boot[name] = {revision, realization, boot capsule}` for `engine` and `persistence`; its revision and
+  Realization must equal `current[name]` in the same Procman-owned Boot ledger transaction.
+- `boot_capsules[boot capsule id] = immutable bounded boot projection`; an inactive capsule is evidence or
+  staged input, never an alternate selector.
 - `candidates[name][realization id] = Hold reference`; candidate state adds no duplicate realization fields.
 - `chambers[Chamber id] = {name, realization, lease, phase}`.
 - `admissions[lease] = {peer id, Chamber id, realization, registration contract, listener,
@@ -146,6 +205,9 @@ than repeated in candidate state.
 
 - Supervisor proposes logical change and ordinary Chamber activation.
 - `procman` owns current/candidate/Chamber state mutation and physical Chamber creation/reaping.
+- `procman` owns the durable host-readable Boot ledger. Initial external acceptance may initialize an
+  empty ledger from a Boot Seed; later Engine or Persistence selection atomically changes `current[name]`
+  and the matching active Boot capsule reference. Missing or mismatched state fails closed.
 - Supervisor resolves the Covenant/Realization worker exports into an immutable, content-addressed
   registration contract; `procman` binds that contract to the physical launch admission.
 - `procman` mints each non-Engine Chamber's fresh lease-scoped libp2p identity, commits only its
@@ -162,7 +224,8 @@ than repeated in candidate state.
 - `procman` owns the irreducible Engine wake edge; it may activate only the exact selected
   Engine realization and does not choose application policy.
 - Persistence owns durable Realization manifests, exact source/resource revisions, provider locators,
-  receipts, and Holds; it does not retain rebuildable OCI blobs as ordinary Ark state.
+  receipts, and Holds; it does not retain rebuildable OCI blobs as ordinary Ark state. A bounded exact
+  Engine or Persistence Boot capsule is a Procman-owned boot projection, not a second Persistence service.
 - The Image Materializer is the sole bridge from exact launch data or a Boot Seed to `containerd`;
   `containerd` never calls Persistence or I3.
 - Builders may use bounded disposable OCI output staging but receive neither the `containerd` socket nor
@@ -179,6 +242,11 @@ Arguments, results, and local state changes remain in the surrounding text or Me
 inside arrow labels. I3 SDK registration, libp2p Noise negotiation, stream admission, and router
 publication are notes because they are protocol or local Engine transitions rather than I3 function
 invocations.
+
+For an I3 invocation, the receiver lane is the actor whose worker registered that function. The Engine's
+ordinary transport and routing hop is deliberately omitted, just as a network router is omitted from an
+application-level request sequence. Engine is a receiver only for functions in the **I3 Engine** table
+below; Engine may still appear in notes that explain registration, transport admission, or derived routing.
 
 Names containing `::` are I3 function IDs. The snake-case rows marked **external conventional call
 (not I3)** are ordinary code calls made outside the Engine through the trusted host boundary. They
@@ -520,7 +588,8 @@ stateDiagram-v2
 
 ## Engine cold start
 
-`entry = running procman + boot-readable current selections + accepted Engine Boot Seed`
+`entry = running procman + valid core_boot[engine] in the Procman Boot ledger`, or explicit
+empty-ledger initialization from an externally accepted Boot Seed.
 
 `exit = one ready Engine Chamber for admitted wake work`; no other current Realization must be resident.
 
@@ -539,21 +608,21 @@ sequenceDiagram
     participant containerd
     participant Runtime as Trusted host runtime (runsc)
     participant Engine
-    participant Boot as Boot Seed
     actor Wake as Wake Source
 
     Wake->>procman: `wake_engine`
     Note over procman: Authenticate the lower wake, reconcile interrupted operations,<br/>and inspect ready Engine Chambers
 
     opt No Engine Chamber is ready
-        Note over procman: Read current[engine] and commit a fresh Engine Chamber intent
-        Note over procman,Boot: Read only the selected accepted Engine Realization record,<br/>normalized launch spec, and bounded bootstrap capabilities
+        Note over procman: Read current[engine] and the matching active Boot capsule<br/>from the durable Procman Boot ledger
+        Note over procman: Reject a missing revision, Realization, or capsule match and<br/>never infer selection from containerd, a tag, or recency
+        Note over procman: Commit a fresh Engine Chamber intent from that exact capsule
         Note over procman: Commit the fresh Engine Chamber, PeerId, Realization,<br/>listener, lease, and epoch binding before launch
         procman->>Materializer: `materialize_runtime`
         Materializer->>containerd: `inspect_image`
         alt Exact required base or artifact and unpacked snapshot are verified locally
             Note over Materializer,containerd: Reuse only by exact digest from the disposable slice
-        else Exact OCI graph is available from the boot-declared provider
+        else Exact OCI graph is available from the capsule-declared provider
             Materializer->>containerd: `pull_image`
             Materializer->>containerd: `unpack_image`
         else Exact OCI graph is available through a bounded Boot Seed capability
@@ -562,7 +631,7 @@ sequenceDiagram
         else No exact OCI source is available
             Note over Materializer: Fail the cold materialization,<br/>containerd cannot build or choose a substitute
         end
-        Note over Materializer,Boot: A source-composed Engine may project the exact boot-seed resources<br/>over its pinned base without producing a derived image
+        Note over Materializer: A source-composed Engine may project exact capsule-declared resources<br/>over its pinned base without producing a derived image
         alt Exact Engine runtime view and materialization receipt are ready
             procman->>Runtime: `activate_chamber`
             Note over Runtime,Engine: Create/start the new Engine Chamber from that exact<br/>runtime view through pinned runsc
@@ -587,13 +656,18 @@ a missing Engine takes the one `activate_chamber` branch only after exact materi
 paths converge on the same mutually authenticated Noise session and HPM authorization. There is no second
 same-key challenge-response ceremony.
 
-The Boot Seed is a narrow host-readable bootstrap contract, not a second Persistence service and not an
-ordinary OCI archive. It carries the exact selected Engine and Persistence Realization records, normalized
-launch specs, provider locators, and bounded bootstrap capabilities. Its image bytes are optional: an online
-profile may pull exact OCI content into the disposable containerd slice, while an offline profile must make
-the exact bootstrap bytes available from lower installation media or a bounded seed capability. A digest
-without available bytes cannot boot. Wiping containerd remains safe for durable Ark data, but cold readiness
-then depends on one of those declared rematerialization sources.
+The Procman Boot ledger is the boot-selection authority. `procman` reads `core_boot[engine]`, whose revision
+and Realization must exactly match `current[engine]`, and then reads that entry's immutable Boot capsule. It
+does not ask `containerd` which image is latest, inspect a mutable tag, or choose the newest cached object.
+The Image Materializer may reuse local bytes only after their immutable digest matches the selected capsule.
+
+The Boot Seed is narrower: it is an externally accepted first-boot or explicit-recovery input, not a second
+Persistence service, mutable selector, or ordinary OCI archive. It may initialize an empty Boot ledger and
+may supply bounded bootstrap bytes or capabilities. Once a ledger exists, a missing, corrupt, or mismatched
+entry fails closed; `procman` never falls back automatically to an older Boot Seed. An online capsule may
+name an exact OCI provider, while an offline capsule must retain an exact lower installation-media or seed
+capability. A digest without available bytes cannot boot. Wiping containerd remains safe for durable Ark
+data, but cold readiness then depends on one of those capsule-declared rematerialization sources.
 
 If admitted wake work needs another selected Runnable, the ready Engine invokes
 `chambers::process::propose`; that target then follows the ordinary Chamber activation kernel.
@@ -608,9 +682,9 @@ running Engine or an authorized Supervisor Chamber may request ordinary Chamber 
 be the only mechanism that wakes the absent Engine containing it. `procman` may execute the exact
 pre-authorized wake; it does not select a different Engine Realization or decide application policy.
 
-First acceptance of the host envelope and Engine/Supervisor bootstrap subjects remains an external
-verification and selection ceremony. Engine cold start never forms a Realization from a Covenant lock and
-never certifies its own seed.
+First acceptance of the host envelope and Engine/Persistence bootstrap subjects remains an external
+verification and selection ceremony that initializes the empty Boot ledger. Engine cold start never forms
+a Realization from a Covenant lock and never certifies its own seed or capsule.
 
 ## Bootstrap core services
 
@@ -619,15 +693,17 @@ exception explicit instead of letting ordinary activation appear to assume Persi
 accepted bootstrap plan names the exact Persistence and Supervisor Realizations; `procman` executes that
 plan but does not choose replacements.
 
-`entry = ready Engine + authenticated wake operation + accepted bootstrap plan + accepted Boot Seed`
+`entry = ready Engine + authenticated wake operation + accepted bootstrap plan + valid core_boot[persistence]`
 
 `exit = ready Engine + ready Persistence + ready Supervisor`
 
 The first Persistence Chamber cannot read its own Realization through an I3 Persistence route. `procman`
-therefore reads its exact Realization record and bootstrap capabilities from the Boot Seed, then uses the
-same Image Materializer and disposable containerd slice as every other activation. Once Persistence is
-ready, the Supervisor follows the ordinary durable-data path through Persistence. This exit is the basic
-Ark state assumed by ordinary Chamber activation and fenced development.
+therefore reads `core_boot[persistence]` and its exact Boot capsule from the durable Procman Boot ledger,
+then uses the same Image Materializer and disposable containerd slice as every other activation. A Boot
+Seed may have initialized that ledger or may remain one capsule-declared byte source, but it does not decide
+which Persistence Realization is current. Once Persistence is ready, the Supervisor follows the ordinary
+durable-data path through Persistence. This exit is the basic Ark state assumed by ordinary Chamber
+activation and fenced development.
 
 ```mermaid
 sequenceDiagram
@@ -639,18 +715,18 @@ sequenceDiagram
     participant Engine
     participant Supervisor
     participant Persistence
-    participant Boot as Boot Seed
 
     Note over procman: Continue the authenticated wake operation<br/>under the accepted bootstrap plan
 
     opt No Persistence Chamber is ready
+        Note over procman: Read current[persistence] and the matching active Boot capsule<br/>from the durable Procman Boot ledger
+        Note over procman: Reject a missing revision, Realization, or capsule match and<br/>never infer selection from containerd, a tag, or recency
         Note over procman: Commit the exact Persistence Chamber intent and<br/>PeerId admission before physical effects
-        Note over procman,Boot: Read the selected accepted Persistence Realization record,<br/>normalized launch spec, and bounded bootstrap capabilities
         procman->>Materializer: `materialize_runtime`
         Materializer->>containerd: `inspect_image`
         alt Exact required base or artifact and unpacked snapshot are verified locally
             Note over Materializer,containerd: Reuse only by exact digest from the disposable slice
-        else Exact OCI graph is available from the boot-declared provider
+        else Exact OCI graph is available from the capsule-declared provider
             Materializer->>containerd: `pull_image`
             Materializer->>containerd: `unpack_image`
         else Exact OCI graph is available through a bounded Boot Seed capability
@@ -659,7 +735,7 @@ sequenceDiagram
         else No exact OCI source is available
             Note over Materializer: Fail bootstrap materialization without substitution
         end
-        Note over Materializer,Boot: A source-composed Persistence launch projects the exact seed resources<br/>over its pinned base without creating a derived application image
+        Note over Materializer: A source-composed Persistence launch projects exact capsule-declared resources<br/>over its pinned base without creating a derived application image
         alt Exact Persistence runtime view and materialization receipt are ready
             procman->>Runtime: `activate_chamber`
             Note over Runtime,Persistence: Create/start the Persistence Chamber<br/>through pinned runsc
@@ -704,20 +780,22 @@ sequenceDiagram
     end
 ```
 
-The Boot Seed closes only the irreducible circular dependency. It contains durable bootstrap metadata and
-bounded ways to obtain the exact base/image or source closure; it need not retain an ordinary OCI graph.
-An offline profile must nevertheless provide those bootstrap bytes through lower installation media or a
-seed capability. The disposable containerd slice may be empty at entry and may be deleted later without
-losing Persistence data; the materialization sources determine whether cold bootstrap can succeed again.
+The Procman Boot ledger closes the recurring circular dependency: it preserves the exact selected core
+revisions and active capsule references while both Engine and Persistence Chambers are absent. The Boot
+Seed closes only first boot or explicit external recovery by initializing an empty ledger and optionally
+supplying bounded bytes. Neither needs to retain an ordinary OCI graph. An offline capsule must nevertheless
+provide exact bootstrap bytes through lower installation media or a seed capability. The disposable
+containerd slice may be empty at entry and may be deleted later without losing Persistence data; the
+capsule-declared materialization sources determine whether cold bootstrap can succeed again.
 
-`containerd` never discovers or invokes Persistence. The Image Materializer receives exact bootstrap data
-from `procman`, and after Persistence is ready `procman` obtains ordinary Realization data through
+`containerd` never discovers, selects, or invokes Persistence. The Image Materializer receives exact capsule
+data from `procman`, and after Persistence is ready `procman` obtains ordinary Realization data through
 `persistence::realization::read`. This avoids giving either containerd or the host materializer a general I3
 identity, resource-policy role, or durable-data authority.
 
-The bootstrap profile is narrow: it can restore only the externally accepted exact core set. It cannot
-resolve a moving locator, build an image, select another Realization, or become a general application
-policy path.
+The Boot ledger and capsules are narrow: they can restore only the exact core selections committed by
+external initialization or the fenced selection sequence. They cannot resolve a moving locator, build an
+image, select another Realization, or become a general application-policy path.
 
 ## Ordinary Chamber activation kernel
 
@@ -1107,7 +1185,7 @@ writes current selection.
 
 `selection authority = gate-appropriate fenced promoter`
 
-`selection effect = one compare-and-swap of current[name] + derived Engine factory revision`
+`selection effect = one compare-and-swap of current[name] + matching core_boot[name] when core + derived Engine factory revision`
 
 `entry = exact candidate Realization + valid Hold + fresh gate evidence + expected current revision`
 
@@ -1127,13 +1205,17 @@ sequenceDiagram
     Promoter->>procman: `chambers::process::propose`
 
     Note over procman: Commit the selection operation with exact before and after values
+    opt Target name is engine or persistence
+        procman->>Persistence: `persistence::realization::read`
+        Note over procman,Persistence: Read and verify the exact candidate launch data,<br/>then stage an immutable Boot capsule without activating it
+    end
     procman->>Engine: `engine::route::fence`
 
     alt Expected current revision or Hold is stale
-        Note over procman: Emit a failed-selection receipt without changing current
+        Note over procman: Emit a failed-selection receipt without changing current<br/>or any active Boot capsule reference
         procman->>Engine: `engine::route::reopen`
     else Exact compare-and-swap succeeds
-        Note over procman: Set current[name] to the candidate Realization at the next revision
+        Note over procman: Set current[name] to the candidate Realization at the next revision and<br/>for engine or persistence atomically set matching core_boot[name]
         procman->>Persistence: `persistence::hold::transfer`
         procman->>Engine: `engine::route::install`
         Note over procman: Emit the selection receipt and terminalize the operation
@@ -1145,6 +1227,13 @@ Selection never moves, adopts, or renames a Chamber. A Chamber that supplied ver
 already be gone. Chambers of the prior current Realization remain pinned to it until their independent
 leases complete, cancel, expire, or are explicitly drained. Only calls admitted after the new current
 revision activate the newly selected Realization.
+
+For `engine` and `persistence`, the selection receipt is not terminal until the same Procman durable
+transaction commits both `current[name]` and the matching active `core_boot[name]` capsule reference.
+That is the exact record Procman reads after a host reboot. The full Realization remains owned by
+Persistence; the Boot capsule is only the bounded boot projection needed while Persistence is absent.
+An ordinary name needs no core capsule. First core acceptance initializes an empty Boot ledger through the
+external bootstrap ceremony because no Persistence route yet exists.
 
 `current` is defined only by the authoritative selection record. It is never inferred from newest
 creation, latest health, fleet majority, a ready Chamber, or route-cache contents. A failure to activate
@@ -1282,6 +1371,10 @@ source disappears, rebuilding is candidate work and a different digest is a diff
   Chamber of the same Realization without changing current.
 - `Chamber lease expires or work terminates -> stop and reap that Chamber`; sibling Chambers and current are unchanged.
 - `Engine Chamber absent + authenticated wake -> procman activates exact current[engine] through Engine cold start`.
+- `host restart -> procman reads exact core_boot[engine] and core_boot[persistence] from its durable Boot
+  ledger`; each must match its `current` revision and Realization before materialization.
+- `core_boot entry missing, corrupt, or mismatched -> cold activation fails closed`; never inspect a mutable
+  OCI tag, choose the newest containerd record, or silently fall back to an older Boot Seed.
 - `candidate Hold expires -> reap its candidate Chambers + remove candidates[name][R] + emit cleanup receipt`,
   unless another current, candidate, or operation reference still retains the exact durable launch data.
 - `source-composed runtime cache unavailable -> rematerialize from exact durable launch data while its
@@ -1319,12 +1412,15 @@ source disappears, rebuilding is candidate work and a different digest is a diff
 - exact Covenant locks and content-addressed, immediately materializable Realization manifests with
   source-composed and artifact-backed launch modes;
 - `current[name] = {revision, realization}` as the only stable named selection;
+- a `procman`-owned durable Boot ledger with exact `core_boot[engine]` and `core_boot[persistence]`
+  capsule references committed atomically with those current selections;
 - `candidates[name][realization] = Hold reference` with several bounded candidates permitted;
 - `chambers[id] = {name, realization, lease, phase}` with independent operations and cleanup;
 - no separate Activation record and no Chamber-bearing `last/current/next` slots;
 - a `procman`-owned Engine wake edge plus Engine-native activation factories for ordinary selected names;
 - an explicit basic-state bootstrap from ready Engine to ready Persistence and Supervisor, with only
-  the first Persistence allowed to consume an externally accepted Boot Seed before its I3 route exists;
+  the first externally accepted core set allowed to initialize an empty Boot ledger from a Boot Seed
+  before a Persistence I3 route exists; subsequent reboot reads the selected capsule from the ledger;
 - a mechanism-only Image Materializer as the sole holder of the `containerd` socket, exact-digest
   inspect/pull/import/unpack branches, no direct Persistence/I3 access, and all `containerd` content,
   image, and snapshot state on a dedicated disposable host slice;

@@ -21,6 +21,7 @@ The registration surfaces of record are:
 
 - `scripts/sync_source.py::DOCUMENTS` — private source path and public snapshot name.
 - `scripts/build_data.py::DOCUMENT_CONFIGS` — workspace copy, function-table heading, sequence metadata, ordering, and theme.
+- each registered source's single `## Dictionary` table — canonical term, definition, and document-local related-term edges.
 - `source/manifest.json` — generated provenance for the registered set; it is not an authoring registry.
 
 ## Refresh an already registered authority
@@ -51,9 +52,10 @@ The registration surfaces of record are:
    - manifest `path`, `sourceCommit`, `sourceTimestamp`, `documentSha256`, and `documentBytes` describe those exact bytes;
    - the source URL names that document's last-touch commit and private repository path;
    - every Mermaid call resolves to exactly one row in that document's function table;
+   - the one `## Dictionary` table parses exactly, keeps unique alphabetized terms, resolves every related term within that document, and preserves exact source-line coordinates;
    - participant order, message direction, branches, loops/options, notes, implementation markers, and document-level caveats retain their source meaning;
    - public sequence order follows the deliberate `sequenceMeta` registry order while every published sequence ID remains stable;
-   - document navigation, search, function catalogs, actor roles, and provenance remain scoped to the selected authority.
+   - document navigation, search, function and Dictionary catalogs, actor roles, and provenance remain scoped to the selected authority.
 
    For Chambers specifically, verify that `procman` is leftmost wherever present. When OCI content must
    become runnable, Image Materializer and `containerd` follow it before the trusted host runtime; otherwise
@@ -61,9 +63,10 @@ The registration surfaces of record are:
    runtime rather than the Chamber subject. The public Chambers order starts with **Engine cold start**,
    **Core bootstrap**, and **Ordinary activation**. Engine cold start must contain exactly one
    `activate_chamber` under “No Engine Chamber is ready,” no application-level identity-attest call, and a
-   common pinned-Noise/HPM-admission path after the branch. Core bootstrap must start Persistence from an
-   external Boot Seed before ordinary activation reads exact durable Realization and launch data through
-   Persistence. Persistence must not be portrayed as an OCI layer store. The Image Materializer is the only
+   common pinned-Noise/HPM-admission path after the branch. Procman must read the exact selected Engine and
+   Persistence Realizations and matching active Boot capsules from its durable Boot ledger. A Boot Seed may
+   initialize an empty ledger or supply bounded bytes, but must never become mutable selection or automatic
+   fallback authority. Persistence must not be portrayed as an OCI layer store. The Image Materializer is the only
    `containerd` client: it consumes bounded data/capabilities supplied by `procman`, while `containerd`
    keeps OCI content and snapshots on a disposable host slice and never calls Persistence or I3.
 
@@ -78,7 +81,7 @@ The registration surfaces of record are:
    ```
 
 7. Commit only the intended projection changes, push `main`, and wait for `Publish Lifecycle Atlas`. Read back cache-busted live HTML/assets and require them to match the committed publication bytes.
-8. Use a managed external browser against the deployed GitHub Pages URL for visual and interaction acceptance. Do not use locally hosted Chrome against localhost as the visual-QA substitute; Pages is the iterative preview even while the site is not production-ready. Inspect desktop, tablet, 390px mobile, and 320px mobile; check dense and bidirectional maps, branch/kind labels, touch targets, initial context, and page-level overflow—not only the first/default sequence. If QA finds a defect, push another bounded fix and repeat against Pages.
+8. Use a managed external browser against the deployed GitHub Pages URL for visual and interaction acceptance. Do not use locally hosted Chrome against localhost as the visual-QA substitute; Pages is the iterative preview even while the site is not production-ready. Inspect desktop, tablet, 390px mobile, and 320px mobile; check dense and bidirectional maps, Dictionary search/detail/related-term navigation, exact-line term links, branch/kind labels, touch targets, initial context, and page-level overflow—not only the first/default sequence. If QA finds a defect, push another bounded fix and repeat against Pages.
 
    External browser checks must exercise every registered workspace and sequence. For call selection, assert that the requested call becomes current, the top step/route/function summary keeps one constant height with no duplicated branch pills, `scrollLeft` remains unchanged, an already visible call does not move the page, and an off-screen call uses the primary page scrollbar for only the minimum top/bottom reveal required. Confirm that full branch and note context remains present in the inspector and that its keyed function metadata never stretches to the context-column height. Sweep every SVG row for branch-context versus `I3` / `HOST BOUNDARY` label collisions; branch text may truncate in the diagram but must retain its full value in the inspector. The diagram must not own a vertical scrollbar. While a long diagram crosses the page viewport, assert that its sticky actor labels remain below sticky page controls, mirror every actor, stay horizontally aligned after panning, and are included in selected-call occlusion geometry. Also sweep representative calls to prove the active sequence's inspector height is stable and unclipped. Exercise reset, sidebar/mobile/search selection, a real scrub with a frame between `input` and `change`, next/previous, playback restart, Map and Functions drill-down, document switching, URL history with exact Back/Forward scroll restoration, filter-induced selection, keyboard focus retention, shortcut isolation on local controls, and accessibility roles.
 
@@ -95,6 +98,7 @@ The authoritative document must be committed in Fundamentals and have a stable s
 - participants are declared before use;
 - call messages name function IDs in backticks;
 - one function-table section defines every called function exactly once, with invocation path and contract columns;
+- one `## Dictionary` section contains exactly one `Term | Definition | Related terms` table; terms are unique and alphabetized, and semicolon-separated related terms resolve within that document;
 - status markers and document-level maturity/runtime caveats have explicit source semantics.
 
 If a new authority uses a different structure, generalize the parser with exact fixtures and fail-closed tests. Do not introduce hand-authored browser data as a fallback.
@@ -123,6 +127,7 @@ Do not publish until all are true:
 
 - the snapshot and manifest bind the exact private source bytes and last-touch commit;
 - every arrow/function/table relationship is closed and document-local;
+- every Dictionary definition and related-term edge is source-derived, closed, and document-local;
 - control fragments and note-only branches retain exact context;
 - unmarked and marked implementation statuses mean only what that document defines;
 - a direct `?doc=<id>` URL opens the intended workspace without fallback;

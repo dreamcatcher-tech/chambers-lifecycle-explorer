@@ -7,13 +7,14 @@ A polished, playable explorer for the authoritative Chambers lifecycle and Cardf
 ## What it provides
 
 - **Two explicit document workspaces** — switch between **Chambers** and **Cardflow** without mixing their actors, calls, functions, or provenance. Desktop uses document tabs; tablet/mobile uses a document selector.
-- **Legible Chambers startup ladder** — Chambers opens with **Engine cold start**, then **Core bootstrap**, then **Ordinary activation**. Engine cold start conditionally creates an Engine only when none is ready, uses pinned libp2p Noise plus HPM admission instead of a redundant same-key identity challenge, and shows Image Materializer/`containerd` exact cache, pull, and bounded-import paths. Core bootstrap starts the first **Persistence** Chamber from a Boot Seed before restoring Supervisor. Ordinary activation reads durable Realization/launch data through Persistence, while OCI content and snapshots stay on a dedicated disposable containerd slice. `containerd` never calls Persistence or I3 directly.
+- **Legible Chambers startup ladder** — Chambers opens with **Engine cold start**, then **Core bootstrap**, then **Ordinary activation**. Procman reads exact selected Engine/Persistence records and immutable Boot-capsule references from its own durable Boot ledger; a Boot Seed may initialize an empty ledger but never acts as a mutable selector or fallback. Image Materializer/`containerd` then use exact cache, pull, or bounded-import paths. Ordinary activation reads durable Realization/launch data through Persistence, while OCI content and snapshots stay on a dedicated disposable containerd slice. `containerd` never selects or calls Persistence or I3 directly.
 - **Trace** — custom sequence lanes with play/pause, reset, step, scrub, actor focus, call-type filtering, zoom, keyboard shortcuts, touch gestures, and document-aware deep links. The compact step/route/function summary stays structurally stable while full branch and note context remains in the selected-call inspector. The diagram participates in the primary page flow instead of owning a nested vertical scrollbar; selected calls receive only the minimum vertical reveal required, while horizontal pan is preserved exactly. Actor labels stay pinned below the page controls and track horizontal pan while the page moves through a long diagram. The selected-call inspector keeps a constant height while exploring one sequence.
 - **Browser navigation** — meaningful document, sequence, view, call, and function changes populate browser history, so Back and Forward restore the corresponding app state and primary-page position. A continuous scrub creates one navigable entry rather than corrupting the entry it started from.
 - **Map** — an actor relationship graph with directed, frequency-weighted connections and call drill-down.
 - **Functions** — the complete function table for the selected document, including implementation status and diagram usage.
-- **Cross-document search** — find a sequence or function in either authority and move directly into its document workspace.
-- **Exact provenance** — every generated call resolves to a function-table row; each snapshot is bound to its Fundamentals source commit and SHA-256.
+- **Dictionary** — every canonical term and relationship is generated from the selected document's authoritative `## Dictionary` section, with searchable definitions, related-term navigation, exact-line source links, and document-aware deep links.
+- **Cross-document search** — find a sequence, function, or dictionary term in either authority and move directly into its document workspace.
+- **Exact provenance** — every generated call resolves to a function-table row and every dictionary term resolves to its exact source line; each snapshot is bound to its Fundamentals source commit and SHA-256.
 - **Source jump** — the snapshot card and footer open the exact private GitHub source document in a new page for viewers with repository access.
 - **No runtime dependencies** — the published artifact is plain HTML, CSS, JavaScript, and generated data. No CDN or Mermaid runtime is needed.
 
@@ -66,6 +67,8 @@ Useful document-aware deep links:
 ?doc=cardflow&diagram=queue-inspect-wait
 ?doc=cardflow&diagram=release-handoff&view=map
 ?doc=cardflow&view=functions&function=cardflow%3A%3Aresource%3A%3Aclaim
+?doc=chambers&view=dictionary&term=realization
+?doc=cardflow&view=dictionary&term=logical-lease
 ```
 
 ## Architecture
@@ -75,6 +78,7 @@ source/manifest.json
 source/chambers-lifecycle-sequences.md ─┐
                                         ├─> scripts/build_data.py
 source/cardflow-filesystem-lease-sequences.md ─┘   ├─ parses each function table
+                                                    ├─ parses each authoritative Dictionary table
                                                     ├─ parses every sequence arrow
                                                     ├─ preserves phases, branches, and notes
                                                     └─ rejects unknown function labels
@@ -85,7 +89,7 @@ source/cardflow-filesystem-lease-sequences.md ─┘   ├─ parses each functi
                                      ┌─────────────────────────┴─────────────────────────┐
                                      ▼                                                   ▼
                               Chambers workspace                                  Cardflow workspace
-                              Trace · Map · Functions                             Trace · Map · Functions
+                         Trace · Map · Functions · Dictionary                Trace · Map · Functions · Dictionary
 ```
 
 The parser classifies calls from each source's function table rather than visual guesswork. Chambers keeps

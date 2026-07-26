@@ -72,15 +72,16 @@ class BuildDataTests(unittest.TestCase):
 
     def test_document_counts_match_the_two_sources(self) -> None:
         chambers = self.documents["chambers"]["stats"]
-        self.assertEqual((10, 99, 41, 61, 38), (
+        self.assertEqual((10, 100, 41, 62, 38, 44), (
             chambers["sequences"], chambers["calls"], chambers["functions"],
-            chambers["i3Calls"], chambers["hostCalls"],
+            chambers["i3Calls"], chambers["hostCalls"], chambers["dictionaryTerms"],
         ))
         cardflow = self.documents["cardflow"]["stats"]
-        self.assertEqual((9, 66, 33, 66, 0), (
+        self.assertEqual((9, 66, 33, 66, 0, 30), (
             cardflow["sequences"], cardflow["calls"], cardflow["functions"],
-            cardflow["i3Calls"], cardflow["hostCalls"],
+            cardflow["i3Calls"], cardflow["hostCalls"], cardflow["dictionaryTerms"],
         ))
+        self.assertEqual(74, self.payload["stats"]["dictionaryTerms"])
 
     def test_host_boundary_is_explicit_and_chambers_only(self) -> None:
         chambers_host = {
@@ -123,7 +124,7 @@ class BuildDataTests(unittest.TestCase):
         cold_activate = next(call for call in sequences[0]["calls"] if call["function"] == "activate_chamber")
         self.assertTrue(
             any(
-                "selected accepted Engine Realization record" in note["text"]
+                "Read current[engine] and the matching active Boot capsule" in note["text"]
                 for call in sequences[0]["calls"]
                 for note in call["notes"]
             )
@@ -179,13 +180,13 @@ class BuildDataTests(unittest.TestCase):
             if participant["id"] == "Persistence"
         }
         self.assertEqual({"resource"}, persistence_roles)
-        boot_roles = {
-            participant["role"]
-            for sequence in chambers["sequences"]
-            for participant in sequence["participants"]
-            if participant["id"] == "Boot"
-        }
-        self.assertEqual({"resource"}, boot_roles)
+        self.assertFalse(
+            any(
+                participant["id"] == "Boot"
+                for sequence in chambers["sequences"]
+                for participant in sequence["participants"]
+            )
+        )
 
         calls = [call for sequence in chambers["sequences"] for call in sequence["calls"]]
         self.assertFalse(any(call["from"] == "containerd" for call in calls))
@@ -244,6 +245,41 @@ class BuildDataTests(unittest.TestCase):
         self.assertIn("contract-extension-required", statuses)
         self.assertIn("existing", statuses)
 
+    def test_dictionary_projection_is_source_exact_and_crosslinked(self) -> None:
+        for document in self.documents.values():
+            dictionary = document["dictionary"]
+            ids = {entry["id"] for entry in dictionary}
+            terms = [entry["term"] for entry in dictionary]
+            lines = (ROOT / "source" / document["source"]["snapshotPath"]).read_text(encoding="utf-8").splitlines()
+            self.assertEqual(terms, sorted(terms, key=str.casefold))
+            self.assertEqual(len(dictionary), document["stats"]["dictionaryTerms"])
+            self.assertEqual(len(ids), len(dictionary))
+            for entry in dictionary:
+                self.assertTrue(entry["definition"])
+                self.assertTrue(set(entry["related"]).issubset(ids), entry["term"])
+                self.assertTrue(lines[entry["sourceLine"] - 1].startswith(f"| {entry['term']} |"))
+
+        chambers = {entry["id"]: entry for entry in self.documents["chambers"]["dictionary"]}
+        self.assertIn("not an alias for Realization", chambers["covenant-lock"]["definition"])
+        self.assertIn("Covenant lock plus one normalized launch specification", chambers["realization"]["definition"])
+        self.assertIn("boot-ledger", chambers["boot-capsule"]["related"])
+
+        cardflow = {entry["id"]: entry for entry in self.documents["cardflow"]["dictionary"]}
+        self.assertIn("Chambers-defined immutable executable lifecycle identity", cardflow["realization"]["definition"])
+
+    def test_dictionary_parser_fails_closed_on_unknown_related_term(self) -> None:
+        lines = [
+            "## Dictionary",
+            "",
+            "| Term | Definition | Related terms |",
+            "| --- | --- | --- |",
+            "| Alpha | A sufficiently explicit canonical definition. | Missing |",
+            "",
+            "## Next section",
+        ]
+        with self.assertRaisesRegex(ValueError, "unknown related terms"):
+            build_data.parse_dictionary(lines)
+
     def test_trace_interaction_contract_is_present(self) -> None:
         app = (ROOT / "site" / "app.js").read_text(encoding="utf-8")
         css = (ROOT / "site" / "styles.css").read_text(encoding="utf-8")
@@ -272,6 +308,10 @@ class BuildDataTests(unittest.TestCase):
         self.assertIn("Outside conditional context", app)
         self.assertIn("rightCharacters", app)
         self.assertIn("kindWidth", app)
+        self.assertIn('data-view="dictionary"', html)
+        self.assertIn('id="dictionarySearch"', html)
+        self.assertIn("renderDictionaryCatalog", app)
+        self.assertIn("dictionary-card", css)
         self.assertNotIn('id="currentBranch"', html)
         self.assertNotIn("branch-chip", app)
 
