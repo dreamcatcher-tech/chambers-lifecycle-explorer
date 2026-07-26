@@ -67,7 +67,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     documents = payload.get("documents", [])
     if [document.get("id") for document in documents] != ["chambers", "cardflow"]:
         fail("bundle must contain Chambers and Cardflow in that order")
-    if payload.get("stats") != {"documents": 2, "sequences": 18, "calls": 146, "functions": 70}:
+    if payload.get("stats") != {"documents": 2, "sequences": 18, "calls": 142, "functions": 70}:
         fail(f"unexpected combined stats: {payload.get('stats')}")
 
     manifest_by_id = {entry["id"]: entry for entry in manifest.get("documents", [])}
@@ -89,10 +89,26 @@ def validate_manifest_and_bundle(payload: dict) -> None:
             fail(f"{document['id']} contains an unresolved call")
 
     chambers, cardflow = documents
-    if chambers["stats"] != {"sequences": 9, "actors": 34, "calls": 80, "i3Calls": 63, "hostCalls": 17, "functions": 37, "usedFunctions": 36}:
+    if chambers["stats"] != {"sequences": 9, "actors": 35, "calls": 76, "i3Calls": 60, "hostCalls": 16, "functions": 37, "usedFunctions": 36}:
         fail(f"unexpected Chambers stats: {chambers['stats']}")
     if cardflow["stats"] != {"sequences": 9, "actors": 19, "calls": 66, "i3Calls": 66, "hostCalls": 0, "functions": 33, "usedFunctions": 31}:
         fail(f"unexpected Cardflow stats: {cardflow['stats']}")
+
+    if [sequence["id"] for sequence in chambers["sequences"][:2]] != ["host-activation", "activation-kernel"]:
+        fail("Chambers must present Engine cold start before ordinary activation")
+    for sequence in chambers["sequences"]:
+        participants = [participant["id"] for participant in sequence["participants"]]
+        if "procman" in participants and participants[0] != "procman":
+            fail(f"{sequence['id']} does not keep procman leftmost")
+        physical_calls = [
+            call for call in sequence["calls"]
+            if call["function"] in {"activate_chamber", "stop_chamber"}
+        ]
+        if physical_calls:
+            if participants[:2] != ["procman", "Runtime"]:
+                fail(f"{sequence['id']} does not keep the physical runtime after procman")
+            if any(call["from"] != "procman" or call["to"] != "Runtime" for call in physical_calls):
+                fail(f"{sequence['id']} contains a physical call aimed at a Chamber subject")
 
 
 def validate_html_and_assets(payload: dict) -> None:
@@ -197,17 +213,20 @@ def validate_source_refresh_contract() -> None:
             "docs/source-refresh-runbook.md",
             "scripts/sync_source.py::DOCUMENTS",
             "scripts/build_data.py::DOCUMENT_CONFIGS",
+            "preserve `procman` as the leftmost lane",
         ),
         ROOT / "README.md": (
             "docs/source-refresh-runbook.md",
             "Adding another Fundamentals sequence authority",
             "python3 scripts/sync_source.py ../fundamentals",
+            "Engine cold start",
         ),
         RUNBOOK: (
             "Refresh an already registered authority",
             "Register a new sequence-document family",
             "node qa/browser-smoke.js",
             "note-only `alt`/`else` branches",
+            "`sequenceMeta` registry order",
             "Do **not** discover and publish every matching Fundamentals file automatically",
         ),
     }

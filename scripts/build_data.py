@@ -19,21 +19,21 @@ MANIFEST_PATH = SOURCE_DIR / "manifest.json"
 OUTPUT_PATH = ROOT / "site" / "data.js"
 
 CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
-    "Chamber activation kernel": {
-        "id": "activation-kernel",
-        "shortTitle": "Activation kernel",
-        "kicker": "Shared primitive",
-        "summary": "How one exact Realization becomes a fresh, admitted, routable Chamber.",
-        "question": "What must be true before a newly started Chamber is actually ready?",
-        "status": "core",
-    },
     "Mode 1 - Host activation": {
         "id": "host-activation",
-        "shortTitle": "Host activation",
-        "kicker": "Mode 1",
-        "summary": "How a cold host wakes the selected Engine and only the Chambers demanded by work.",
-        "question": "How does work enter when the I3 Engine itself may be absent?",
+        "shortTitle": "Engine cold start",
+        "kicker": "Mode 1 · startup boundary",
+        "summary": "How a running procman uses boot custody and the trusted host runtime to create the selected Engine Chamber.",
+        "question": "What happens from authenticated host wake until the selected I3 Engine is ready?",
         "status": "current",
+    },
+    "Ordinary Chamber activation kernel": {
+        "id": "activation-kernel",
+        "shortTitle": "Ordinary activation",
+        "kicker": "Shared primitive · Engine ready",
+        "summary": "How an exact non-Engine Realization becomes a fresh, admitted, routable Chamber.",
+        "question": "What must be true before a newly started ordinary Chamber is actually ready?",
+        "status": "core",
     },
     "Mode 2 - Form and activate a candidate": {
         "id": "candidate-formation",
@@ -225,7 +225,7 @@ def slugify(value: str) -> str:
 
 def participant_role(label: str, participant_id: str) -> str:
     text = f"{label} {participant_id}".lower()
-    if "procman" in text:
+    if "procman" in text or "host runtime" in text or participant_id.lower() == "runtime":
         return "host"
     if any(word in text for word in ("filesystem", "custody", "cas", "provider", "vault")):
         return "resource"
@@ -445,7 +445,20 @@ def parse_mermaid_sequence(
         raise ValueError(f"Sequence {title!r} has no participants or calls")
 
     for note in notes:
-        nearest = min(calls, key=lambda call: (abs(call["sourceLine"] - note["sourceLine"]), call["sourceLine"]))
+        note_context = note["context"]
+        same_or_descendant = [
+            call for call in calls
+            if call["context"][:len(note_context)] == note_context
+        ]
+        ancestor = [
+            call for call in calls
+            if note_context[:len(call["context"])] == call["context"]
+        ]
+        candidates = same_or_descendant or ancestor or calls
+        nearest = min(
+            candidates,
+            key=lambda call: (abs(call["sourceLine"] - note["sourceLine"]), call["sourceLine"]),
+        )
         nearest["notes"].append(note)
 
     for call in calls:
@@ -529,6 +542,17 @@ def parse_sequences(
         raise ValueError(
             f"Sequence metadata/source mismatch; missing={sorted(expected_titles - actual_titles)}, "
             f"unexpected={sorted(actual_titles - expected_titles)}"
+        )
+
+    display_order = {title: index for index, title in enumerate(sequence_meta)}
+    sequences.sort(key=lambda sequence: display_order[sequence["title"]])
+    sequence_rank: dict[str, int] = {}
+    for ordinal, sequence in enumerate(sequences, start=1):
+        sequence["ordinal"] = ordinal
+        sequence_rank[sequence["id"]] = ordinal
+    for function in registry.values():
+        function["usages"].sort(
+            key=lambda usage: (sequence_rank[usage["diagramId"]], usage["step"])
         )
     return sequences
 

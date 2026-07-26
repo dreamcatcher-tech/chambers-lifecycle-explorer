@@ -71,7 +71,7 @@ class BuildDataTests(unittest.TestCase):
 
     def test_document_counts_match_the_two_sources(self) -> None:
         chambers = self.documents["chambers"]["stats"]
-        self.assertEqual((9, 80, 37, 63, 17), (
+        self.assertEqual((9, 76, 37, 60, 16), (
             chambers["sequences"], chambers["calls"], chambers["functions"],
             chambers["i3Calls"], chambers["hostCalls"],
         ))
@@ -92,6 +92,45 @@ class BuildDataTests(unittest.TestCase):
             chambers_host,
         )
         self.assertTrue(all(function["kind"] == "i3" for function in self.documents["cardflow"]["functions"]))
+
+    def test_chambers_display_starts_with_cold_engine_then_ordinary_activation(self) -> None:
+        sequences = self.documents["chambers"]["sequences"]
+        self.assertEqual(
+            [("host-activation", "Engine cold start"), ("activation-kernel", "Ordinary activation")],
+            [(sequence["id"], sequence["shortTitle"]) for sequence in sequences[:2]],
+        )
+        self.assertEqual(list(range(1, len(sequences) + 1)), [sequence["ordinal"] for sequence in sequences])
+
+        host_calls = [call["function"] for call in sequences[0]["calls"]]
+        ordinary_calls = [call["function"] for call in sequences[1]["calls"]]
+        self.assertNotIn("filesystem::object::read", host_calls)
+        self.assertIn("filesystem::object::read", ordinary_calls)
+        self.assertIn("wake_engine", host_calls)
+
+        ready_attest = sequences[0]["calls"][1]
+        cold_activate = sequences[0]["calls"][2]
+        self.assertFalse(any("Read current[engine]" in note["text"] for note in ready_attest["notes"]))
+        self.assertTrue(any("Read current[engine]" in note["text"] for note in cold_activate["notes"]))
+
+    def test_procman_and_physical_runtime_projection_preserve_authority_order(self) -> None:
+        chambers = self.documents["chambers"]
+        for sequence in chambers["sequences"]:
+            participant_ids = [participant["id"] for participant in sequence["participants"]]
+            if "procman" in participant_ids:
+                self.assertEqual("procman", participant_ids[0], sequence["id"])
+            physical = [
+                call for call in sequence["calls"]
+                if call["function"] in {"activate_chamber", "stop_chamber"}
+            ]
+            if physical:
+                self.assertEqual(["procman", "Runtime"], participant_ids[:2], sequence["id"])
+                self.assertTrue(all(call["from"] == "procman" and call["to"] == "Runtime" for call in physical))
+                runtime = next(participant for participant in sequence["participants"] if participant["id"] == "Runtime")
+                self.assertEqual("host", runtime["role"])
+
+        functions = {function["id"]: function for function in chambers["functions"]}
+        self.assertEqual("Trusted host runtime", functions["activate_chamber"]["owner"])
+        self.assertEqual("Trusted host runtime", functions["stop_chamber"]["owner"])
 
     def test_sequence_actor_references_and_ids_are_sound_per_document(self) -> None:
         for document in self.documents.values():
@@ -124,8 +163,16 @@ class BuildDataTests(unittest.TestCase):
     def test_playback_has_branch_and_note_context_in_both_documents(self) -> None:
         for document in self.documents.values():
             calls = [call for sequence in document["sequences"] for call in sequence["calls"]]
-            self.assertTrue(any(call["context"] for call in calls))
-            self.assertTrue(any(call["notes"] for call in calls))
+            self.assertTrue(any(call["context"] for call in calls), document["id"])
+            self.assertTrue(any(call["notes"] for call in calls), document["id"])
+
+        cancel = next(
+            sequence for sequence in self.documents["cardflow"]["sequences"]
+            if sequence["id"] == "cancel-expire"
+        )
+        handoff_note = "Grant the next eligible waiter only after"
+        self.assertFalse(any(handoff_note in note["text"] for note in cancel["calls"][2]["notes"]))
+        self.assertTrue(any(handoff_note in note["text"] for note in cancel["calls"][-1]["notes"]))
 
     def test_cardflow_function_status_is_preserved(self) -> None:
         statuses = {function["implementationStatus"] for function in self.documents["cardflow"]["functions"]}
@@ -157,6 +204,10 @@ class BuildDataTests(unittest.TestCase):
         self.assertIn("height: var(--call-inspector-height", css)
         self.assertIn("call-function-meta", app)
         self.assertIn("call-function-meta", css)
+        self.assertIn("note.context", app)
+        self.assertIn("Outside conditional context", app)
+        self.assertIn("rightCharacters", app)
+        self.assertIn("kindWidth", app)
         self.assertNotIn('id="currentBranch"', html)
         self.assertNotIn("branch-chip", app)
 

@@ -9,7 +9,7 @@ window.LIFECYCLE_ATLAS_DATA = {
   "stats": {
     "documents": 2,
     "sequences": 18,
-    "calls": 146,
+    "calls": 142,
     "functions": 70
   },
   "documents": [
@@ -26,621 +26,45 @@ window.LIFECYCLE_ATLAS_DATA = {
         "id": "chambers",
         "path": "docs/chambers-lifecycle-sequences.md",
         "snapshotPath": "chambers-lifecycle-sequences.md",
-        "sourceCommit": "eb49c29c81db787a0c0353d97a206bd7cd7cb8e2",
-        "sourceTimestamp": "2026-07-20T13:06:09Z",
-        "documentSha256": "26ab97e41bd47a4eddb8fbe22065fe363aefe250b8ffad78775d5fad83322769",
-        "documentBytes": 54362,
+        "sourceCommit": "b4fe7125c9be54ced6f743e13f8c608970491d4a",
+        "sourceTimestamp": "2026-07-26T02:18:18Z",
+        "documentSha256": "a59fe337e166da282a01ccc3c424d8dca89f6d5dcedc76cbe1eb57a736bab0f9",
+        "documentBytes": 57245,
         "repository": "dreamcatcher-tech/fundamentals",
-        "repositoryHead": "8ad96b683fe384c521690a3e0b8b487c8cbddb02",
-        "url": "https://github.com/dreamcatcher-tech/fundamentals/blob/eb49c29c81db787a0c0353d97a206bd7cd7cb8e2/docs/chambers-lifecycle-sequences.md"
+        "repositoryHead": "b4fe7125c9be54ced6f743e13f8c608970491d4a",
+        "url": "https://github.com/dreamcatcher-tech/fundamentals/blob/b4fe7125c9be54ced6f743e13f8c608970491d4a/docs/chambers-lifecycle-sequences.md"
       },
       "stats": {
         "sequences": 9,
-        "actors": 34,
-        "calls": 80,
-        "i3Calls": 63,
-        "hostCalls": 17,
+        "actors": 35,
+        "calls": 76,
+        "i3Calls": 60,
+        "hostCalls": 16,
         "functions": 37,
         "usedFunctions": 36
       },
       "sequences": [
         {
-          "id": "activation-kernel",
-          "title": "Chamber activation kernel",
-          "shortTitle": "Activation kernel",
-          "kicker": "Shared primitive",
-          "summary": "How one exact Realization becomes a fresh, admitted, routable Chamber.",
-          "question": "What must be true before a newly started Chamber is actually ready?",
-          "status": "core",
+          "id": "host-activation",
+          "title": "Mode 1 - Host activation",
+          "shortTitle": "Engine cold start",
+          "kicker": "Mode 1 · startup boundary",
+          "summary": "How a running procman uses boot custody and the trusted host runtime to create the selected Engine Chamber.",
+          "question": "What happens from authenticated host wake until the selected I3 Engine is ready?",
+          "status": "current",
           "ordinal": 1,
-          "sourceLine": 421,
+          "sourceLine": 558,
           "participants": [
-            {
-              "id": "Custody",
-              "label": "Boot-readable custody or Filesystem providers",
-              "type": "participant",
-              "role": "resource",
-              "order": 0
-            },
             {
               "id": "procman",
               "label": "procman",
               "type": "participant",
               "role": "host",
-              "order": 1
-            },
-            {
-              "id": "Engine",
-              "label": "I3 Engine with built-in router",
-              "type": "participant",
-              "role": "engine",
-              "order": 2
-            },
-            {
-              "id": "Vault",
-              "label": "Vault",
-              "type": "participant",
-              "role": "resource",
-              "order": 3
-            },
-            {
-              "id": "Chamber",
-              "label": "Fresh Chamber",
-              "type": "participant",
-              "role": "chamber",
-              "order": 4
-            }
-          ],
-          "calls": [
-            {
-              "id": "activation-kernel-call-1",
-              "index": 0,
-              "from": "procman",
-              "to": "Custody",
-              "function": "filesystem::object::read",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Engine Chamber is absent",
-                  "branch": "Engine is ready"
-                }
-              ],
-              "notes": [
-                {
-                  "id": "activation-kernel-note-1",
-                  "placement": "over",
-                  "actors": [
-                    "procman"
-                  ],
-                  "text": "Commit Chamber intent and admissions[lease] · before physical effects",
-                  "sourceLine": 429,
-                  "context": []
-                },
-                {
-                  "id": "activation-kernel-note-2",
-                  "placement": "over",
-                  "actors": [
-                    "procman"
-                  ],
-                  "text": "Bind fresh C and public P to R and K · plus listener, epoch, profile, and expiry",
-                  "sourceLine": 430,
-                  "context": []
-                },
-                {
-                  "id": "activation-kernel-note-3",
-                  "placement": "over",
-                  "actors": [
-                    "procman",
-                    "Custody"
-                  ],
-                  "text": "activate_chamber may read only accepted boot-readable exact custody",
-                  "sourceLine": 433,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Engine Chamber is absent",
-                      "branch": "Engine Chamber is absent"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 435
-            },
-            {
-              "id": "activation-kernel-call-2",
-              "index": 1,
-              "from": "procman",
-              "to": "Chamber",
-              "function": "activate_chamber",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-2",
-                  "type": "alt",
-                  "label": "Every exact byte is available",
-                  "branch": "Every exact byte is available"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 439
-            },
-            {
-              "id": "activation-kernel-call-3",
-              "index": 2,
-              "from": "procman",
-              "to": "Chamber",
-              "function": "engine::identity::attest",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-2",
-                  "type": "alt",
-                  "label": "Every exact byte is available",
-                  "branch": "Every exact byte is available"
-                },
-                {
-                  "id": "fragment-3",
-                  "type": "alt",
-                  "label": "Chamber is the Engine",
-                  "branch": "Chamber is the Engine"
-                }
-              ],
-              "notes": [
-                {
-                  "id": "activation-kernel-note-4",
-                  "placement": "over",
-                  "actors": [
-                    "Chamber"
-                  ],
-                  "text": "Use the explicit bootstrap/direct exception · because Engine cannot dial its own absent listener",
-                  "sourceLine": 442,
-                  "context": [
-                    {
-                      "id": "fragment-2",
-                      "type": "alt",
-                      "label": "Every exact byte is available",
-                      "branch": "Every exact byte is available"
-                    },
-                    {
-                      "id": "fragment-3",
-                      "type": "alt",
-                      "label": "Chamber is the Engine",
-                      "branch": "Chamber is the Engine"
-                    }
-                  ]
-                },
-                {
-                  "id": "activation-kernel-note-5",
-                  "placement": "over",
-                  "actors": [
-                    "procman"
-                  ],
-                  "text": "Mark ready only after exact Engine identity, · listener, and bootstrap registration evidence",
-                  "sourceLine": 443,
-                  "context": [
-                    {
-                      "id": "fragment-2",
-                      "type": "alt",
-                      "label": "Every exact byte is available",
-                      "branch": "Every exact byte is available"
-                    },
-                    {
-                      "id": "fragment-3",
-                      "type": "alt",
-                      "label": "Chamber is the Engine",
-                      "branch": "Chamber is the Engine"
-                    }
-                  ]
-                },
-                {
-                  "id": "activation-kernel-note-6",
-                  "placement": "over",
-                  "actors": [
-                    "procman",
-                    "Chamber"
-                  ],
-                  "text": "Inject the fresh private identity by protected capability · and pass the pinned Engine PeerId",
-                  "sourceLine": 445,
-                  "context": [
-                    {
-                      "id": "fragment-2",
-                      "type": "alt",
-                      "label": "Every exact byte is available",
-                      "branch": "Every exact byte is available"
-                    },
-                    {
-                      "id": "fragment-3",
-                      "type": "alt",
-                      "label": "Chamber is the Engine",
-                      "branch": "Engine is already ready"
-                    }
-                  ]
-                },
-                {
-                  "id": "activation-kernel-note-7",
-                  "placement": "over",
-                  "actors": [
-                    "Chamber",
-                    "Engine"
-                  ],
-                  "text": "TCP plus Noise authenticates P and the pinned Engine · while proving key possession only",
-                  "sourceLine": 446,
-                  "context": [
-                    {
-                      "id": "fragment-2",
-                      "type": "alt",
-                      "label": "Every exact byte is available",
-                      "branch": "Every exact byte is available"
-                    },
-                    {
-                      "id": "fragment-3",
-                      "type": "alt",
-                      "label": "Chamber is the Engine",
-                      "branch": "Engine is already ready"
-                    }
-                  ]
-                },
-                {
-                  "id": "activation-kernel-note-8",
-                  "placement": "over",
-                  "actors": [
-                    "Engine"
-                  ],
-                  "text": "Reject unknown, expired, wrong-listener, · wrong-epoch, or revoked P before stream open",
-                  "sourceLine": 447,
-                  "context": [
-                    {
-                      "id": "fragment-2",
-                      "type": "alt",
-                      "label": "Every exact byte is available",
-                      "branch": "Every exact byte is available"
-                    },
-                    {
-                      "id": "fragment-3",
-                      "type": "alt",
-                      "label": "Chamber is the Engine",
-                      "branch": "Engine is already ready"
-                    }
-                  ]
-                },
-                {
-                  "id": "activation-kernel-note-9",
-                  "placement": "over",
-                  "actors": [
-                    "Engine"
-                  ],
-                  "text": "Enable the trusted control-plane middleware class · while retaining prefix and contract gates",
-                  "sourceLine": 449,
-                  "context": [
-                    {
-                      "id": "fragment-2",
-                      "type": "alt",
-                      "label": "Every exact byte is available",
-                      "branch": "Every exact byte is available"
-                    },
-                    {
-                      "id": "fragment-3",
-                      "type": "alt",
-                      "label": "Chamber is the Engine",
-                      "branch": "Engine is already ready"
-                    },
-                    {
-                      "id": "fragment-4",
-                      "type": "alt",
-                      "label": "Admission profile is privileged-direct",
-                      "branch": "Admission profile is privileged-direct"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 441
-            },
-            {
-              "id": "activation-kernel-call-4",
-              "index": 3,
-              "from": "procman",
-              "to": "Engine",
-              "function": "engine::route::inspect",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-2",
-                  "type": "alt",
-                  "label": "Every exact byte is available",
-                  "branch": "Every exact byte is available"
-                },
-                {
-                  "id": "fragment-3",
-                  "type": "alt",
-                  "label": "Chamber is the Engine",
-                  "branch": "Engine is already ready"
-                },
-                {
-                  "id": "fragment-5",
-                  "type": "alt",
-                  "label": "Identity binding and exact complete set match while the lease is live",
-                  "branch": "Identity binding and exact complete set match while the lease is live"
-                }
-              ],
-              "notes": [
-                {
-                  "id": "activation-kernel-note-10",
-                  "placement": "over",
-                  "actors": [
-                    "Engine",
-                    "Vault"
-                  ],
-                  "text": "Derive the ordinary RBAC principal from admitted P · and retain Vault middleware on mediated calls",
-                  "sourceLine": 451,
-                  "context": [
-                    {
-                      "id": "fragment-2",
-                      "type": "alt",
-                      "label": "Every exact byte is available",
-                      "branch": "Every exact byte is available"
-                    },
-                    {
-                      "id": "fragment-3",
-                      "type": "alt",
-                      "label": "Chamber is the Engine",
-                      "branch": "Engine is already ready"
-                    },
-                    {
-                      "id": "fragment-4",
-                      "type": "alt",
-                      "label": "Admission profile is privileged-direct",
-                      "branch": "Admission profile is ordinary-rbac"
-                    }
-                  ]
-                },
-                {
-                  "id": "activation-kernel-note-11",
-                  "placement": "over",
-                  "actors": [
-                    "Chamber",
-                    "Engine"
-                  ],
-                  "text": "Open /dreamcatcher/i3-worker-manager/noise/1.0.0 · only after admission, then submit local registrations",
-                  "sourceLine": 453,
-                  "context": [
-                    {
-                      "id": "fragment-2",
-                      "type": "alt",
-                      "label": "Every exact byte is available",
-                      "branch": "Every exact byte is available"
-                    },
-                    {
-                      "id": "fragment-3",
-                      "type": "alt",
-                      "label": "Chamber is the Engine",
-                      "branch": "Engine is already ready"
-                    }
-                  ]
-                },
-                {
-                  "id": "activation-kernel-note-12",
-                  "placement": "over",
-                  "actors": [
-                    "Engine"
-                  ],
-                  "text": "Assign chamber::C and quarantine registrations · while comparing the canonical complete set with K",
-                  "sourceLine": 454,
-                  "context": [
-                    {
-                      "id": "fragment-2",
-                      "type": "alt",
-                      "label": "Every exact byte is available",
-                      "branch": "Every exact byte is available"
-                    },
-                    {
-                      "id": "fragment-3",
-                      "type": "alt",
-                      "label": "Chamber is the Engine",
-                      "branch": "Engine is already ready"
-                    }
-                  ]
-                },
-                {
-                  "id": "activation-kernel-note-13",
-                  "placement": "over",
-                  "actors": [
-                    "Engine"
-                  ],
-                  "text": "Atomically publish only the prefixed exact set · and issue registration-complete evidence",
-                  "sourceLine": 456,
-                  "context": [
-                    {
-                      "id": "fragment-2",
-                      "type": "alt",
-                      "label": "Every exact byte is available",
-                      "branch": "Every exact byte is available"
-                    },
-                    {
-                      "id": "fragment-3",
-                      "type": "alt",
-                      "label": "Chamber is the Engine",
-                      "branch": "Engine is already ready"
-                    },
-                    {
-                      "id": "fragment-5",
-                      "type": "alt",
-                      "label": "Identity binding and exact complete set match while the lease is live",
-                      "branch": "Identity binding and exact complete set match while the lease is live"
-                    }
-                  ]
-                },
-                {
-                  "id": "activation-kernel-note-14",
-                  "placement": "over",
-                  "actors": [
-                    "procman"
-                  ],
-                  "text": "Mark ready and emit the run receipt · only after exact route evidence",
-                  "sourceLine": 458,
-                  "context": [
-                    {
-                      "id": "fragment-2",
-                      "type": "alt",
-                      "label": "Every exact byte is available",
-                      "branch": "Every exact byte is available"
-                    },
-                    {
-                      "id": "fragment-3",
-                      "type": "alt",
-                      "label": "Chamber is the Engine",
-                      "branch": "Engine is already ready"
-                    },
-                    {
-                      "id": "fragment-5",
-                      "type": "alt",
-                      "label": "Identity binding and exact complete set match while the lease is live",
-                      "branch": "Identity binding and exact complete set match while the lease is live"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 457
-            },
-            {
-              "id": "activation-kernel-call-5",
-              "index": 4,
-              "from": "procman",
-              "to": "Chamber",
-              "function": "stop_chamber",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-2",
-                  "type": "alt",
-                  "label": "Every exact byte is available",
-                  "branch": "Every exact byte is available"
-                },
-                {
-                  "id": "fragment-3",
-                  "type": "alt",
-                  "label": "Chamber is the Engine",
-                  "branch": "Engine is already ready"
-                },
-                {
-                  "id": "fragment-5",
-                  "type": "alt",
-                  "label": "Identity binding and exact complete set match while the lease is live",
-                  "branch": "Identity, lease, profile, or registration contract fails"
-                }
-              ],
-              "notes": [
-                {
-                  "id": "activation-kernel-note-15",
-                  "placement": "over",
-                  "actors": [
-                    "Engine"
-                  ],
-                  "text": "Close the stream and publish nothing · while preserving unrelated router state",
-                  "sourceLine": 460,
-                  "context": [
-                    {
-                      "id": "fragment-2",
-                      "type": "alt",
-                      "label": "Every exact byte is available",
-                      "branch": "Every exact byte is available"
-                    },
-                    {
-                      "id": "fragment-3",
-                      "type": "alt",
-                      "label": "Chamber is the Engine",
-                      "branch": "Engine is already ready"
-                    },
-                    {
-                      "id": "fragment-5",
-                      "type": "alt",
-                      "label": "Identity binding and exact complete set match while the lease is live",
-                      "branch": "Identity, lease, profile, or registration contract fails"
-                    }
-                  ]
-                },
-                {
-                  "id": "activation-kernel-note-16",
-                  "placement": "over",
-                  "actors": [
-                    "procman"
-                  ],
-                  "text": "Revoke admission and reap the failed Chamber · then emit a terminal failure receipt",
-                  "sourceLine": 462,
-                  "context": [
-                    {
-                      "id": "fragment-2",
-                      "type": "alt",
-                      "label": "Every exact byte is available",
-                      "branch": "Every exact byte is available"
-                    },
-                    {
-                      "id": "fragment-3",
-                      "type": "alt",
-                      "label": "Chamber is the Engine",
-                      "branch": "Engine is already ready"
-                    },
-                    {
-                      "id": "fragment-5",
-                      "type": "alt",
-                      "label": "Identity binding and exact complete set match while the lease is live",
-                      "branch": "Identity, lease, profile, or registration contract fails"
-                    }
-                  ]
-                },
-                {
-                  "id": "activation-kernel-note-17",
-                  "placement": "over",
-                  "actors": [
-                    "procman"
-                  ],
-                  "text": "Remove non-live state, emit the failure receipt, and terminalize the operation",
-                  "sourceLine": 466,
-                  "context": [
-                    {
-                      "id": "fragment-2",
-                      "type": "alt",
-                      "label": "Every exact byte is available",
-                      "branch": "Any exact byte remains unavailable"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 461
-            }
-          ],
-          "stats": {
-            "actors": 5,
-            "calls": 5,
-            "i3Calls": 3,
-            "hostCalls": 2,
-            "notes": 17,
-            "branches": 6
-          }
-        },
-        {
-          "id": "host-activation",
-          "title": "Mode 1 - Host activation",
-          "shortTitle": "Host activation",
-          "kicker": "Mode 1",
-          "summary": "How a cold host wakes the selected Engine and only the Chambers demanded by work.",
-          "question": "How does work enter when the I3 Engine itself may be absent?",
-          "status": "current",
-          "ordinal": 2,
-          "sourceLine": 539,
-          "participants": [
-            {
-              "id": "Wake",
-              "label": "Authenticated ingress or lower-platform wake source",
-              "type": "actor",
-              "role": "caller",
               "order": 0
             },
             {
-              "id": "procman",
-              "label": "procman",
+              "id": "Runtime",
+              "label": "Trusted host runtime (runsc)",
               "type": "participant",
               "role": "host",
               "order": 1
@@ -653,11 +77,18 @@ window.LIFECYCLE_ATLAS_DATA = {
               "order": 2
             },
             {
-              "id": "Members",
-              "label": "On-demand Chambers",
+              "id": "Custody",
+              "label": "Boot-readable exact Engine custody",
               "type": "participant",
-              "role": "chamber",
+              "role": "resource",
               "order": 3
+            },
+            {
+              "id": "Wake",
+              "label": "Authenticated wake source",
+              "type": "actor",
+              "role": "caller",
+              "order": 4
             }
           ],
           "calls": [
@@ -677,11 +108,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "procman"
                   ],
                   "text": "Reconcile interrupted operations and inspect ready Engine Chambers",
-                  "sourceLine": 547,
+                  "sourceLine": 567,
                   "context": []
                 }
               ],
-              "sourceLine": 546
+              "sourceLine": 566
             },
             {
               "id": "host-activation-call-2",
@@ -699,13 +130,13 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 550
+              "sourceLine": 570
             },
             {
               "id": "host-activation-call-3",
               "index": 2,
               "from": "procman",
-              "to": "Engine",
+              "to": "Runtime",
               "function": "activate_chamber",
               "kind": "host",
               "context": [
@@ -724,7 +155,43 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "procman"
                   ],
                   "text": "Read current[engine] and commit a fresh Chamber intent",
-                  "sourceLine": 552,
+                  "sourceLine": 572,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "A ready Engine Chamber exists",
+                      "branch": "No Engine Chamber is ready"
+                    }
+                  ]
+                },
+                {
+                  "id": "host-activation-note-3",
+                  "placement": "over",
+                  "actors": [
+                    "procman",
+                    "Custody"
+                  ],
+                  "text": "Use only accepted boot-readable exact Engine custody · because no I3 Filesystem route exists yet",
+                  "sourceLine": 573,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "A ready Engine Chamber exists",
+                      "branch": "No Engine Chamber is ready"
+                    }
+                  ]
+                },
+                {
+                  "id": "host-activation-note-4",
+                  "placement": "over",
+                  "actors": [
+                    "Runtime",
+                    "Engine"
+                  ],
+                  "text": "Materialize the selected exact Engine Realization · and create/start its fresh Chamber through pinned runsc",
+                  "sourceLine": 575,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -735,7 +202,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 553
+              "sourceLine": 574
             },
             {
               "id": "host-activation-call-4",
@@ -754,14 +221,31 @@ window.LIFECYCLE_ATLAS_DATA = {
               ],
               "notes": [
                 {
-                  "id": "host-activation-note-3",
+                  "id": "host-activation-note-5",
+                  "placement": "over",
+                  "actors": [
+                    "Engine"
+                  ],
+                  "text": "Use the explicit bootstrap/direct exception · because Engine cannot dial its own absent listener",
+                  "sourceLine": 577,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "A ready Engine Chamber exists",
+                      "branch": "No Engine Chamber is ready"
+                    }
+                  ]
+                },
+                {
+                  "id": "host-activation-note-6",
                   "placement": "over",
                   "actors": [
                     "procman",
                     "Engine"
                   ],
                   "text": "procman registers its two public functions through the I3 SDK",
-                  "sourceLine": 555,
+                  "sourceLine": 578,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -772,7 +256,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 554
+              "sourceLine": 576
             },
             {
               "id": "host-activation-call-5",
@@ -783,106 +267,467 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 558
+              "sourceLine": 581
+            }
+          ],
+          "stats": {
+            "actors": 5,
+            "calls": 5,
+            "i3Calls": 3,
+            "hostCalls": 2,
+            "notes": 6,
+            "branches": 2
+          }
+        },
+        {
+          "id": "activation-kernel",
+          "title": "Ordinary Chamber activation kernel",
+          "shortTitle": "Ordinary activation",
+          "kicker": "Shared primitive · Engine ready",
+          "summary": "How an exact non-Engine Realization becomes a fresh, admitted, routable Chamber.",
+          "question": "What must be true before a newly started ordinary Chamber is actually ready?",
+          "status": "core",
+          "ordinal": 2,
+          "sourceLine": 444,
+          "participants": [
+            {
+              "id": "procman",
+              "label": "procman",
+              "type": "participant",
+              "role": "host",
+              "order": 0
             },
             {
-              "id": "host-activation-call-6",
-              "index": 5,
-              "from": "Engine",
-              "to": "procman",
-              "function": "chambers::process::propose",
+              "id": "Runtime",
+              "label": "Trusted host runtime (runsc)",
+              "type": "participant",
+              "role": "host",
+              "order": 1
+            },
+            {
+              "id": "Engine",
+              "label": "I3 Engine with built-in router",
+              "type": "participant",
+              "role": "engine",
+              "order": 2
+            },
+            {
+              "id": "Chamber",
+              "label": "Fresh Chamber",
+              "type": "participant",
+              "role": "chamber",
+              "order": 3
+            },
+            {
+              "id": "Custody",
+              "label": "Filesystem and provider custody",
+              "type": "participant",
+              "role": "resource",
+              "order": 4
+            },
+            {
+              "id": "Vault",
+              "label": "Vault",
+              "type": "participant",
+              "role": "resource",
+              "order": 5
+            }
+          ],
+          "calls": [
+            {
+              "id": "activation-kernel-call-1",
+              "index": 0,
+              "from": "procman",
+              "to": "Custody",
+              "function": "filesystem::object::read",
               "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-2",
-                  "type": "opt",
-                  "label": "Admitted work needs another selected Runnable",
-                  "branch": "Admitted work needs another selected Runnable"
-                }
-              ],
+              "context": [],
               "notes": [
                 {
-                  "id": "host-activation-note-4",
+                  "id": "activation-kernel-note-1",
                   "placement": "over",
                   "actors": [
                     "procman"
                   ],
-                  "text": "Snapshot current and commit a fresh Chamber intent",
-                  "sourceLine": 562,
+                  "text": "Commit Chamber intent and admissions[lease] · before physical effects",
+                  "sourceLine": 453,
+                  "context": []
+                },
+                {
+                  "id": "activation-kernel-note-2",
+                  "placement": "over",
+                  "actors": [
+                    "procman"
+                  ],
+                  "text": "Bind fresh C and public P to R and K · plus listener, epoch, profile, and expiry",
+                  "sourceLine": 454,
+                  "context": []
+                },
+                {
+                  "id": "activation-kernel-note-16",
+                  "placement": "over",
+                  "actors": [
+                    "procman"
+                  ],
+                  "text": "Remove non-live state, emit the failure receipt, and terminalize the operation",
+                  "sourceLine": 481,
                   "context": [
                     {
-                      "id": "fragment-2",
-                      "type": "opt",
-                      "label": "Admitted work needs another selected Runnable",
-                      "branch": "Admitted work needs another selected Runnable"
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Every exact byte is available",
+                      "branch": "Any exact byte remains unavailable"
                     }
                   ]
                 }
               ],
-              "sourceLine": 561
+              "sourceLine": 455
             },
             {
-              "id": "host-activation-call-7",
-              "index": 6,
+              "id": "activation-kernel-call-2",
+              "index": 1,
               "from": "procman",
-              "to": "Members",
+              "to": "Runtime",
               "function": "activate_chamber",
               "kind": "host",
               "context": [
                 {
-                  "id": "fragment-2",
-                  "type": "opt",
-                  "label": "Admitted work needs another selected Runnable",
-                  "branch": "Admitted work needs another selected Runnable"
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Every exact byte is available",
+                  "branch": "Every exact byte is available"
                 }
               ],
               "notes": [
                 {
-                  "id": "host-activation-note-5",
+                  "id": "activation-kernel-note-3",
                   "placement": "over",
                   "actors": [
-                    "Members",
-                    "Engine"
+                    "Runtime",
+                    "Chamber"
                   ],
-                  "text": "Members follow the Noise admission kernel and only a complete prefixed contract set becomes routable",
-                  "sourceLine": 564,
+                  "text": "Materialize accepted exact artifacts and start · the fresh Chamber through pinned runsc",
+                  "sourceLine": 459,
                   "context": [
                     {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Every exact byte is available",
+                      "branch": "Every exact byte is available"
+                    }
+                  ]
+                },
+                {
+                  "id": "activation-kernel-note-4",
+                  "placement": "over",
+                  "actors": [
+                    "procman",
+                    "Chamber"
+                  ],
+                  "text": "Inject the fresh private identity by protected capability · and pass the pinned Engine PeerId",
+                  "sourceLine": 460,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Every exact byte is available",
+                      "branch": "Every exact byte is available"
+                    }
+                  ]
+                },
+                {
+                  "id": "activation-kernel-note-5",
+                  "placement": "over",
+                  "actors": [
+                    "Chamber",
+                    "Engine"
+                  ],
+                  "text": "TCP plus Noise authenticates P and the pinned Engine · while proving key possession only",
+                  "sourceLine": 461,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Every exact byte is available",
+                      "branch": "Every exact byte is available"
+                    }
+                  ]
+                },
+                {
+                  "id": "activation-kernel-note-6",
+                  "placement": "over",
+                  "actors": [
+                    "Engine"
+                  ],
+                  "text": "Reject unknown, expired, wrong-listener, · wrong-epoch, or revoked P before stream open",
+                  "sourceLine": 462,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Every exact byte is available",
+                      "branch": "Every exact byte is available"
+                    }
+                  ]
+                },
+                {
+                  "id": "activation-kernel-note-7",
+                  "placement": "over",
+                  "actors": [
+                    "Engine"
+                  ],
+                  "text": "Enable the trusted control-plane middleware class · while retaining prefix and contract gates",
+                  "sourceLine": 464,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Every exact byte is available",
+                      "branch": "Every exact byte is available"
+                    },
+                    {
                       "id": "fragment-2",
-                      "type": "opt",
-                      "label": "Admitted work needs another selected Runnable",
-                      "branch": "Admitted work needs another selected Runnable"
+                      "type": "alt",
+                      "label": "Admission profile is privileged-direct",
+                      "branch": "Admission profile is privileged-direct"
+                    }
+                  ]
+                },
+                {
+                  "id": "activation-kernel-note-8",
+                  "placement": "over",
+                  "actors": [
+                    "Engine",
+                    "Vault"
+                  ],
+                  "text": "Derive the ordinary RBAC principal from admitted P · and retain Vault middleware on mediated calls",
+                  "sourceLine": 466,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Every exact byte is available",
+                      "branch": "Every exact byte is available"
+                    },
+                    {
+                      "id": "fragment-2",
+                      "type": "alt",
+                      "label": "Admission profile is privileged-direct",
+                      "branch": "Admission profile is ordinary-rbac"
                     }
                   ]
                 }
               ],
-              "sourceLine": 563
+              "sourceLine": 458
             },
             {
-              "id": "host-activation-call-8",
-              "index": 7,
+              "id": "activation-kernel-call-3",
+              "index": 2,
               "from": "procman",
               "to": "Engine",
               "function": "engine::route::inspect",
               "kind": "i3",
               "context": [
                 {
-                  "id": "fragment-2",
-                  "type": "opt",
-                  "label": "Admitted work needs another selected Runnable",
-                  "branch": "Admitted work needs another selected Runnable"
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Every exact byte is available",
+                  "branch": "Every exact byte is available"
+                },
+                {
+                  "id": "fragment-3",
+                  "type": "alt",
+                  "label": "Identity binding and exact complete set match while the lease is live",
+                  "branch": "Identity binding and exact complete set match while the lease is live"
                 }
               ],
-              "notes": [],
-              "sourceLine": 565
+              "notes": [
+                {
+                  "id": "activation-kernel-note-9",
+                  "placement": "over",
+                  "actors": [
+                    "Chamber",
+                    "Engine"
+                  ],
+                  "text": "Open /dreamcatcher/i3-worker-manager/noise/1.0.0 · only after admission, then submit local registrations",
+                  "sourceLine": 468,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Every exact byte is available",
+                      "branch": "Every exact byte is available"
+                    }
+                  ]
+                },
+                {
+                  "id": "activation-kernel-note-10",
+                  "placement": "over",
+                  "actors": [
+                    "Engine"
+                  ],
+                  "text": "Assign chamber::C and quarantine registrations · while comparing the canonical complete set with K",
+                  "sourceLine": 469,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Every exact byte is available",
+                      "branch": "Every exact byte is available"
+                    }
+                  ]
+                },
+                {
+                  "id": "activation-kernel-note-11",
+                  "placement": "over",
+                  "actors": [
+                    "Engine"
+                  ],
+                  "text": "Atomically publish only the prefixed exact set · and issue registration-complete evidence",
+                  "sourceLine": 471,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Every exact byte is available",
+                      "branch": "Every exact byte is available"
+                    },
+                    {
+                      "id": "fragment-3",
+                      "type": "alt",
+                      "label": "Identity binding and exact complete set match while the lease is live",
+                      "branch": "Identity binding and exact complete set match while the lease is live"
+                    }
+                  ]
+                },
+                {
+                  "id": "activation-kernel-note-12",
+                  "placement": "over",
+                  "actors": [
+                    "procman"
+                  ],
+                  "text": "Mark ready and emit the run receipt · only after exact route evidence",
+                  "sourceLine": 473,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Every exact byte is available",
+                      "branch": "Every exact byte is available"
+                    },
+                    {
+                      "id": "fragment-3",
+                      "type": "alt",
+                      "label": "Identity binding and exact complete set match while the lease is live",
+                      "branch": "Identity binding and exact complete set match while the lease is live"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 472
+            },
+            {
+              "id": "activation-kernel-call-4",
+              "index": 3,
+              "from": "procman",
+              "to": "Runtime",
+              "function": "stop_chamber",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Every exact byte is available",
+                  "branch": "Every exact byte is available"
+                },
+                {
+                  "id": "fragment-3",
+                  "type": "alt",
+                  "label": "Identity binding and exact complete set match while the lease is live",
+                  "branch": "Identity, lease, profile, or registration contract fails"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "activation-kernel-note-13",
+                  "placement": "over",
+                  "actors": [
+                    "Engine"
+                  ],
+                  "text": "Close the stream and publish nothing · while preserving unrelated router state",
+                  "sourceLine": 475,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Every exact byte is available",
+                      "branch": "Every exact byte is available"
+                    },
+                    {
+                      "id": "fragment-3",
+                      "type": "alt",
+                      "label": "Identity binding and exact complete set match while the lease is live",
+                      "branch": "Identity, lease, profile, or registration contract fails"
+                    }
+                  ]
+                },
+                {
+                  "id": "activation-kernel-note-14",
+                  "placement": "over",
+                  "actors": [
+                    "Runtime",
+                    "Chamber"
+                  ],
+                  "text": "Stop and reap the failed exact Chamber",
+                  "sourceLine": 477,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Every exact byte is available",
+                      "branch": "Every exact byte is available"
+                    },
+                    {
+                      "id": "fragment-3",
+                      "type": "alt",
+                      "label": "Identity binding and exact complete set match while the lease is live",
+                      "branch": "Identity, lease, profile, or registration contract fails"
+                    }
+                  ]
+                },
+                {
+                  "id": "activation-kernel-note-15",
+                  "placement": "over",
+                  "actors": [
+                    "procman"
+                  ],
+                  "text": "Revoke admission, emit a terminal failure receipt, · and preserve unrelated lifecycle state",
+                  "sourceLine": 478,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Every exact byte is available",
+                      "branch": "Every exact byte is available"
+                    },
+                    {
+                      "id": "fragment-3",
+                      "type": "alt",
+                      "label": "Identity binding and exact complete set match while the lease is live",
+                      "branch": "Identity, lease, profile, or registration contract fails"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 476
             }
           ],
           "stats": {
-            "actors": 4,
-            "calls": 8,
-            "i3Calls": 5,
-            "hostCalls": 3,
-            "notes": 5,
+            "actors": 6,
+            "calls": 4,
+            "i3Calls": 2,
+            "hostCalls": 2,
+            "notes": 16,
             "branches": 3
           }
         },
@@ -895,56 +740,63 @@ window.LIFECYCLE_ATLAS_DATA = {
           "question": "How are resolution, build, acceptance, custody, and execution kept separate?",
           "status": "current",
           "ordinal": 3,
-          "sourceLine": 594,
+          "sourceLine": 611,
           "participants": [
             {
-              "id": "Caller",
-              "label": "Authorized caller",
-              "type": "actor",
-              "role": "caller",
+              "id": "procman",
+              "label": "procman",
+              "type": "participant",
+              "role": "host",
               "order": 0
+            },
+            {
+              "id": "Runtime",
+              "label": "Trusted host runtime (runsc)",
+              "type": "participant",
+              "role": "host",
+              "order": 1
             },
             {
               "id": "Supervisor",
               "label": "Authorized Supervisor Chamber",
               "type": "participant",
               "role": "control",
-              "order": 1
-            },
-            {
-              "id": "Filesystem",
-              "label": "Filesystem and provider adapters",
-              "type": "participant",
-              "role": "resource",
               "order": 2
-            },
-            {
-              "id": "Builder",
-              "label": "Builder Chamber",
-              "type": "participant",
-              "role": "chamber",
-              "order": 3
-            },
-            {
-              "id": "Acceptor",
-              "label": "Gate-appropriate artifact acceptor",
-              "type": "participant",
-              "role": "assurance",
-              "order": 4
-            },
-            {
-              "id": "procman",
-              "label": "procman",
-              "type": "participant",
-              "role": "host",
-              "order": 5
             },
             {
               "id": "Candidate",
               "label": "Candidate Chamber",
               "type": "participant",
               "role": "chamber",
+              "order": 3
+            },
+            {
+              "id": "Builder",
+              "label": "Builder Chamber",
+              "type": "participant",
+              "role": "chamber",
+              "order": 4
+            },
+            {
+              "id": "Filesystem",
+              "label": "Filesystem and provider adapters",
+              "type": "participant",
+              "role": "resource",
+              "order": 5
+            },
+            {
+              "id": "Acceptor",
+              "label": "Gate-appropriate artifact acceptor",
+              "type": "participant",
+              "role": "assurance",
               "order": 6
+            },
+            {
+              "id": "Caller",
+              "label": "Authorized caller",
+              "type": "actor",
+              "role": "caller",
+              "order": 7
             }
           ],
           "calls": [
@@ -964,11 +816,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Supervisor"
                   ],
                   "text": "Validate authority, parentage, candidate capacity, quota, and deadline",
-                  "sourceLine": 605,
+                  "sourceLine": 623,
                   "context": []
                 }
               ],
-              "sourceLine": 604
+              "sourceLine": 622
             },
             {
               "id": "candidate-formation-call-2",
@@ -993,7 +845,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Filesystem"
                   ],
                   "text": "Acquire any scoped Vault lease and invoke the selected provider adapter",
-                  "sourceLine": 609,
+                  "sourceLine": 627,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -1010,7 +862,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Supervisor"
                   ],
                   "text": "Form the exact Covenant lock",
-                  "sourceLine": 610,
+                  "sourceLine": 628,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -1021,7 +873,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 608
+              "sourceLine": 626
             },
             {
               "id": "candidate-formation-call-3",
@@ -1039,7 +891,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 612
+              "sourceLine": 630
             },
             {
               "id": "candidate-formation-call-4",
@@ -1056,26 +908,8 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "branch": "Realization requires an artifact build"
                 }
               ],
-              "notes": [
-                {
-                  "id": "candidate-formation-note-4",
-                  "placement": "over",
-                  "actors": [
-                    "Supervisor"
-                  ],
-                  "text": "Verify the artifact descriptor and acceptance receipt",
-                  "sourceLine": 616,
-                  "context": [
-                    {
-                      "id": "fragment-2",
-                      "type": "alt",
-                      "label": "Lock names an already accepted exact artifact",
-                      "branch": "Lock names an already accepted exact artifact"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 618
+              "notes": [],
+              "sourceLine": 636
             },
             {
               "id": "candidate-formation-call-5",
@@ -1093,7 +927,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 619
+              "sourceLine": 637
             },
             {
               "id": "candidate-formation-call-6",
@@ -1105,17 +939,34 @@ window.LIFECYCLE_ATLAS_DATA = {
               "context": [],
               "notes": [
                 {
+                  "id": "candidate-formation-note-4",
+                  "placement": "over",
+                  "actors": [
+                    "Supervisor"
+                  ],
+                  "text": "Verify the artifact descriptor and acceptance receipt",
+                  "sourceLine": 634,
+                  "context": [
+                    {
+                      "id": "fragment-2",
+                      "type": "alt",
+                      "label": "Lock names an already accepted exact artifact",
+                      "branch": "Lock names an already accepted exact artifact"
+                    }
+                  ]
+                },
+                {
                   "id": "candidate-formation-note-5",
                   "placement": "over",
                   "actors": [
                     "Supervisor"
                   ],
                   "text": "Form and digest the complete immutable Realization",
-                  "sourceLine": 622,
+                  "sourceLine": 640,
                   "context": []
                 }
               ],
-              "sourceLine": 623
+              "sourceLine": 641
             },
             {
               "id": "candidate-formation-call-7",
@@ -1126,7 +977,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 624
+              "sourceLine": 642
             },
             {
               "id": "candidate-formation-call-8",
@@ -1144,13 +995,13 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 627
+              "sourceLine": 645
             },
             {
               "id": "candidate-formation-call-9",
               "index": 8,
               "from": "procman",
-              "to": "Candidate",
+              "to": "Runtime",
               "function": "activate_chamber",
               "kind": "host",
               "context": [
@@ -1161,16 +1012,35 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "branch": "Inspection or verification needs a running instance"
                 }
               ],
-              "notes": [],
-              "sourceLine": 628
+              "notes": [
+                {
+                  "id": "candidate-formation-note-6",
+                  "placement": "over",
+                  "actors": [
+                    "Runtime",
+                    "Candidate"
+                  ],
+                  "text": "Materialize and start the exact candidate Chamber",
+                  "sourceLine": 647,
+                  "context": [
+                    {
+                      "id": "fragment-3",
+                      "type": "opt",
+                      "label": "Inspection or verification needs a running instance",
+                      "branch": "Inspection or verification needs a running instance"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 646
             }
           ],
           "stats": {
-            "actors": 7,
+            "actors": 8,
             "calls": 9,
             "i3Calls": 8,
             "hostCalls": 1,
-            "notes": 5,
+            "notes": 6,
             "branches": 4
           }
         },
@@ -1183,42 +1053,49 @@ window.LIFECYCLE_ATLAS_DATA = {
           "question": "How does development produce immutable input without promoting a running Chamber?",
           "status": "current",
           "ordinal": 4,
-          "sourceLine": 657,
+          "sourceLine": 676,
           "participants": [
             {
-              "id": "Agent",
-              "label": "Developer Agent",
+              "id": "procman",
+              "label": "procman",
               "type": "participant",
-              "role": "chamber",
+              "role": "host",
               "order": 0
+            },
+            {
+              "id": "Runtime",
+              "label": "Trusted host runtime (runsc)",
+              "type": "participant",
+              "role": "host",
+              "order": 1
             },
             {
               "id": "Supervisor",
               "label": "Authorized Supervisor Chamber",
               "type": "participant",
               "role": "control",
-              "order": 1
-            },
-            {
-              "id": "Filesystem",
-              "label": "Filesystem Service",
-              "type": "participant",
-              "role": "resource",
               "order": 2
-            },
-            {
-              "id": "procman",
-              "label": "procman",
-              "type": "participant",
-              "role": "host",
-              "order": 3
             },
             {
               "id": "Developer",
               "label": "Developer Chamber",
               "type": "participant",
               "role": "chamber",
+              "order": 3
+            },
+            {
+              "id": "Filesystem",
+              "label": "Filesystem Service",
+              "type": "participant",
+              "role": "resource",
               "order": 4
+            },
+            {
+              "id": "Agent",
+              "label": "Developer Agent",
+              "type": "participant",
+              "role": "chamber",
+              "order": 5
             }
           ],
           "calls": [
@@ -1231,7 +1108,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 665
+              "sourceLine": 685
             },
             {
               "id": "fenced-development-call-2",
@@ -1242,7 +1119,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 666
+              "sourceLine": 686
             },
             {
               "id": "fenced-development-call-3",
@@ -1261,22 +1138,34 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Developer"
                   ],
                   "text": "Stage the fenced attachment in the exact activation plan and expose no host path",
-                  "sourceLine": 668,
+                  "sourceLine": 688,
                   "context": []
                 }
               ],
-              "sourceLine": 667
+              "sourceLine": 687
             },
             {
               "id": "fenced-development-call-4",
               "index": 3,
               "from": "procman",
-              "to": "Developer",
+              "to": "Runtime",
               "function": "activate_chamber",
               "kind": "host",
               "context": [],
-              "notes": [],
-              "sourceLine": 669
+              "notes": [
+                {
+                  "id": "fenced-development-note-2",
+                  "placement": "over",
+                  "actors": [
+                    "Runtime",
+                    "Developer"
+                  ],
+                  "text": "Materialize and start the exact Developer Chamber",
+                  "sourceLine": 690,
+                  "context": []
+                }
+              ],
+              "sourceLine": 689
             },
             {
               "id": "fenced-development-call-5",
@@ -1287,7 +1176,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 670
+              "sourceLine": 691
             },
             {
               "id": "fenced-development-call-6",
@@ -1305,7 +1194,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 673
+              "sourceLine": 694
             },
             {
               "id": "fenced-development-call-7",
@@ -1323,7 +1212,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 675
+              "sourceLine": 696
             },
             {
               "id": "fenced-development-call-8",
@@ -1347,7 +1236,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 677
+              "sourceLine": 698
             },
             {
               "id": "fenced-development-call-9",
@@ -1365,13 +1254,13 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 680
+              "sourceLine": 701
             },
             {
               "id": "fenced-development-call-10",
               "index": 9,
               "from": "procman",
-              "to": "Developer",
+              "to": "Runtime",
               "function": "stop_chamber",
               "kind": "host",
               "context": [
@@ -1382,8 +1271,27 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "branch": "Close or expire"
                 }
               ],
-              "notes": [],
-              "sourceLine": 681
+              "notes": [
+                {
+                  "id": "fenced-development-note-3",
+                  "placement": "over",
+                  "actors": [
+                    "Runtime",
+                    "Developer"
+                  ],
+                  "text": "Stop and reap the exact Developer Chamber",
+                  "sourceLine": 703,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Continue development",
+                      "branch": "Close or expire"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 702
             },
             {
               "id": "fenced-development-call-11",
@@ -1401,15 +1309,15 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 682
+              "sourceLine": 704
             }
           ],
           "stats": {
-            "actors": 5,
+            "actors": 6,
             "calls": 11,
             "i3Calls": 9,
             "hostCalls": 2,
-            "notes": 1,
+            "notes": 3,
             "branches": 4
           }
         },
@@ -1422,7 +1330,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "question": "Where does building end, and why is the output not current yet?",
           "status": "later",
           "ordinal": 5,
-          "sourceLine": 703,
+          "sourceLine": 725,
           "participants": [
             {
               "id": "Supervisor",
@@ -1432,17 +1340,17 @@ window.LIFECYCLE_ATLAS_DATA = {
               "order": 0
             },
             {
-              "id": "Filesystem",
-              "label": "Filesystem and artifact CAS",
-              "type": "participant",
-              "role": "resource",
-              "order": 1
-            },
-            {
               "id": "Builder",
               "label": "Builder Chamber",
               "type": "participant",
               "role": "chamber",
+              "order": 1
+            },
+            {
+              "id": "Filesystem",
+              "label": "Filesystem and artifact CAS",
+              "type": "participant",
+              "role": "resource",
               "order": 2
             }
           ],
@@ -1456,7 +1364,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 709
+              "sourceLine": 731
             },
             {
               "id": "artifact-build-call-2",
@@ -1474,11 +1382,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Builder"
                   ],
                   "text": "Execute the selected frontend without runtime-socket authority",
-                  "sourceLine": 711,
+                  "sourceLine": 733,
                   "context": []
                 }
               ],
-              "sourceLine": 710
+              "sourceLine": 732
             },
             {
               "id": "artifact-build-call-3",
@@ -1496,11 +1404,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Filesystem"
                   ],
                   "text": "Verify and atomically seal the manifest, config, layers, and receipt",
-                  "sourceLine": 713,
+                  "sourceLine": 735,
                   "context": []
                 }
               ],
-              "sourceLine": 712
+              "sourceLine": 734
             }
           ],
           "stats": {
@@ -1521,7 +1429,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "question": "What does multi-Ark convergence prove, and what still needs policy judgment?",
           "status": "later",
           "ordinal": 6,
-          "sourceLine": 732,
+          "sourceLine": 754,
           "participants": [
             {
               "id": "Requester",
@@ -1583,7 +1491,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 742
+              "sourceLine": 764
             },
             {
               "id": "attested-builds-call-2",
@@ -1594,7 +1502,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 743
+              "sourceLine": 765
             },
             {
               "id": "attested-builds-call-3",
@@ -1619,7 +1527,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "BuilderA"
                   ],
                   "text": "Build inside the measured confidential environment",
-                  "sourceLine": 746,
+                  "sourceLine": 768,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -1630,7 +1538,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 747
+              "sourceLine": 769
             },
             {
               "id": "attested-builds-call-4",
@@ -1648,7 +1556,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 748
+              "sourceLine": 770
             },
             {
               "id": "attested-builds-call-5",
@@ -1673,7 +1581,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "BuilderB"
                   ],
                   "text": "Build inside the measured confidential environment",
-                  "sourceLine": 750,
+                  "sourceLine": 772,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -1684,7 +1592,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 751
+              "sourceLine": 773
             },
             {
               "id": "attested-builds-call-6",
@@ -1702,7 +1610,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 752
+              "sourceLine": 774
             },
             {
               "id": "attested-builds-call-7",
@@ -1713,7 +1621,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 755
+              "sourceLine": 777
             },
             {
               "id": "attested-builds-call-8",
@@ -1731,11 +1639,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Inspectors"
                   ],
                   "text": "Test, inspect, and emit signed evidence over exact subjects",
-                  "sourceLine": 757,
+                  "sourceLine": 779,
                   "context": []
                 }
               ],
-              "sourceLine": 756
+              "sourceLine": 778
             },
             {
               "id": "attested-builds-call-9",
@@ -1753,7 +1661,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Acceptor"
                   ],
                   "text": "Evaluate the common artifact, attestations, inspections, and policy",
-                  "sourceLine": 761,
+                  "sourceLine": 783,
                   "context": [
                     {
                       "id": "fragment-2",
@@ -1770,7 +1678,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Acceptor"
                   ],
                   "text": "Select one exact artifact or accept none",
-                  "sourceLine": 763,
+                  "sourceLine": 785,
                   "context": [
                     {
                       "id": "fragment-2",
@@ -1781,7 +1689,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 759
+              "sourceLine": 781
             }
           ],
           "stats": {
@@ -1802,63 +1710,70 @@ window.LIFECYCLE_ATLAS_DATA = {
           "question": "How can a verdict remain exact even after its test Chambers disappear?",
           "status": "current",
           "ordinal": 7,
-          "sourceLine": 779,
+          "sourceLine": 801,
           "participants": [
-            {
-              "id": "Requester",
-              "label": "Authorized requester",
-              "type": "actor",
-              "role": "caller",
-              "order": 0
-            },
-            {
-              "id": "Verifier",
-              "label": "External verifier or accepted Tester",
-              "type": "participant",
-              "role": "assurance",
-              "order": 1
-            },
-            {
-              "id": "Supervisor",
-              "label": "Authorized Supervisor Chamber",
-              "type": "participant",
-              "role": "control",
-              "order": 2
-            },
             {
               "id": "procman",
               "label": "procman",
               "type": "participant",
               "role": "host",
-              "order": 3
+              "order": 0
+            },
+            {
+              "id": "Runtime",
+              "label": "Trusted host runtime (runsc)",
+              "type": "participant",
+              "role": "host",
+              "order": 1
             },
             {
               "id": "Engine",
               "label": "I3 Engine with built-in router",
               "type": "participant",
               "role": "engine",
-              "order": 4
+              "order": 2
+            },
+            {
+              "id": "Supervisor",
+              "label": "Authorized Supervisor Chamber",
+              "type": "participant",
+              "role": "control",
+              "order": 3
             },
             {
               "id": "Candidate",
               "label": "Exact candidate Chamber",
               "type": "participant",
               "role": "chamber",
-              "order": 5
+              "order": 4
             },
             {
               "id": "Fixtures",
               "label": "Exact fixture Chambers",
               "type": "participant",
               "role": "chamber",
-              "order": 6
+              "order": 5
             },
             {
               "id": "Filesystem",
               "label": "Filesystem Service",
               "type": "participant",
               "role": "resource",
+              "order": 6
+            },
+            {
+              "id": "Verifier",
+              "label": "External verifier or accepted Tester",
+              "type": "participant",
+              "role": "assurance",
               "order": 7
+            },
+            {
+              "id": "Requester",
+              "label": "Authorized requester",
+              "type": "actor",
+              "role": "caller",
+              "order": 8
             }
           ],
           "calls": [
@@ -1871,7 +1786,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 790
+              "sourceLine": 813
             },
             {
               "id": "candidate-verification-call-2",
@@ -1882,7 +1797,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 791
+              "sourceLine": 814
             },
             {
               "id": "candidate-verification-call-3",
@@ -1893,13 +1808,13 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 792
+              "sourceLine": 815
             },
             {
               "id": "candidate-verification-call-4",
               "index": 3,
               "from": "procman",
-              "to": "Candidate",
+              "to": "Runtime",
               "function": "activate_chamber",
               "kind": "host",
               "context": [],
@@ -1908,15 +1823,15 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "id": "candidate-verification-note-1",
                   "placement": "over",
                   "actors": [
-                    "Candidate",
-                    "Engine"
+                    "Runtime",
+                    "Candidate"
                   ],
-                  "text": "Candidate registers its declared verification route through the I3 SDK",
-                  "sourceLine": 794,
+                  "text": "Materialize and start the exact candidate Chamber",
+                  "sourceLine": 817,
                   "context": []
                 }
               ],
-              "sourceLine": 793
+              "sourceLine": 816
             },
             {
               "id": "candidate-verification-call-5",
@@ -1926,8 +1841,20 @@ window.LIFECYCLE_ATLAS_DATA = {
               "function": "engine::route::inspect",
               "kind": "i3",
               "context": [],
-              "notes": [],
-              "sourceLine": 795
+              "notes": [
+                {
+                  "id": "candidate-verification-note-2",
+                  "placement": "over",
+                  "actors": [
+                    "Candidate",
+                    "Engine"
+                  ],
+                  "text": "Candidate registers its declared verification route through the I3 SDK",
+                  "sourceLine": 818,
+                  "context": []
+                }
+              ],
+              "sourceLine": 819
             },
             {
               "id": "candidate-verification-call-6",
@@ -1945,13 +1872,13 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 798
+              "sourceLine": 822
             },
             {
               "id": "candidate-verification-call-7",
               "index": 6,
               "from": "procman",
-              "to": "Fixtures",
+              "to": "Runtime",
               "function": "activate_chamber",
               "kind": "host",
               "context": [
@@ -1964,14 +1891,14 @@ window.LIFECYCLE_ATLAS_DATA = {
               ],
               "notes": [
                 {
-                  "id": "candidate-verification-note-2",
+                  "id": "candidate-verification-note-3",
                   "placement": "over",
                   "actors": [
-                    "Fixtures",
-                    "Engine"
+                    "Runtime",
+                    "Fixtures"
                   ],
-                  "text": "Fixtures register their exact routes through the I3 SDK",
-                  "sourceLine": 800,
+                  "text": "Materialize and start the exact fixture Chambers",
+                  "sourceLine": 824,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -1982,7 +1909,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 799
+              "sourceLine": 823
             },
             {
               "id": "candidate-verification-call-8",
@@ -1999,8 +1926,27 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "branch": "Declared fixtures are required"
                 }
               ],
-              "notes": [],
-              "sourceLine": 801
+              "notes": [
+                {
+                  "id": "candidate-verification-note-4",
+                  "placement": "over",
+                  "actors": [
+                    "Fixtures",
+                    "Engine"
+                  ],
+                  "text": "Fixtures register their exact routes through the I3 SDK",
+                  "sourceLine": 825,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "opt",
+                      "label": "Declared fixtures are required",
+                      "branch": "Declared fixtures are required"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 826
             },
             {
               "id": "candidate-verification-call-9",
@@ -2011,7 +1957,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 804
+              "sourceLine": 829
             },
             {
               "id": "candidate-verification-call-10",
@@ -2022,7 +1968,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 806
+              "sourceLine": 831
             },
             {
               "id": "candidate-verification-call-11",
@@ -2040,7 +1986,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 808
+              "sourceLine": 833
             },
             {
               "id": "candidate-verification-call-12",
@@ -2052,17 +1998,17 @@ window.LIFECYCLE_ATLAS_DATA = {
               "context": [],
               "notes": [
                 {
-                  "id": "candidate-verification-note-3",
+                  "id": "candidate-verification-note-5",
                   "placement": "over",
                   "actors": [
                     "Verifier"
                   ],
                   "text": "Emit MET, NOT_MET, or UNKNOWN bound to exact identities",
-                  "sourceLine": 810,
+                  "sourceLine": 835,
                   "context": []
                 }
               ],
-              "sourceLine": 811
+              "sourceLine": 836
             },
             {
               "id": "candidate-verification-call-13",
@@ -2073,24 +2019,36 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 813
+              "sourceLine": 838
             },
             {
               "id": "candidate-verification-call-14",
               "index": 13,
               "from": "procman",
-              "to": "Candidate",
+              "to": "Runtime",
               "function": "stop_chamber",
               "kind": "host",
               "context": [],
-              "notes": [],
-              "sourceLine": 814
+              "notes": [
+                {
+                  "id": "candidate-verification-note-6",
+                  "placement": "over",
+                  "actors": [
+                    "Runtime",
+                    "Candidate"
+                  ],
+                  "text": "Stop and reap the exact candidate Chamber",
+                  "sourceLine": 840,
+                  "context": []
+                }
+              ],
+              "sourceLine": 839
             },
             {
               "id": "candidate-verification-call-15",
               "index": 14,
               "from": "procman",
-              "to": "Fixtures",
+              "to": "Runtime",
               "function": "stop_chamber",
               "kind": "host",
               "context": [
@@ -2101,8 +2059,27 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "branch": "Declared fixtures were activated"
                 }
               ],
-              "notes": [],
-              "sourceLine": 816
+              "notes": [
+                {
+                  "id": "candidate-verification-note-7",
+                  "placement": "over",
+                  "actors": [
+                    "Runtime",
+                    "Fixtures"
+                  ],
+                  "text": "Stop and reap the exact fixture Chambers",
+                  "sourceLine": 843,
+                  "context": [
+                    {
+                      "id": "fragment-3",
+                      "type": "opt",
+                      "label": "Declared fixtures were activated",
+                      "branch": "Declared fixtures were activated"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 842
             },
             {
               "id": "candidate-verification-call-16",
@@ -2120,7 +2097,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 820
+              "sourceLine": 847
             },
             {
               "id": "candidate-verification-call-17",
@@ -2138,15 +2115,15 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 821
+              "sourceLine": 848
             }
           ],
           "stats": {
-            "actors": 8,
+            "actors": 9,
             "calls": 17,
             "i3Calls": 13,
             "hostCalls": 4,
-            "notes": 3,
+            "notes": 7,
             "branches": 4
           }
         },
@@ -2159,48 +2136,48 @@ window.LIFECYCLE_ATLAS_DATA = {
           "question": "What changes at selection time—and what deliberately does not?",
           "status": "current",
           "ordinal": 8,
-          "sourceLine": 843,
+          "sourceLine": 870,
           "participants": [
-            {
-              "id": "Verifier",
-              "label": "Independent verifier or Tester",
-              "type": "participant",
-              "role": "assurance",
-              "order": 0
-            },
-            {
-              "id": "Supervisor",
-              "label": "Authorized Supervisor Chamber",
-              "type": "participant",
-              "role": "control",
-              "order": 1
-            },
-            {
-              "id": "Promoter",
-              "label": "External fenced promoter",
-              "type": "participant",
-              "role": "assurance",
-              "order": 2
-            },
             {
               "id": "procman",
               "label": "procman",
               "type": "participant",
               "role": "host",
-              "order": 3
+              "order": 0
             },
             {
               "id": "Engine",
               "label": "I3 Engine with built-in router",
               "type": "participant",
               "role": "engine",
-              "order": 4
+              "order": 1
+            },
+            {
+              "id": "Supervisor",
+              "label": "Authorized Supervisor Chamber",
+              "type": "participant",
+              "role": "control",
+              "order": 2
             },
             {
               "id": "Filesystem",
               "label": "Filesystem Service",
               "type": "participant",
               "role": "resource",
+              "order": 3
+            },
+            {
+              "id": "Verifier",
+              "label": "Independent verifier or Tester",
+              "type": "participant",
+              "role": "assurance",
+              "order": 4
+            },
+            {
+              "id": "Promoter",
+              "label": "External fenced promoter",
+              "type": "participant",
+              "role": "assurance",
               "order": 5
             }
           ],
@@ -2214,7 +2191,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 852
+              "sourceLine": 879
             },
             {
               "id": "selection-rollback-call-2",
@@ -2225,7 +2202,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 853
+              "sourceLine": 880
             },
             {
               "id": "selection-rollback-call-3",
@@ -2236,7 +2213,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 854
+              "sourceLine": 881
             },
             {
               "id": "selection-rollback-call-4",
@@ -2247,7 +2224,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 855
+              "sourceLine": 882
             },
             {
               "id": "selection-rollback-call-5",
@@ -2265,11 +2242,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "procman"
                   ],
                   "text": "Commit the selection operation with exact before and after values",
-                  "sourceLine": 857,
+                  "sourceLine": 884,
                   "context": []
                 }
               ],
-              "sourceLine": 858
+              "sourceLine": 885
             },
             {
               "id": "selection-rollback-call-6",
@@ -2294,7 +2271,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "procman"
                   ],
                   "text": "Emit a failed-selection receipt without changing current",
-                  "sourceLine": 861,
+                  "sourceLine": 888,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -2305,7 +2282,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 862
+              "sourceLine": 889
             },
             {
               "id": "selection-rollback-call-7",
@@ -2330,7 +2307,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "procman"
                   ],
                   "text": "Set current[name] to the candidate Realization at the next revision",
-                  "sourceLine": 864,
+                  "sourceLine": 891,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -2341,7 +2318,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 865
+              "sourceLine": 892
             },
             {
               "id": "selection-rollback-call-8",
@@ -2366,7 +2343,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "procman"
                   ],
                   "text": "Emit the selection receipt and terminalize the operation",
-                  "sourceLine": 867,
+                  "sourceLine": 894,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -2377,7 +2354,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 866
+              "sourceLine": 893
             }
           ],
           "stats": {
@@ -2398,34 +2375,34 @@ window.LIFECYCLE_ATLAS_DATA = {
           "question": "What must be flushed and handed off before the final Engine disappears?",
           "status": "current",
           "ordinal": 9,
-          "sourceLine": 896,
+          "sourceLine": 923,
           "participants": [
-            {
-              "id": "Requester",
-              "label": "Standby requester",
-              "type": "actor",
-              "role": "caller",
-              "order": 0
-            },
-            {
-              "id": "Supervisor",
-              "label": "Authorized Supervisor Chamber",
-              "type": "participant",
-              "role": "control",
-              "order": 1
-            },
             {
               "id": "procman",
               "label": "procman",
               "type": "participant",
               "role": "host",
-              "order": 2
+              "order": 0
+            },
+            {
+              "id": "Runtime",
+              "label": "Trusted host runtime (runsc)",
+              "type": "participant",
+              "role": "host",
+              "order": 1
             },
             {
               "id": "Engine",
               "label": "I3 Engine Chamber",
               "type": "participant",
               "role": "engine",
+              "order": 2
+            },
+            {
+              "id": "Supervisor",
+              "label": "Authorized Supervisor Chamber",
+              "type": "participant",
+              "role": "control",
               "order": 3
             },
             {
@@ -2441,6 +2418,13 @@ window.LIFECYCLE_ATLAS_DATA = {
               "type": "participant",
               "role": "resource",
               "order": 5
+            },
+            {
+              "id": "Requester",
+              "label": "Standby requester",
+              "type": "actor",
+              "role": "caller",
+              "order": 6
             }
           ],
           "calls": [
@@ -2453,7 +2437,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 905
+              "sourceLine": 933
             },
             {
               "id": "quiesce-wake-call-2",
@@ -2471,11 +2455,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "procman"
                   ],
                   "text": "Commit the quiesce operation before stopping Chambers",
-                  "sourceLine": 907,
+                  "sourceLine": 935,
                   "context": []
                 }
               ],
-              "sourceLine": 906
+              "sourceLine": 934
             },
             {
               "id": "quiesce-wake-call-3",
@@ -2486,7 +2470,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 908
+              "sourceLine": 936
             },
             {
               "id": "quiesce-wake-call-4",
@@ -2504,13 +2488,13 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 911
+              "sourceLine": 939
             },
             {
               "id": "quiesce-wake-call-5",
               "index": 4,
               "from": "procman",
-              "to": "Members",
+              "to": "Runtime",
               "function": "stop_chamber",
               "kind": "host",
               "context": [
@@ -2521,8 +2505,27 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "branch": "Dependants before providers"
                 }
               ],
-              "notes": [],
-              "sourceLine": 912
+              "notes": [
+                {
+                  "id": "quiesce-wake-note-2",
+                  "placement": "over",
+                  "actors": [
+                    "Runtime",
+                    "Members"
+                  ],
+                  "text": "Stop and reap each exact dependant Chamber",
+                  "sourceLine": 941,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "loop",
+                      "label": "Dependants before providers",
+                      "branch": "Dependants before providers"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 940
             },
             {
               "id": "quiesce-wake-call-6",
@@ -2533,51 +2536,76 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 915
+              "sourceLine": 944
             },
             {
               "id": "quiesce-wake-call-7",
               "index": 6,
               "from": "procman",
-              "to": "Supervisor",
-              "function": "stop_chamber",
-              "kind": "host",
-              "context": [],
-              "notes": [],
-              "sourceLine": 916
-            },
-            {
-              "id": "quiesce-wake-call-8",
-              "index": 7,
-              "from": "procman",
-              "to": "Filesystem",
-              "function": "stop_chamber",
-              "kind": "host",
-              "context": [],
-              "notes": [],
-              "sourceLine": 917
-            },
-            {
-              "id": "quiesce-wake-call-9",
-              "index": 8,
-              "from": "procman",
-              "to": "Engine",
+              "to": "Runtime",
               "function": "stop_chamber",
               "kind": "host",
               "context": [],
               "notes": [
                 {
-                  "id": "quiesce-wake-note-2",
+                  "id": "quiesce-wake-note-3",
                   "placement": "over",
                   "actors": [
-                    "procman"
+                    "Runtime",
+                    "Supervisor"
                   ],
-                  "text": "Persist the terminal receipt while current and candidate state remain unchanged",
-                  "sourceLine": 919,
+                  "text": "Stop and reap the exact Supervisor Chamber",
+                  "sourceLine": 946,
                   "context": []
                 }
               ],
-              "sourceLine": 918
+              "sourceLine": 945
+            },
+            {
+              "id": "quiesce-wake-call-8",
+              "index": 7,
+              "from": "procman",
+              "to": "Runtime",
+              "function": "stop_chamber",
+              "kind": "host",
+              "context": [],
+              "notes": [
+                {
+                  "id": "quiesce-wake-note-4",
+                  "placement": "over",
+                  "actors": [
+                    "Runtime",
+                    "Filesystem"
+                  ],
+                  "text": "Stop and reap the exact Filesystem Chamber",
+                  "sourceLine": 948,
+                  "context": []
+                }
+              ],
+              "sourceLine": 947
+            },
+            {
+              "id": "quiesce-wake-call-9",
+              "index": 8,
+              "from": "procman",
+              "to": "Runtime",
+              "function": "stop_chamber",
+              "kind": "host",
+              "context": [],
+              "notes": [
+                {
+                  "id": "quiesce-wake-note-5",
+                  "placement": "over",
+                  "actors": [
+                    "Runtime",
+                    "Engine"
+                  ],
+                  "text": "Stop and reap the exact Engine Chamber last",
+                  "sourceLine": 950,
+                  "context": []
+                }
+              ],
+              "sourceLine": 949
             },
             {
               "id": "quiesce-wake-call-10",
@@ -2587,16 +2615,27 @@ window.LIFECYCLE_ATLAS_DATA = {
               "function": "deliver_final_reply",
               "kind": "host",
               "context": [],
-              "notes": [],
-              "sourceLine": 920
+              "notes": [
+                {
+                  "id": "quiesce-wake-note-6",
+                  "placement": "over",
+                  "actors": [
+                    "procman"
+                  ],
+                  "text": "Persist the terminal receipt while current and candidate state remain unchanged",
+                  "sourceLine": 951,
+                  "context": []
+                }
+              ],
+              "sourceLine": 952
             }
           ],
           "stats": {
-            "actors": 6,
+            "actors": 7,
             "calls": 10,
             "i3Calls": 5,
             "hostCalls": 5,
-            "notes": 2,
+            "notes": 6,
             "branches": 1
           }
         }
@@ -2609,16 +2648,8 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "The sole public procman mutation surface. Submit one exact typed and fenced lifecycle operation; procman commits intent before changing current, candidates, Chambers, attachments, admission, or quiescence state.",
-          "sourceLine": 172,
+          "sourceLine": 190,
           "usages": [
-            {
-              "diagramId": "host-activation",
-              "diagramTitle": "Host activation",
-              "callId": "host-activation-call-6",
-              "step": 6,
-              "from": "Engine",
-              "to": "procman"
-            },
             {
               "diagramId": "candidate-formation",
               "diagramTitle": "Form a candidate",
@@ -2708,7 +2739,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Return a capability-scoped read-only view of current selections, candidate Holds, Chambers, lease admissions, open operations, and receipt references. It cannot mutate state or establish a second route authority.",
-          "sourceLine": 173,
+          "sourceLine": 191,
           "usages": [
             {
               "diagramId": "candidate-verification",
@@ -2735,157 +2766,15 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "host",
           "implementationStatus": "existing",
           "contract": "An authenticated lower wake source submits one bounded wake and reply capability directly to procman while the Engine may be absent.",
-          "sourceLine": 174,
+          "sourceLine": 192,
           "usages": [
             {
               "diagramId": "host-activation",
-              "diagramTitle": "Host activation",
+              "diagramTitle": "Engine cold start",
               "callId": "host-activation-call-1",
               "step": 1,
               "from": "Wake",
               "to": "procman"
-            }
-          ]
-        },
-        {
-          "id": "activate_chamber",
-          "owner": "procman",
-          "path": "External conventional call (not I3)",
-          "kind": "host",
-          "implementationStatus": "existing",
-          "contract": "procman calls the trusted host runtime directly to materialize and start one exact Chamber through runsc after durable intent.",
-          "sourceLine": 175,
-          "usages": [
-            {
-              "diagramId": "activation-kernel",
-              "diagramTitle": "Activation kernel",
-              "callId": "activation-kernel-call-2",
-              "step": 2,
-              "from": "procman",
-              "to": "Chamber"
-            },
-            {
-              "diagramId": "host-activation",
-              "diagramTitle": "Host activation",
-              "callId": "host-activation-call-3",
-              "step": 3,
-              "from": "procman",
-              "to": "Engine"
-            },
-            {
-              "diagramId": "host-activation",
-              "diagramTitle": "Host activation",
-              "callId": "host-activation-call-7",
-              "step": 7,
-              "from": "procman",
-              "to": "Members"
-            },
-            {
-              "diagramId": "candidate-formation",
-              "diagramTitle": "Form a candidate",
-              "callId": "candidate-formation-call-9",
-              "step": 9,
-              "from": "procman",
-              "to": "Candidate"
-            },
-            {
-              "diagramId": "fenced-development",
-              "diagramTitle": "Fenced development",
-              "callId": "fenced-development-call-4",
-              "step": 4,
-              "from": "procman",
-              "to": "Developer"
-            },
-            {
-              "diagramId": "candidate-verification",
-              "diagramTitle": "Verify a candidate",
-              "callId": "candidate-verification-call-4",
-              "step": 4,
-              "from": "procman",
-              "to": "Candidate"
-            },
-            {
-              "diagramId": "candidate-verification",
-              "diagramTitle": "Verify a candidate",
-              "callId": "candidate-verification-call-7",
-              "step": 7,
-              "from": "procman",
-              "to": "Fixtures"
-            }
-          ]
-        },
-        {
-          "id": "stop_chamber",
-          "owner": "procman",
-          "path": "External conventional call (not I3)",
-          "kind": "host",
-          "implementationStatus": "existing",
-          "contract": "procman calls the trusted host runtime directly to stop and reap one exact Chamber after durable stop intent.",
-          "sourceLine": 176,
-          "usages": [
-            {
-              "diagramId": "activation-kernel",
-              "diagramTitle": "Activation kernel",
-              "callId": "activation-kernel-call-5",
-              "step": 5,
-              "from": "procman",
-              "to": "Chamber"
-            },
-            {
-              "diagramId": "fenced-development",
-              "diagramTitle": "Fenced development",
-              "callId": "fenced-development-call-10",
-              "step": 10,
-              "from": "procman",
-              "to": "Developer"
-            },
-            {
-              "diagramId": "candidate-verification",
-              "diagramTitle": "Verify a candidate",
-              "callId": "candidate-verification-call-14",
-              "step": 14,
-              "from": "procman",
-              "to": "Candidate"
-            },
-            {
-              "diagramId": "candidate-verification",
-              "diagramTitle": "Verify a candidate",
-              "callId": "candidate-verification-call-15",
-              "step": 15,
-              "from": "procman",
-              "to": "Fixtures"
-            },
-            {
-              "diagramId": "quiesce-wake",
-              "diagramTitle": "Quiesce and wake",
-              "callId": "quiesce-wake-call-5",
-              "step": 5,
-              "from": "procman",
-              "to": "Members"
-            },
-            {
-              "diagramId": "quiesce-wake",
-              "diagramTitle": "Quiesce and wake",
-              "callId": "quiesce-wake-call-7",
-              "step": 7,
-              "from": "procman",
-              "to": "Supervisor"
-            },
-            {
-              "diagramId": "quiesce-wake",
-              "diagramTitle": "Quiesce and wake",
-              "callId": "quiesce-wake-call-8",
-              "step": 8,
-              "from": "procman",
-              "to": "Filesystem"
-            },
-            {
-              "diagramId": "quiesce-wake",
-              "diagramTitle": "Quiesce and wake",
-              "callId": "quiesce-wake-call-9",
-              "step": 9,
-              "from": "procman",
-              "to": "Engine"
             }
           ]
         },
@@ -2896,7 +2785,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "host",
           "implementationStatus": "existing",
           "contract": "procman uses the handed-off lower reply capability after the required terminal receipt is durable; no stopped Engine is involved.",
-          "sourceLine": 177,
+          "sourceLine": 193,
           "usages": [
             {
               "diagramId": "quiesce-wake",
@@ -2909,25 +2798,151 @@ window.LIFECYCLE_ATLAS_DATA = {
           ]
         },
         {
+          "id": "activate_chamber",
+          "owner": "Trusted host runtime",
+          "path": "External conventional call (not I3)",
+          "kind": "host",
+          "implementationStatus": "existing",
+          "contract": "procman calls the trusted host runtime directly to materialize and start one exact Chamber through pinned runsc after durable intent. The Chamber is the subject created by the call, not its receiver.",
+          "sourceLine": 203,
+          "usages": [
+            {
+              "diagramId": "host-activation",
+              "diagramTitle": "Engine cold start",
+              "callId": "host-activation-call-3",
+              "step": 3,
+              "from": "procman",
+              "to": "Runtime"
+            },
+            {
+              "diagramId": "activation-kernel",
+              "diagramTitle": "Ordinary activation",
+              "callId": "activation-kernel-call-2",
+              "step": 2,
+              "from": "procman",
+              "to": "Runtime"
+            },
+            {
+              "diagramId": "candidate-formation",
+              "diagramTitle": "Form a candidate",
+              "callId": "candidate-formation-call-9",
+              "step": 9,
+              "from": "procman",
+              "to": "Runtime"
+            },
+            {
+              "diagramId": "fenced-development",
+              "diagramTitle": "Fenced development",
+              "callId": "fenced-development-call-4",
+              "step": 4,
+              "from": "procman",
+              "to": "Runtime"
+            },
+            {
+              "diagramId": "candidate-verification",
+              "diagramTitle": "Verify a candidate",
+              "callId": "candidate-verification-call-4",
+              "step": 4,
+              "from": "procman",
+              "to": "Runtime"
+            },
+            {
+              "diagramId": "candidate-verification",
+              "diagramTitle": "Verify a candidate",
+              "callId": "candidate-verification-call-7",
+              "step": 7,
+              "from": "procman",
+              "to": "Runtime"
+            }
+          ]
+        },
+        {
+          "id": "stop_chamber",
+          "owner": "Trusted host runtime",
+          "path": "External conventional call (not I3)",
+          "kind": "host",
+          "implementationStatus": "existing",
+          "contract": "procman calls the trusted host runtime directly to stop and reap one exact Chamber after durable stop intent. The Chamber is the subject reaped by the call, not its receiver.",
+          "sourceLine": 204,
+          "usages": [
+            {
+              "diagramId": "activation-kernel",
+              "diagramTitle": "Ordinary activation",
+              "callId": "activation-kernel-call-4",
+              "step": 4,
+              "from": "procman",
+              "to": "Runtime"
+            },
+            {
+              "diagramId": "fenced-development",
+              "diagramTitle": "Fenced development",
+              "callId": "fenced-development-call-10",
+              "step": 10,
+              "from": "procman",
+              "to": "Runtime"
+            },
+            {
+              "diagramId": "candidate-verification",
+              "diagramTitle": "Verify a candidate",
+              "callId": "candidate-verification-call-14",
+              "step": 14,
+              "from": "procman",
+              "to": "Runtime"
+            },
+            {
+              "diagramId": "candidate-verification",
+              "diagramTitle": "Verify a candidate",
+              "callId": "candidate-verification-call-15",
+              "step": 15,
+              "from": "procman",
+              "to": "Runtime"
+            },
+            {
+              "diagramId": "quiesce-wake",
+              "diagramTitle": "Quiesce and wake",
+              "callId": "quiesce-wake-call-5",
+              "step": 5,
+              "from": "procman",
+              "to": "Runtime"
+            },
+            {
+              "diagramId": "quiesce-wake",
+              "diagramTitle": "Quiesce and wake",
+              "callId": "quiesce-wake-call-7",
+              "step": 7,
+              "from": "procman",
+              "to": "Runtime"
+            },
+            {
+              "diagramId": "quiesce-wake",
+              "diagramTitle": "Quiesce and wake",
+              "callId": "quiesce-wake-call-8",
+              "step": 8,
+              "from": "procman",
+              "to": "Runtime"
+            },
+            {
+              "diagramId": "quiesce-wake",
+              "diagramTitle": "Quiesce and wake",
+              "callId": "quiesce-wake-call-9",
+              "step": 9,
+              "from": "procman",
+              "to": "Runtime"
+            }
+          ]
+        },
+        {
           "id": "engine::identity::attest",
           "owner": "I3 Engine",
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Prove the exact selected Engine Chamber, Realization, listener, lease, and fresh challenge before procman trusts the connection.",
-          "sourceLine": 187,
+          "sourceLine": 210,
           "usages": [
             {
-              "diagramId": "activation-kernel",
-              "diagramTitle": "Activation kernel",
-              "callId": "activation-kernel-call-3",
-              "step": 3,
-              "from": "procman",
-              "to": "Chamber"
-            },
-            {
               "diagramId": "host-activation",
-              "diagramTitle": "Host activation",
+              "diagramTitle": "Engine cold start",
               "callId": "host-activation-call-2",
               "step": 2,
               "from": "procman",
@@ -2935,7 +2950,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             },
             {
               "diagramId": "host-activation",
-              "diagramTitle": "Host activation",
+              "diagramTitle": "Engine cold start",
               "callId": "host-activation-call-4",
               "step": 4,
               "from": "procman",
@@ -2950,21 +2965,13 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Return operation-bound registration and readiness evidence for one exact non-Engine Chamber.",
-          "sourceLine": 188,
+          "sourceLine": 211,
           "usages": [
             {
               "diagramId": "activation-kernel",
-              "diagramTitle": "Activation kernel",
-              "callId": "activation-kernel-call-4",
-              "step": 4,
-              "from": "procman",
-              "to": "Engine"
-            },
-            {
-              "diagramId": "host-activation",
-              "diagramTitle": "Host activation",
-              "callId": "host-activation-call-8",
-              "step": 8,
+              "diagramTitle": "Ordinary activation",
+              "callId": "activation-kernel-call-3",
+              "step": 3,
               "from": "procman",
               "to": "Engine"
             },
@@ -2993,7 +3000,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Fence new factory admissions for one logical name at the expected current revision.",
-          "sourceLine": 189,
+          "sourceLine": 212,
           "usages": [
             {
               "diagramId": "selection-rollback",
@@ -3012,7 +3019,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Install the derived activation factory for one newly selected revision and Realization.",
-          "sourceLine": 190,
+          "sourceLine": 213,
           "usages": [
             {
               "diagramId": "selection-rollback",
@@ -3031,7 +3038,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Reopen a fenced factory at the unchanged authoritative revision after a failed selection.",
-          "sourceLine": 191,
+          "sourceLine": 214,
           "usages": [
             {
               "diagramId": "selection-rollback",
@@ -3050,11 +3057,11 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Deliver one already authenticated wake event and its bounded reply capability to the exact attested Engine Chamber.",
-          "sourceLine": 192,
+          "sourceLine": 215,
           "usages": [
             {
               "diagramId": "host-activation",
-              "diagramTitle": "Host activation",
+              "diagramTitle": "Engine cold start",
               "callId": "host-activation-call-5",
               "step": 5,
               "from": "procman",
@@ -3069,7 +3076,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Close admission and return the dependency-ordered exact Chamber stop plan.",
-          "sourceLine": 193,
+          "sourceLine": 216,
           "usages": [
             {
               "diagramId": "quiesce-wake",
@@ -3088,7 +3095,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Drive one exact Chamber to terminal quiescence evidence under the committed host stop plan.",
-          "sourceLine": 194,
+          "sourceLine": 217,
           "usages": [
             {
               "diagramId": "quiesce-wake",
@@ -3107,7 +3114,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Resolve a permitted locator once, or fetch an exact selector, and return verified immutable descriptors or bounded transfer capabilities.",
-          "sourceLine": 200,
+          "sourceLine": 223,
           "usages": [
             {
               "diagramId": "candidate-formation",
@@ -3150,11 +3157,11 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Read an exact content-addressed lifecycle object through capability-gated Filesystem custody.",
-          "sourceLine": 201,
+          "sourceLine": 224,
           "usages": [
             {
               "diagramId": "activation-kernel",
-              "diagramTitle": "Activation kernel",
+              "diagramTitle": "Ordinary activation",
               "callId": "activation-kernel-call-1",
               "step": 1,
               "from": "procman",
@@ -3169,7 +3176,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Acquire one bounded Hold over exact candidate Realization custody.",
-          "sourceLine": 202,
+          "sourceLine": 225,
           "usages": [
             {
               "diagramId": "candidate-formation",
@@ -3188,7 +3195,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Transfer one exact candidate Hold into selected-current custody under the fenced selection operation.",
-          "sourceLine": 203,
+          "sourceLine": 226,
           "usages": [
             {
               "diagramId": "selection-rollback",
@@ -3207,7 +3214,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Release one exact candidate Hold after authorized rejection, expiry, cancellation, or cleanup.",
-          "sourceLine": 204,
+          "sourceLine": 227,
           "usages": [
             {
               "diagramId": "candidate-verification",
@@ -3226,7 +3233,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Open one writer-fenced mutable workspace from an exact base and return its scoped attachment capability.",
-          "sourceLine": 205,
+          "sourceLine": 228,
           "usages": [
             {
               "diagramId": "fenced-development",
@@ -3245,7 +3252,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Apply an authorized mutation through the workspace fence without exposing a raw host path.",
-          "sourceLine": 206,
+          "sourceLine": 229,
           "usages": [
             {
               "diagramId": "fenced-development",
@@ -3264,7 +3271,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Renew the same workspace fence and lease for the same owner and cleanup duty; it cannot change lineage.",
-          "sourceLine": 207,
+          "sourceLine": 230,
           "usages": [
             {
               "diagramId": "fenced-development",
@@ -3283,7 +3290,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Terminalize one exact workspace fence and reap unretained overlay data.",
-          "sourceLine": 208,
+          "sourceLine": 231,
           "usages": [
             {
               "diagramId": "fenced-development",
@@ -3302,7 +3309,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Atomically seal the exact fenced workspace bytes as an immutable content-addressed revision under bounded custody.",
-          "sourceLine": 209,
+          "sourceLine": 232,
           "usages": [
             {
               "diagramId": "fenced-development",
@@ -3321,7 +3328,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Consume one exact sealed snapshot into a durable provider-native revision and receipt; it neither publishes remotely nor selects a Realization.",
-          "sourceLine": 210,
+          "sourceLine": 233,
           "usages": [
             {
               "diagramId": "fenced-development",
@@ -3340,7 +3347,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Flush the declared durable resources covered by one committed stop operation and return operation-bound receipts.",
-          "sourceLine": 211,
+          "sourceLine": 234,
           "usages": [
             {
               "diagramId": "quiesce-wake",
@@ -3359,7 +3366,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "optional-later",
           "contract": "Verify and atomically seal an exact OCI manifest, config, layers, and build receipt; it does not accept or select the resulting artifact.",
-          "sourceLine": 212,
+          "sourceLine": 235,
           "usages": [
             {
               "diagramId": "artifact-build",
@@ -3394,7 +3401,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Return the Supervisor's capability-filtered logical lifecycle view assembled from authoritative procman and owner observations.",
-          "sourceLine": 218,
+          "sourceLine": 241,
           "usages": []
         },
         {
@@ -3404,7 +3411,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Orchestrate locator or lock resolution into an exact candidate Realization and Hold, optionally requesting a candidate Chamber; it cannot write current.",
-          "sourceLine": 219,
+          "sourceLine": 242,
           "usages": [
             {
               "diagramId": "candidate-formation",
@@ -3423,7 +3430,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Orchestrate a named fenced workspace and its staged attachment to one exact Developer Chamber activation.",
-          "sourceLine": 220,
+          "sourceLine": 243,
           "usages": [
             {
               "diagramId": "fenced-development",
@@ -3442,7 +3449,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Receive an exact candidate lifecycle, evidence, expiry, or cleanup event and drive only the next separately authorized step.",
-          "sourceLine": 221,
+          "sourceLine": 244,
           "usages": [
             {
               "diagramId": "candidate-verification",
@@ -3477,7 +3484,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Coordinate dependency-ordered quiescence, durable flush, and final reply-duty handoff to procman.",
-          "sourceLine": 222,
+          "sourceLine": 245,
           "usages": [
             {
               "diagramId": "quiesce-wake",
@@ -3496,7 +3503,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "optional-later",
           "contract": "Execute one exact build request and return an exact artifact descriptor plus build receipt; it does not accept or select the output.",
-          "sourceLine": 228,
+          "sourceLine": 251,
           "usages": [
             {
               "diagramId": "candidate-formation",
@@ -3539,7 +3546,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Judge one exact artifact, evidence set, and policy and return an acceptance receipt or rejection.",
-          "sourceLine": 229,
+          "sourceLine": 252,
           "usages": [
             {
               "diagramId": "candidate-formation",
@@ -3566,7 +3573,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "optional-later",
           "contract": "Appraise fresh confidential-environment evidence bound to one builder identity and exact statement.",
-          "sourceLine": 230,
+          "sourceLine": 253,
           "usages": [
             {
               "diagramId": "attested-builds",
@@ -3593,7 +3600,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Execute the exact candidate and fixture verification plan through exact Chamber routes and return subject-bound evidence and a verdict.",
-          "sourceLine": 231,
+          "sourceLine": 254,
           "usages": [
             {
               "diagramId": "attested-builds",
@@ -3636,7 +3643,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Have the distinct fenced promoter validate fresh MET evidence and issue and consume one exact, one-use compare-and-swap permit.",
-          "sourceLine": 232,
+          "sourceLine": 255,
           "usages": [
             {
               "diagramId": "selection-rollback",
@@ -3668,7 +3675,7 @@ window.LIFECYCLE_ATLAS_DATA = {
         "documentSha256": "b511d8a8df563fb49b460b1da967d6aec3f1383ab8b4aeb1820cc6afe43fc3e6",
         "documentBytes": 57068,
         "repository": "dreamcatcher-tech/fundamentals",
-        "repositoryHead": "8ad96b683fe384c521690a3e0b8b487c8cbddb02",
+        "repositoryHead": "b4fe7125c9be54ced6f743e13f8c608970491d4a",
         "url": "https://github.com/dreamcatcher-tech/fundamentals/blob/ced499d91221a4e3aca9a4d3250a078041393221/docs/cardflow-filesystem-lease-sequences.md"
       },
       "stats": {
@@ -3727,42 +3734,6 @@ window.LIFECYCLE_ATLAS_DATA = {
               "function": "cardflow::resource::resolve",
               "kind": "i3",
               "context": [],
-              "notes": [],
-              "sourceLine": 472
-            },
-            {
-              "id": "register-claim-call-3",
-              "index": 2,
-              "from": "Card",
-              "to": "Cardflow",
-              "function": "cardflow::resource::claim",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "One mutable resource",
-                  "branch": "One mutable resource"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 475
-            },
-            {
-              "id": "register-claim-call-4",
-              "index": 3,
-              "from": "Card",
-              "to": "Cardflow",
-              "function": "cardflow::resource::claim_set",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "One mutable resource",
-                  "branch": "Several mutable resources"
-                }
-              ],
               "notes": [
                 {
                   "id": "register-claim-note-1",
@@ -3799,6 +3770,42 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
+              "sourceLine": 472
+            },
+            {
+              "id": "register-claim-call-3",
+              "index": 2,
+              "from": "Card",
+              "to": "Cardflow",
+              "function": "cardflow::resource::claim",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "One mutable resource",
+                  "branch": "One mutable resource"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 475
+            },
+            {
+              "id": "register-claim-call-4",
+              "index": 3,
+              "from": "Card",
+              "to": "Cardflow",
+              "function": "cardflow::resource::claim_set",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "One mutable resource",
+                  "branch": "Several mutable resources"
+                }
+              ],
+              "notes": [],
               "sourceLine": 477
             }
           ],
@@ -4108,26 +4115,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "function": "chambers::process::propose",
               "kind": "i3",
               "context": [],
-              "notes": [
-                {
-                  "id": "materialize-session-note-2",
-                  "placement": "over",
-                  "actors": [
-                    "procman",
-                    "Developer"
-                  ],
-                  "text": "Stage and receipt the exact attachment before the conventional · activate_chamber host mechanism, · with the physical deadline bounded by the logical lease",
-                  "sourceLine": 555,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Physical admission and pre-start attachment succeed",
-                      "branch": "Physical admission and pre-start attachment succeed"
-                    }
-                  ]
-                }
-              ],
+              "notes": [],
               "sourceLine": 553
             },
             {
@@ -4146,6 +4134,24 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [
+                {
+                  "id": "materialize-session-note-2",
+                  "placement": "over",
+                  "actors": [
+                    "procman",
+                    "Developer"
+                  ],
+                  "text": "Stage and receipt the exact attachment before the conventional · activate_chamber host mechanism, · with the physical deadline bounded by the logical lease",
+                  "sourceLine": 555,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Physical admission and pre-start attachment succeed",
+                      "branch": "Physical admission and pre-start attachment succeed"
+                    }
+                  ]
+                },
                 {
                   "id": "materialize-session-note-3",
                   "placement": "over",
@@ -5535,6 +5541,40 @@ window.LIFECYCLE_ATLAS_DATA = {
                       "branch": "Active logical lease and exact live matching Chamber session"
                     }
                   ]
+                },
+                {
+                  "id": "recover-reconcile-note-2",
+                  "placement": "over",
+                  "actors": [
+                    "Cardflow"
+                  ],
+                  "text": "Preserve the valid between-Chambers state, · materialize only if durable card state still demands another attempt",
+                  "sourceLine": 802,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Active logical lease and exact live matching Chamber session",
+                      "branch": "Active logical lease with no live Chamber"
+                    }
+                  ]
+                },
+                {
+                  "id": "recover-reconcile-note-5",
+                  "placement": "over",
+                  "actors": [
+                    "Cardflow"
+                  ],
+                  "text": "Terminalize only after exact owner evidence proves absence, · expiry, or prior cleanup, never infer success from missing process memory",
+                  "sourceLine": 810,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Active logical lease and exact live matching Chamber session",
+                      "branch": "Cardflow session reference names no authoritative Chamber"
+                    }
+                  ]
                 }
               ],
               "sourceLine": 797
@@ -5555,23 +5595,6 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [
-                {
-                  "id": "recover-reconcile-note-2",
-                  "placement": "over",
-                  "actors": [
-                    "Cardflow"
-                  ],
-                  "text": "Preserve the valid between-Chambers state, · materialize only if durable card state still demands another attempt",
-                  "sourceLine": 802,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Active logical lease and exact live matching Chamber session",
-                      "branch": "Active logical lease with no live Chamber"
-                    }
-                  ]
-                },
                 {
                   "id": "recover-reconcile-note-3",
                   "placement": "over",
@@ -5622,23 +5645,6 @@ window.LIFECYCLE_ATLAS_DATA = {
                       "type": "alt",
                       "label": "Active logical lease and exact live matching Chamber session",
                       "branch": "Live Cardflow-attributed Chamber has no valid logical lease"
-                    }
-                  ]
-                },
-                {
-                  "id": "recover-reconcile-note-5",
-                  "placement": "over",
-                  "actors": [
-                    "Cardflow"
-                  ],
-                  "text": "Terminalize only after exact owner evidence proves absence, · expiry, or prior cleanup, never infer success from missing process memory",
-                  "sourceLine": 810,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Active logical lease and exact live matching Chamber session",
-                      "branch": "Cardflow session reference names no authoritative Chamber"
                     }
                   ]
                 }

@@ -547,6 +547,8 @@
       const isCurrent = call.id === state.callId;
       const isPast = currentIndex >= 0 && call.index < currentIndex;
       const branch = call.context.map((context) => context.branch).filter(Boolean).join(" / ");
+      const kindLabel = call.kind === "i3" ? "I3" : "HOST BOUNDARY";
+      const kindWidth = call.kind === "i3" ? 18 : 84;
       const group = svgElement("g", {
         class: `call-row ${call.kind}${call.kind === "host" ? " is-host" : ""}${isCurrent ? " is-current" : ""}${!isVisible ? " is-dim" : ""}${isPast ? " is-past" : ""}`,
         "data-call-id": call.id,
@@ -567,8 +569,17 @@
       group.appendChild(svgElement("text", { x: labelMid, y: y - 12, class: "call-text" }, call.function));
       group.appendChild(svgElement("text", {
         x: labelMid, y: y + 28, class: "svg-kind", fill: call.kind === "i3" ? "#64e7ef" : "#ffb866",
-      }, call.kind === "i3" ? "I3" : "HOST BOUNDARY"));
-      if (branch) group.appendChild(svgElement("text", { x: 42, y: y + 29, class: "svg-branch" }, `↳ ${truncate(branch, 52)}`));
+      }, kindLabel));
+      if (branch) {
+        const rightStart = labelMid + kindWidth / 2 + 14;
+        const rightCharacters = Math.floor((width - rightStart - 20) / 5.4);
+        const useRight = rightCharacters >= 12;
+        const branchX = useRight ? rightStart : 42;
+        const maxCharacters = useRight
+          ? Math.min(52, rightCharacters)
+          : Math.max(12, Math.floor((labelMid - kindWidth / 2 - branchX - 14) / 5.4));
+        group.appendChild(svgElement("text", { x: branchX, y: y + 29, class: "svg-branch" }, `↳ ${truncate(branch, maxCharacters)}`));
+      }
 
       group.addEventListener("click", () => isVisible && setCurrentCall(call.id));
       group.addEventListener("keydown", (event) => {
@@ -629,9 +640,18 @@
     const sequence = currentSequence();
     const actors = participantMap(sequence);
     const fn = functionsById.get(call.function);
+    const callContextKey = JSON.stringify(call.context);
     const contextItems = [
       ...call.context.map((context) => `<li><strong>${escapeHtml(context.type)}</strong> · ${escapeHtml(context.branch)}</li>`),
-      ...call.notes.map((note) => `<li>${escapeHtml(note.text)}</li>`),
+      ...call.notes.map((note) => {
+        if (JSON.stringify(note.context) === callContextKey) {
+          return `<li>${escapeHtml(note.text)}</li>`;
+        }
+        const branchPath = note.context.length
+          ? note.context.map((context) => `${context.type} · ${context.branch}`).join(" / ")
+          : "Outside conditional context";
+        return `<li><strong>${escapeHtml(branchPath)}</strong> · ${escapeHtml(note.text)}</li>`;
+      }),
     ];
     return `
       <div class="inspector-type-row">

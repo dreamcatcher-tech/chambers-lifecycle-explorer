@@ -7,6 +7,7 @@ A polished, playable explorer for the authoritative Chambers lifecycle and Cardf
 ## What it provides
 
 - **Two explicit document workspaces** — switch between **Chambers** and **Cardflow** without mixing their actors, calls, functions, or provenance. Desktop uses document tabs; tablet/mobile uses a document selector.
+- **Legible Chambers startup boundary** — Chambers opens with **Engine cold start**, from authenticated wake at an already-running `procman` through boot custody, the trusted runsc host runtime, Engine attestation, and wake delivery. **Ordinary activation** is a separate Engine-ready sequence, so an I3 Filesystem read is never implied before I3 exists.
 - **Trace** — custom sequence lanes with play/pause, reset, step, scrub, actor focus, call-type filtering, zoom, keyboard shortcuts, touch gestures, and document-aware deep links. The compact step/route/function summary stays structurally stable while full branch and note context remains in the selected-call inspector. The diagram participates in the primary page flow instead of owning a nested vertical scrollbar; selected calls receive only the minimum vertical reveal required, while horizontal pan is preserved exactly. Actor labels stay pinned below the page controls and track horizontal pan while the page moves through a long diagram. The selected-call inspector keeps a constant height while exploring one sequence.
 - **Browser navigation** — meaningful document, sequence, view, call, and function changes populate browser history, so Back and Forward restore the corresponding app state and primary-page position. A continuous scrub creates one navigable entry rather than corrupting the entry it started from.
 - **Map** — an actor relationship graph with directed, frequency-weighted connections and call drill-down.
@@ -43,7 +44,7 @@ git commit -m "docs: sync lifecycle sequence sources"
 git push
 ```
 
-`sync_source.py` copies every deliberately registered authority, writes `source/manifest.json`, rebuilds `site/data.js`, and validates the publication. A push to `main` repeats validation and republishes GitHub Pages.
+`sync_source.py` copies every deliberately registered authority, writes `source/manifest.json`, rebuilds `site/data.js`, and validates the publication. Public sequence order follows the explicit metadata registry while stable sequence IDs preserve deep links. A push to `main` repeats validation and republishes GitHub Pages.
 
 ### Adding another Fundamentals sequence authority
 

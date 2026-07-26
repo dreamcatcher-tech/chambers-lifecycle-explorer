@@ -18,7 +18,7 @@ This status establishes design authority; it does not claim implementation or ru
 - [Lifecycle axioms](#lifecycle-axioms)
 - [Engine function table](#engine-function-table)
 - [Authoring and state shapes](#authoring-and-state-shapes)
-- [Chamber activation kernel](#chamber-activation-kernel)
+- [Ordinary Chamber activation kernel](#ordinary-chamber-activation-kernel)
 - [Overall lifecycle](#overall-lifecycle)
 - [Mode 1 - Host activation](#mode-1---host-activation)
 - [Mode 2 - Form and activate a candidate](#mode-2---form-and-activate-a-candidate)
@@ -165,6 +165,24 @@ are listed explicitly because no Engine can route the cold wake or physical proc
 represent. Owner repositories define payload schemas, but those schemas must preserve the authority
 boundaries in this document. Every call remains capability-scoped and fail closed.
 
+### Participant order
+
+Participant lanes are declared in architectural order, not in first-call order. A right-to-left arrow is
+therefore legitimate and clearer than moving foundational actors between diagrams merely to make every
+message point right. Apply these strata consistently from left to right:
+
+1. `procman`, whenever present, is the leftmost lane because it is the irreducible host lifecycle authority;
+2. the trusted host runtime follows `procman` whenever a physical create, start, stop, or reap effect appears;
+3. the I3 Engine and then the authorized Supervisor/control plane;
+4. addressed workload Chambers and workers;
+5. Filesystem, Vault, custody, and other resource providers;
+6. independent verifiers, promoters, and other assurance gates; and
+7. external callers, requesters, or wake sources at the right edge.
+
+Diagrams that omit a stratum preserve the relative order of the strata that remain. Every
+`activate_chamber` or `stop_chamber` arrow targets the trusted host runtime, never the absent or running
+Chamber that is the subject of the effect; a note names that exact subject.
+
 ### procman
 
 | Function | Invocation path | Brief contract |
@@ -172,13 +190,18 @@ boundaries in this document. Every call remains capability-scoped and fail close
 | `chambers::process::propose` | I3 | The sole public `procman` mutation surface. Submit one exact typed and fenced lifecycle operation; `procman` commits intent before changing current, candidates, Chambers, attachments, admission, or quiescence state. |
 | `chambers::process::inspect` | I3 | Return a capability-scoped read-only view of current selections, candidate Holds, Chambers, lease admissions, open operations, and receipt references. It cannot mutate state or establish a second route authority. |
 | `wake_engine` | **External conventional call (not I3)** | An authenticated lower wake source submits one bounded wake and reply capability directly to `procman` while the Engine may be absent. |
-| `activate_chamber` | **External conventional call (not I3)** | `procman` calls the trusted host runtime directly to materialize and start one exact Chamber through runsc after durable intent. |
-| `stop_chamber` | **External conventional call (not I3)** | `procman` calls the trusted host runtime directly to stop and reap one exact Chamber after durable stop intent. |
 | `deliver_final_reply` | **External conventional call (not I3)** | `procman` uses the handed-off lower reply capability after the required terminal receipt is durable; no stopped Engine is involved. |
 
 The cold wake edge is deliberately outside I3: when no Engine Chamber exists, I3 routing is also absent.
 After exact Engine readiness, `procman` registers `chambers::process::propose` and
 `chambers::process::inspect` with the Engine.
+
+### Trusted host runtime
+
+| Function | Invocation path | Brief contract |
+| --- | --- | --- |
+| `activate_chamber` | **External conventional call (not I3)** | `procman` calls the trusted host runtime directly to materialize and start one exact Chamber through pinned runsc after durable intent. The Chamber is the subject created by the call, not its receiver. |
+| `stop_chamber` | **External conventional call (not I3)** | `procman` calls the trusted host runtime directly to stop and reap one exact Chamber after durable stop intent. The Chamber is the subject reaped by the call, not its receiver. |
 
 ### I3 Engine
 
@@ -402,65 +425,57 @@ stateDiagram-v2
     Failed --> Stable: authorized repair clears or replaces state
 ```
 
-## Chamber activation kernel
+## Ordinary Chamber activation kernel
 
-This kernel creates one Chamber from one already complete Realization. It applies equally to a current
-Realization, a candidate under a valid Hold, a fixture, or a retained rollback target. There is no
-separate Activation object.
+This kernel creates one ordinary, non-Engine Chamber from one already complete Realization. It applies
+equally to a current Realization, a candidate under a valid Hold, a fixture, or a retained rollback
+target. There is no separate Activation object. Cold Engine activation is Mode 1 rather than a branch
+inside this kernel because no I3 Filesystem route exists until the Engine is ready.
 
 `entry = exact realization + current revision or candidate Hold + registration contract + authorized Chamber lease`
 
 `exit = ready fresh Chamber + run receipt, or no live Chamber + terminal failure receipt`
 
-The calling mode supplies the outer invocation: `wake_engine` for cold Engine activation and
-`chambers::process::propose` after Engine/I3 readiness. This kernel begins after `procman` has committed
-the exact Chamber intent and projects only the physical effect and readiness segment. The enclosing mode
-returns completion of its own outer invocation.
+The calling mode supplies the outer `chambers::process::propose` invocation after Engine/I3 readiness.
+This kernel begins after `procman` has committed the exact Chamber intent and projects only the physical
+effect and readiness segment. The enclosing mode returns completion of its own outer invocation.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Custody as Boot-readable custody or Filesystem providers
     participant procman
+    participant Runtime as Trusted host runtime (runsc)
     participant Engine as I3 Engine with built-in router
-    participant Vault
     participant Chamber as Fresh Chamber
+    participant Custody as Filesystem and provider custody
+    participant Vault
 
     Note over procman: Commit Chamber intent and admissions[lease]<br/>before physical effects
     Note over procman: Bind fresh C and public P to R and K<br/>plus listener, epoch, profile, and expiry
-
-    alt Engine Chamber is absent
-        Note over procman,Custody: activate_chamber may read only accepted boot-readable exact custody
-    else Engine is ready
-        procman->>Custody: `filesystem::object::read`
-    end
+    procman->>Custody: `filesystem::object::read`
 
     alt Every exact byte is available
-        procman->>Chamber: `activate_chamber`
-        alt Chamber is the Engine
-            procman->>Chamber: `engine::identity::attest`
-            Note over Chamber: Use the explicit bootstrap/direct exception<br/>because Engine cannot dial its own absent listener
-            Note over procman: Mark ready only after exact Engine identity,<br/>listener, and bootstrap registration evidence
-        else Engine is already ready
-            Note over procman,Chamber: Inject the fresh private identity by protected capability<br/>and pass the pinned Engine PeerId
-            Note over Chamber,Engine: TCP plus Noise authenticates P and the pinned Engine<br/>while proving key possession only
-            Note over Engine: Reject unknown, expired, wrong-listener,<br/>wrong-epoch, or revoked P before stream open
-            alt Admission profile is privileged-direct
-                Note over Engine: Enable the trusted control-plane middleware class<br/>while retaining prefix and contract gates
-            else Admission profile is ordinary-rbac
-                Note over Engine,Vault: Derive the ordinary RBAC principal from admitted P<br/>and retain Vault middleware on mediated calls
-            end
-            Note over Chamber,Engine: Open /dreamcatcher/i3-worker-manager/noise/1.0.0<br/>only after admission, then submit local registrations
-            Note over Engine: Assign chamber::C and quarantine registrations<br/>while comparing the canonical complete set with K
-            alt Identity binding and exact complete set match while the lease is live
-                Note over Engine: Atomically publish only the prefixed exact set<br/>and issue registration-complete evidence
-                procman->>Engine: `engine::route::inspect`
-                Note over procman: Mark ready and emit the run receipt<br/>only after exact route evidence
-            else Identity, lease, profile, or registration contract fails
-                Note over Engine: Close the stream and publish nothing<br/>while preserving unrelated router state
-                procman->>Chamber: `stop_chamber`
-                Note over procman: Revoke admission and reap the failed Chamber<br/>then emit a terminal failure receipt
-            end
+        procman->>Runtime: `activate_chamber`
+        Note over Runtime,Chamber: Materialize accepted exact artifacts and start<br/>the fresh Chamber through pinned runsc
+        Note over procman,Chamber: Inject the fresh private identity by protected capability<br/>and pass the pinned Engine PeerId
+        Note over Chamber,Engine: TCP plus Noise authenticates P and the pinned Engine<br/>while proving key possession only
+        Note over Engine: Reject unknown, expired, wrong-listener,<br/>wrong-epoch, or revoked P before stream open
+        alt Admission profile is privileged-direct
+            Note over Engine: Enable the trusted control-plane middleware class<br/>while retaining prefix and contract gates
+        else Admission profile is ordinary-rbac
+            Note over Engine,Vault: Derive the ordinary RBAC principal from admitted P<br/>and retain Vault middleware on mediated calls
+        end
+        Note over Chamber,Engine: Open /dreamcatcher/i3-worker-manager/noise/1.0.0<br/>only after admission, then submit local registrations
+        Note over Engine: Assign chamber::C and quarantine registrations<br/>while comparing the canonical complete set with K
+        alt Identity binding and exact complete set match while the lease is live
+            Note over Engine: Atomically publish only the prefixed exact set<br/>and issue registration-complete evidence
+            procman->>Engine: `engine::route::inspect`
+            Note over procman: Mark ready and emit the run receipt<br/>only after exact route evidence
+        else Identity, lease, profile, or registration contract fails
+            Note over Engine: Close the stream and publish nothing<br/>while preserving unrelated router state
+            procman->>Runtime: `stop_chamber`
+            Note over Runtime,Chamber: Stop and reap the failed exact Chamber
+            Note over procman: Revoke admission, emit a terminal failure receipt,<br/>and preserve unrelated lifecycle state
         end
     else Any exact byte remains unavailable
         Note over procman: Remove non-live state, emit the failure receipt, and terminalize the operation
@@ -528,20 +543,25 @@ stateDiagram-v2
 
 ## Mode 1 - Host activation
 
-`entry = Linux + procman + boot-readable current selections and exact Engine custody`
+`entry = running Linux + running procman + boot-readable current selections and exact Engine custody`
 
 `exit = one ready Engine Chamber for admitted wake work`; no other current Realization must be resident.
 
 `host activation != first-pair acceptance`; every initial selected Realization is already authorized by
 its accepted bootstrap profile and external selection fence.
 
+This is the cold Engine sequence, not Linux boot. Starting or replacing `procman` belongs to an explicitly
+lower platform and remains outside the current lifecycle. The first in-scope event is therefore an
+authenticated `wake_engine` call reaching an already-running `procman`.
+
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Wake as Authenticated ingress or lower-platform wake source
     participant procman
+    participant Runtime as Trusted host runtime (runsc)
     participant Engine as I3 Engine Chamber
-    participant Members as On-demand Chambers
+    participant Custody as Boot-readable exact Engine custody
+    actor Wake as Authenticated wake source
 
     Wake->>procman: `wake_engine`
     Note over procman: Reconcile interrupted operations and inspect ready Engine Chambers
@@ -550,22 +570,19 @@ sequenceDiagram
         procman->>Engine: `engine::identity::attest`
     else No Engine Chamber is ready
         Note over procman: Read current[engine] and commit a fresh Chamber intent
-        procman->>Engine: `activate_chamber`
+        Note over procman,Custody: Use only accepted boot-readable exact Engine custody<br/>because no I3 Filesystem route exists yet
+        procman->>Runtime: `activate_chamber`
+        Note over Runtime,Engine: Materialize the selected exact Engine Realization<br/>and create/start its fresh Chamber through pinned runsc
         procman->>Engine: `engine::identity::attest`
+        Note over Engine: Use the explicit bootstrap/direct exception<br/>because Engine cannot dial its own absent listener
         Note over procman,Engine: procman registers its two public functions through the I3 SDK
     end
 
     procman->>Engine: `engine::wake::deliver`
-
-    opt Admitted work needs another selected Runnable
-        Engine->>procman: `chambers::process::propose`
-        Note over procman: Snapshot current and commit a fresh Chamber intent
-        procman->>Members: `activate_chamber`
-        Note over Members,Engine: Members follow the Noise admission kernel and only a complete prefixed contract set becomes routable
-        procman->>Engine: `engine::route::inspect`
-    end
-
 ```
+
+If admitted wake work needs another selected Runnable, the ready Engine invokes
+`chambers::process::propose`; that target then follows the ordinary Chamber activation kernel above.
 
 No Chamber is architecturally required to run continuously. Policy may keep an Engine Chamber or other
 working set warm, but `current` selection survives with zero Chambers. `procman` is not a Chamber; it is
@@ -593,13 +610,14 @@ an exact Realization, establishes bounded custody, and optionally creates a Cham
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Caller as Authorized caller
-    participant Supervisor as Authorized Supervisor Chamber
-    participant Filesystem as Filesystem and provider adapters
-    participant Builder as Builder Chamber
-    participant Acceptor as Gate-appropriate artifact acceptor
     participant procman
+    participant Runtime as Trusted host runtime (runsc)
+    participant Supervisor as Authorized Supervisor Chamber
     participant Candidate as Candidate Chamber
+    participant Builder as Builder Chamber
+    participant Filesystem as Filesystem and provider adapters
+    participant Acceptor as Gate-appropriate artifact acceptor
+    actor Caller as Authorized caller
 
     Caller->>Supervisor: `chamber::covenant::load`
     Note over Supervisor: Validate authority, parentage, candidate capacity, quota, and deadline
@@ -625,7 +643,8 @@ sequenceDiagram
 
     opt Inspection or verification needs a running instance
         Supervisor->>procman: `chambers::process::propose`
-        procman->>Candidate: `activate_chamber`
+        procman->>Runtime: `activate_chamber`
+        Note over Runtime,Candidate: Materialize and start the exact candidate Chamber
     end
 
 ```
@@ -656,17 +675,19 @@ itself is never promoted.
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Agent as Developer Agent
-    participant Supervisor as Authorized Supervisor Chamber
-    participant Filesystem as Filesystem Service
     participant procman
+    participant Runtime as Trusted host runtime (runsc)
+    participant Supervisor as Authorized Supervisor Chamber
     participant Developer as Developer Chamber
+    participant Filesystem as Filesystem Service
+    participant Agent as Developer Agent
 
     Agent->>Supervisor: `chamber::workspace::materialize`
     Supervisor->>Filesystem: `resource::workspace::open`
     Supervisor->>procman: `chambers::process::propose`
     Note over procman,Developer: Stage the fenced attachment in the exact activation plan and expose no host path
-    procman->>Developer: `activate_chamber`
+    procman->>Runtime: `activate_chamber`
+    Note over Runtime,Developer: Materialize and start the exact Developer Chamber
     Agent->>Filesystem: `resource::workspace::edit`
 
     alt Continue development
@@ -678,7 +699,8 @@ sequenceDiagram
         end
     else Close or expire
         Supervisor->>procman: `chambers::process::propose`
-        procman->>Developer: `stop_chamber`
+        procman->>Runtime: `stop_chamber`
+        Note over Runtime,Developer: Stop and reap the exact Developer Chamber
         Supervisor->>Filesystem: `resource::workspace::close`
     end
 ```
@@ -703,8 +725,8 @@ Status: **Optional later implementation; not required by the first mount-first l
 sequenceDiagram
     autonumber
     participant Supervisor as Authorized Supervisor Chamber
-    participant Filesystem as Filesystem and artifact CAS
     participant Builder as Builder Chamber
+    participant Filesystem as Filesystem and artifact CAS
 
     Supervisor->>Builder: `artifact::build`
     Builder->>Filesystem: `resource::resolve`
@@ -778,25 +800,28 @@ realizations.
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Requester as Authorized requester
-    participant Verifier as External verifier or accepted Tester
-    participant Supervisor as Authorized Supervisor Chamber
     participant procman
+    participant Runtime as Trusted host runtime (runsc)
     participant Engine as I3 Engine with built-in router
+    participant Supervisor as Authorized Supervisor Chamber
     participant Candidate as Exact candidate Chamber
     participant Fixtures as Exact fixture Chambers
     participant Filesystem as Filesystem Service
+    participant Verifier as External verifier or accepted Tester
+    actor Requester as Authorized requester
 
     Requester->>Verifier: `verification::invoke`
     Verifier->>Supervisor: `chamber::version::candidate_event`
     Supervisor->>procman: `chambers::process::propose`
-    procman->>Candidate: `activate_chamber`
+    procman->>Runtime: `activate_chamber`
+    Note over Runtime,Candidate: Materialize and start the exact candidate Chamber
     Note over Candidate,Engine: Candidate registers its declared verification route through the I3 SDK
     procman->>Engine: `engine::route::inspect`
 
     opt Declared fixtures are required
         Supervisor->>procman: `chambers::process::propose`
-        procman->>Fixtures: `activate_chamber`
+        procman->>Runtime: `activate_chamber`
+        Note over Runtime,Fixtures: Materialize and start the exact fixture Chambers
         Note over Fixtures,Engine: Fixtures register their exact routes through the I3 SDK
         procman->>Engine: `engine::route::inspect`
     end
@@ -811,9 +836,11 @@ sequenceDiagram
     Verifier->>Supervisor: `chamber::version::candidate_event`
 
     Supervisor->>procman: `chambers::process::propose`
-    procman->>Candidate: `stop_chamber`
+    procman->>Runtime: `stop_chamber`
+    Note over Runtime,Candidate: Stop and reap the exact candidate Chamber
     opt Declared fixtures were activated
-        procman->>Fixtures: `stop_chamber`
+        procman->>Runtime: `stop_chamber`
+        Note over Runtime,Fixtures: Stop and reap the exact fixture Chambers
     end
 
     opt Verdict rejects, expires, or cancels the candidate
@@ -842,12 +869,12 @@ writes current selection.
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Verifier as Independent verifier or Tester
-    participant Supervisor as Authorized Supervisor Chamber
-    participant Promoter as External fenced promoter
     participant procman
     participant Engine as I3 Engine with built-in router
+    participant Supervisor as Authorized Supervisor Chamber
     participant Filesystem as Filesystem Service
+    participant Verifier as Independent verifier or Tester
+    participant Promoter as External fenced promoter
 
     Verifier->>Supervisor: `chamber::version::candidate_event`
     Supervisor->>Promoter: `selection::authorize`
@@ -895,12 +922,13 @@ a valid Hold, required evidence, and authorization, rollback fails closed.
 ```mermaid
 sequenceDiagram
     autonumber
-    actor Requester as Standby requester
-    participant Supervisor as Authorized Supervisor Chamber
     participant procman
+    participant Runtime as Trusted host runtime (runsc)
     participant Engine as I3 Engine Chamber
+    participant Supervisor as Authorized Supervisor Chamber
     participant Members as Other live Chambers
     participant Filesystem as Filesystem service or durable providers
+    actor Requester as Standby requester
 
     Requester->>Supervisor: `chamber::quiesce`
     Supervisor->>procman: `chambers::process::propose`
@@ -909,13 +937,17 @@ sequenceDiagram
 
     loop Dependants before providers
         procman->>Engine: `engine::quiescence::chamber`
-        procman->>Members: `stop_chamber`
+        procman->>Runtime: `stop_chamber`
+        Note over Runtime,Members: Stop and reap each exact dependant Chamber
     end
 
     procman->>Filesystem: `filesystem::resources::flush`
-    procman->>Supervisor: `stop_chamber`
-    procman->>Filesystem: `stop_chamber`
-    procman->>Engine: `stop_chamber`
+    procman->>Runtime: `stop_chamber`
+    Note over Runtime,Supervisor: Stop and reap the exact Supervisor Chamber
+    procman->>Runtime: `stop_chamber`
+    Note over Runtime,Filesystem: Stop and reap the exact Filesystem Chamber
+    procman->>Runtime: `stop_chamber`
+    Note over Runtime,Engine: Stop and reap the exact Engine Chamber last
     Note over procman: Persist the terminal receipt while current and candidate state remain unchanged
     procman->>Requester: `deliver_final_reply`
 ```
@@ -981,6 +1013,8 @@ Realization, or process-memory identity and never changes `current` merely becau
 - `chambers[id] = {name, realization, lease, phase}` with independent operations and cleanup;
 - no separate Activation record and no Chamber-bearing `last/current/next` slots;
 - a `procman`-owned Engine wake edge plus Engine-native activation factories for ordinary selected names;
+- explicit `procman -> trusted host runtime` conventional calls for exact Chamber create/start and stop/reap
+  effects, with the Chamber represented as the subject rather than a receiver that could exist before start;
 - exact-Chamber routes for execution, verification, and cleanup;
 - a `procman`-owned durable lease admission binding from fresh Chamber PeerId to exact Chamber,
   Realization, registration contract, Engine listener, epoch, profile, and expiry;
