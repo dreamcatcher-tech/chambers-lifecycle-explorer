@@ -31,16 +31,16 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
         "id": "core-bootstrap",
         "shortTitle": "Core bootstrap",
         "kicker": "Step 2 · basic Ark",
-        "summary": "How the first Filesystem Service and Supervisor restore the smallest useful Ark state without a storage dependency cycle.",
-        "question": "How can the Filesystem Service start before its own I3 route exists?",
+        "summary": "How the first Persistence Chamber and Supervisor restore the smallest useful Ark state without a durable-data dependency cycle.",
+        "question": "How can Persistence start before its own I3 route exists?",
         "status": "core",
     },
     "Ordinary Chamber activation kernel": {
         "id": "activation-kernel",
         "shortTitle": "Ordinary activation",
         "kicker": "Step 3 · core ready",
-        "summary": "How a ready Engine and Filesystem turn one exact Realization into one admitted Chamber.",
-        "question": "What is read, materialized, authenticated, and authorized before a Chamber is ready?",
+        "summary": "How a ready Engine and Persistence turn exact launch data into one admitted Chamber while OCI materialization stays disposable.",
+        "question": "What durable data is read, what does containerd materialize, and what must be authenticated before readiness?",
         "status": "core",
     },
     "Fenced development": {
@@ -56,15 +56,15 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
         "shortTitle": "Form a candidate",
         "kicker": "Step 5 · realization",
         "summary": "How a locator or lock becomes an exact candidate without changing current.",
-        "question": "How are resolution, build, acceptance, custody, and execution kept separate?",
+        "question": "How are resolution, build, acceptance, durable launch data, and execution kept separate?",
         "status": "current",
     },
     "Build an artifact": {
         "id": "artifact-build",
         "shortTitle": "Build an artifact",
         "kicker": "Step 6 · optional",
-        "summary": "How exact inputs produce authoritative sealed OCI bytes without giving Builders the containerd socket.",
-        "question": "Where does building end, and how does later activation import accepted output?",
+        "summary": "How exact inputs produce an OCI digest and receipt while output bytes stay disposable and Builders never receive the containerd socket.",
+        "question": "Where does building end, what remains durable, and how can later activation import the exact output?",
         "status": "later",
     },
     "Verify a candidate": {
@@ -243,7 +243,10 @@ def participant_role(label: str, participant_id: str) -> str:
         return "host"
     if any(
         word in text
-        for word in ("filesystem", "custody", "cas", "provider", "vault", "boot store", "artifact store")
+        for word in (
+            "filesystem", "persistence", "custody", "cas", "provider", "vault",
+            "boot store", "boot seed", "artifact store",
+        )
     ):
         return "resource"
     if any(

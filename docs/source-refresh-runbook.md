@@ -61,8 +61,11 @@ The registration surfaces of record are:
    runtime rather than the Chamber subject. The public Chambers order starts with **Engine cold start**,
    **Core bootstrap**, and **Ordinary activation**. Engine cold start must contain exactly one
    `activate_chamber` under “No Engine Chamber is ready,” no application-level identity-attest call, and a
-   common pinned-Noise/HPM-admission path after the branch. Core bootstrap must start Filesystem before
-   ordinary activation reads the exact Realization manifest and accepted OCI/mount objects through it.
+   common pinned-Noise/HPM-admission path after the branch. Core bootstrap must start Persistence from an
+   external Boot Seed before ordinary activation reads exact durable Realization and launch data through
+   Persistence. Persistence must not be portrayed as an OCI layer store. The Image Materializer is the only
+   `containerd` client: it consumes bounded data/capabilities supplied by `procman`, while `containerd`
+   keeps OCI content and snapshots on a disposable host slice and never calls Persistence or I3.
 
    Totals alone are not semantic proof. In particular, inspect note-only `alt`/`else` branches and nested control fragments; a note must not be attached to an unrelated nearby call merely because its line number is close.
 

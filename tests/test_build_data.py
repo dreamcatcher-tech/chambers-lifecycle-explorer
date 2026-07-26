@@ -72,7 +72,7 @@ class BuildDataTests(unittest.TestCase):
 
     def test_document_counts_match_the_two_sources(self) -> None:
         chambers = self.documents["chambers"]["stats"]
-        self.assertEqual((10, 89, 40, 62, 27), (
+        self.assertEqual((10, 99, 41, 61, 38), (
             chambers["sequences"], chambers["calls"], chambers["functions"],
             chambers["i3Calls"], chambers["hostCalls"],
         ))
@@ -90,7 +90,7 @@ class BuildDataTests(unittest.TestCase):
         }
         self.assertEqual(
             {
-                "wake_engine", "materialize_image", "inspect_image", "import_image",
+                "wake_engine", "materialize_runtime", "inspect_image", "pull_image", "import_image",
                 "unpack_image", "activate_chamber", "stop_chamber", "deliver_final_reply",
             },
             chambers_host,
@@ -112,9 +112,10 @@ class BuildDataTests(unittest.TestCase):
         host_calls = [call["function"] for call in sequences[0]["calls"]]
         core_calls = [call["function"] for call in sequences[1]["calls"]]
         ordinary_calls = [call["function"] for call in sequences[2]["calls"]]
-        self.assertNotIn("filesystem::object::read", host_calls)
-        self.assertIn("filesystem::object::read", core_calls)
-        self.assertIn("filesystem::object::read", ordinary_calls)
+        self.assertNotIn("persistence::realization::read", host_calls)
+        self.assertIn("persistence::realization::read", core_calls)
+        self.assertIn("persistence::realization::read", ordinary_calls)
+        self.assertLess(core_calls.index("activate_chamber"), core_calls.index("persistence::realization::read"))
         self.assertIn("wake_engine", host_calls)
         self.assertNotIn("engine::identity::attest", host_calls)
         self.assertEqual(1, host_calls.count("activate_chamber"))
@@ -122,7 +123,7 @@ class BuildDataTests(unittest.TestCase):
         cold_activate = next(call for call in sequences[0]["calls"] if call["function"] == "activate_chamber")
         self.assertTrue(
             any(
-                "Read current[engine]" in note["text"]
+                "selected accepted Engine Realization record" in note["text"]
                 for call in sequences[0]["calls"]
                 for note in call["notes"]
             )
@@ -160,7 +161,40 @@ class BuildDataTests(unittest.TestCase):
         functions = {function["id"]: function for function in chambers["functions"]}
         self.assertEqual("Trusted host runtime", functions["activate_chamber"]["owner"])
         self.assertEqual("Trusted host runtime", functions["stop_chamber"]["owner"])
-        self.assertEqual("Image materializer and containerd", functions["materialize_image"]["owner"])
+        self.assertEqual("Image Materializer and containerd", functions["materialize_runtime"]["owner"])
+
+    def test_persistence_and_disposable_oci_semantics_survive_projection(self) -> None:
+        chambers = self.documents["chambers"]
+        snapshot = (ROOT / "source" / chambers["source"]["snapshotPath"]).read_text(encoding="utf-8")
+        self.assertNotIn("Filesystem Service", snapshot)
+        self.assertNotIn("filesystem::", snapshot)
+        self.assertIn("OCI digest = materialization and verification identity", snapshot)
+        self.assertIn("containerd root = dedicated disposable storage slice", snapshot)
+        self.assertIn("`containerd` never calls Persistence or I3", snapshot)
+
+        persistence_roles = {
+            participant["role"]
+            for sequence in chambers["sequences"]
+            for participant in sequence["participants"]
+            if participant["id"] == "Persistence"
+        }
+        self.assertEqual({"resource"}, persistence_roles)
+        boot_roles = {
+            participant["role"]
+            for sequence in chambers["sequences"]
+            for participant in sequence["participants"]
+            if participant["id"] == "Boot"
+        }
+        self.assertEqual({"resource"}, boot_roles)
+
+        calls = [call for sequence in chambers["sequences"] for call in sequence["calls"]]
+        self.assertFalse(any(call["from"] == "containerd" for call in calls))
+        self.assertFalse(
+            any({call["from"], call["to"]} == {"containerd", "Persistence"} for call in calls)
+        )
+        build = next(sequence for sequence in chambers["sequences"] if sequence["id"] == "artifact-build")
+        self.assertNotIn("containerd", {participant["id"] for participant in build["participants"]})
+        self.assertIn("persistence::build::record", [call["function"] for call in build["calls"]])
 
     def test_sequence_actor_references_and_ids_are_sound_per_document(self) -> None:
         for document in self.documents.values():

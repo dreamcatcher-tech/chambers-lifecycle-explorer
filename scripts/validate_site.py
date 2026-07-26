@@ -67,7 +67,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     documents = payload.get("documents", [])
     if [document.get("id") for document in documents] != ["chambers", "cardflow"]:
         fail("bundle must contain Chambers and Cardflow in that order")
-    if payload.get("stats") != {"documents": 2, "sequences": 19, "calls": 155, "functions": 73}:
+    if payload.get("stats") != {"documents": 2, "sequences": 19, "calls": 165, "functions": 74}:
         fail(f"unexpected combined stats: {payload.get('stats')}")
 
     manifest_by_id = {entry["id"]: entry for entry in manifest.get("documents", [])}
@@ -89,7 +89,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
             fail(f"{document['id']} contains an unresolved call")
 
     chambers, cardflow = documents
-    if chambers["stats"] != {"sequences": 10, "actors": 27, "calls": 89, "i3Calls": 62, "hostCalls": 27, "functions": 40, "usedFunctions": 39}:
+    if chambers["stats"] != {"sequences": 10, "actors": 26, "calls": 99, "i3Calls": 61, "hostCalls": 38, "functions": 41, "usedFunctions": 40}:
         fail(f"unexpected Chambers stats: {chambers['stats']}")
     if cardflow["stats"] != {"sequences": 9, "actors": 19, "calls": 66, "i3Calls": 66, "hostCalls": 0, "functions": 33, "usedFunctions": 31}:
         fail(f"unexpected Cardflow stats: {cardflow['stats']}")
@@ -122,6 +122,20 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     activation = next(call for call in host_activation["calls"] if call["function"] == "activate_chamber")
     if not any(context["label"] == "No Engine Chamber is ready" for context in activation["context"]):
         fail("Engine activation must remain inside the no-ready-Engine branch")
+
+    all_calls = [call for sequence in chambers["sequences"] for call in sequence["calls"]]
+    if any(call["from"] == "containerd" for call in all_calls):
+        fail("containerd must not initiate lifecycle, Persistence, or I3 calls")
+    if any({call["from"], call["to"]} == {"containerd", "Persistence"} for call in all_calls):
+        fail("containerd and Persistence must remain separated by procman and the Image Materializer")
+    persistence_roles = {
+        participant["role"]
+        for sequence in chambers["sequences"]
+        for participant in sequence["participants"]
+        if participant["id"] == "Persistence"
+    }
+    if persistence_roles != {"resource"}:
+        fail(f"Persistence must remain a resource actor, got {persistence_roles}")
 
 
 def validate_html_and_assets(payload: dict) -> None:
