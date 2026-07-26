@@ -67,7 +67,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     documents = payload.get("documents", [])
     if [document.get("id") for document in documents] != ["chambers", "cardflow"]:
         fail("bundle must contain Chambers and Cardflow in that order")
-    if payload.get("stats") != {"documents": 2, "sequences": 18, "calls": 142, "functions": 70}:
+    if payload.get("stats") != {"documents": 2, "sequences": 19, "calls": 155, "functions": 73}:
         fail(f"unexpected combined stats: {payload.get('stats')}")
 
     manifest_by_id = {entry["id"]: entry for entry in manifest.get("documents", [])}
@@ -89,13 +89,13 @@ def validate_manifest_and_bundle(payload: dict) -> None:
             fail(f"{document['id']} contains an unresolved call")
 
     chambers, cardflow = documents
-    if chambers["stats"] != {"sequences": 9, "actors": 35, "calls": 76, "i3Calls": 60, "hostCalls": 16, "functions": 37, "usedFunctions": 36}:
+    if chambers["stats"] != {"sequences": 10, "actors": 27, "calls": 89, "i3Calls": 62, "hostCalls": 27, "functions": 40, "usedFunctions": 39}:
         fail(f"unexpected Chambers stats: {chambers['stats']}")
     if cardflow["stats"] != {"sequences": 9, "actors": 19, "calls": 66, "i3Calls": 66, "hostCalls": 0, "functions": 33, "usedFunctions": 31}:
         fail(f"unexpected Cardflow stats: {cardflow['stats']}")
 
-    if [sequence["id"] for sequence in chambers["sequences"][:2]] != ["host-activation", "activation-kernel"]:
-        fail("Chambers must present Engine cold start before ordinary activation")
+    if [sequence["id"] for sequence in chambers["sequences"][:3]] != ["host-activation", "core-bootstrap", "activation-kernel"]:
+        fail("Chambers must present Engine cold start, core bootstrap, then ordinary activation")
     for sequence in chambers["sequences"]:
         participants = [participant["id"] for participant in sequence["participants"]]
         if "procman" in participants and participants[0] != "procman":
@@ -105,10 +105,23 @@ def validate_manifest_and_bundle(payload: dict) -> None:
             if call["function"] in {"activate_chamber", "stop_chamber"}
         ]
         if physical_calls:
-            if participants[:2] != ["procman", "Runtime"]:
-                fail(f"{sequence['id']} does not keep the physical runtime after procman")
+            expected_prefix = (
+                ["procman", "Materializer", "containerd", "Runtime"]
+                if "Materializer" in participants
+                else ["procman", "Runtime"]
+            )
+            if participants[:len(expected_prefix)] != expected_prefix:
+                fail(f"{sequence['id']} does not preserve host authority/materialization order")
             if any(call["from"] != "procman" or call["to"] != "Runtime" for call in physical_calls):
                 fail(f"{sequence['id']} contains a physical call aimed at a Chamber subject")
+
+    host_activation = chambers["sequences"][0]
+    host_calls = [call["function"] for call in host_activation["calls"]]
+    if "engine::identity::attest" in host_calls or host_calls.count("activate_chamber") != 1:
+        fail("Engine cold start must have one conditional activation and no identity-attest call")
+    activation = next(call for call in host_activation["calls"] if call["function"] == "activate_chamber")
+    if not any(context["label"] == "No Engine Chamber is ready" for context in activation["context"]):
+        fail("Engine activation must remain inside the no-ready-Engine branch")
 
 
 def validate_html_and_assets(payload: dict) -> None:

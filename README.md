@@ -7,7 +7,7 @@ A polished, playable explorer for the authoritative Chambers lifecycle and Cardf
 ## What it provides
 
 - **Two explicit document workspaces** — switch between **Chambers** and **Cardflow** without mixing their actors, calls, functions, or provenance. Desktop uses document tabs; tablet/mobile uses a document selector.
-- **Legible Chambers startup boundary** — Chambers opens with **Engine cold start**, from authenticated wake at an already-running `procman` through boot custody, the trusted runsc host runtime, Engine attestation, and wake delivery. **Ordinary activation** is a separate Engine-ready sequence, so an I3 Filesystem read is never implied before I3 exists.
+- **Legible Chambers startup ladder** — Chambers opens with **Engine cold start**, then **Core bootstrap**, then **Ordinary activation**. Engine cold start conditionally creates an Engine only when none is ready, uses pinned libp2p Noise plus HPM admission instead of a redundant same-key identity challenge, and shows Image Materializer/`containerd` cache-hit and cache-miss paths. Core bootstrap starts the first Filesystem Service from Boot Store before restoring Supervisor, so ordinary activation can state its ready-Engine/ready-Filesystem prerequisites honestly.
 - **Trace** — custom sequence lanes with play/pause, reset, step, scrub, actor focus, call-type filtering, zoom, keyboard shortcuts, touch gestures, and document-aware deep links. The compact step/route/function summary stays structurally stable while full branch and note context remains in the selected-call inspector. The diagram participates in the primary page flow instead of owning a nested vertical scrollbar; selected calls receive only the minimum vertical reveal required, while horizontal pan is preserved exactly. Actor labels stay pinned below the page controls and track horizontal pan while the page moves through a long diagram. The selected-call inspector keeps a constant height while exploring one sequence.
 - **Browser navigation** — meaningful document, sequence, view, call, and function changes populate browser history, so Back and Forward restore the corresponding app state and primary-page position. A continuous scrub creates one navigable entry rather than corrupting the entry it started from.
 - **Map** — an actor relationship graph with directed, frequency-weighted connections and call drill-down.
@@ -37,11 +37,10 @@ git -C ../fundamentals pull --ff-only
 python3 scripts/sync_source.py ../fundamentals
 make validate
 node --check site/app.js
-node qa/browser-smoke.js
-node qa/layout-audit.js
 git add source site/data.js
 git commit -m "docs: sync lifecycle sequence sources"
 git push
+# wait for Pages, then inspect the cache-busted public URL in a managed external browser
 ```
 
 `sync_source.py` copies every deliberately registered authority, writes `source/manifest.json`, rebuilds `site/data.js`, and validates the publication. Public sequence order follows the explicit metadata registry while stable sequence IDs preserve deep links. A push to `main` repeats validation and republishes GitHub Pages.
@@ -50,12 +49,15 @@ git push
 
 New documents are not auto-discovered, because registration copies private source bytes into a public repository and browser payload. Add the source explicitly to `scripts/sync_source.py::DOCUMENTS`, add its workspace and sequence metadata to `scripts/build_data.py::DOCUMENT_CONFIGS`, then generalize the exact document/count checks, UI theme/wording, tests, and QA fixtures described in the runbook. If the source uses a new Markdown/Mermaid shape, extend the parser with exact semantic fixtures rather than hand-authoring browser data.
 
-## Local preview
+## Local nonvisual diagnosis
 
 ```bash
 python3 -m http.server 8008 --directory site
 # open http://127.0.0.1:8008/
 ```
+
+This can support static or nonvisual diagnosis, but it is not visual acceptance. Push the reviewable
+change first and use a cache-busted GitHub Pages URL in a managed external browser for visual QA.
 
 Useful document-aware deep links:
 
@@ -86,7 +88,11 @@ source/cardflow-filesystem-lease-sequences.md ─┘   ├─ parses each functi
                               Trace · Map · Functions                             Trace · Map · Functions
 ```
 
-The parser classifies calls from each source's function table rather than visual guesswork. Chambers keeps `wake_engine`, `activate_chamber`, `stop_chamber`, and `deliver_final_reply` as conventional host-boundary calls; the current Cardflow reference is entirely I3. Cardflow function statuses such as **required** and **contract extension required** are preserved in the function inspector.
+The parser classifies calls from each source's function table rather than visual guesswork. Chambers keeps
+`wake_engine`, Image Materializer/`containerd` calls, `activate_chamber`, `stop_chamber`, and
+`deliver_final_reply` as conventional host-boundary calls; the current Cardflow reference is entirely I3.
+Cardflow function statuses such as **required** and **contract extension required** are preserved in the
+function inspector.
 
 ## Verification
 
@@ -94,4 +100,5 @@ The parser classifies calls from each source's function table rather than visual
 make validate
 ```
 
-Maintainers additionally run ignored local Playwright diagnostics from `qa/`; those browser artifacts are deliberately not published.
+Maintainers may additionally run ignored local Playwright diagnostics from `qa/`; those browser artifacts
+are deliberately not published and never substitute for deployed external-browser visual acceptance.

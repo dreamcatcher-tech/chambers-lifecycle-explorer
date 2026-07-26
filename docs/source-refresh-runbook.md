@@ -55,10 +55,14 @@ The registration surfaces of record are:
    - public sequence order follows the deliberate `sequenceMeta` registry order while every published sequence ID remains stable;
    - document navigation, search, function catalogs, actor roles, and provenance remain scoped to the selected authority.
 
-   For Chambers specifically, verify that `procman` is leftmost wherever present, the trusted host runtime
-   immediately follows it in physical-effect sequences, and `activate_chamber`/`stop_chamber` target that
-   runtime rather than the Chamber subject. The public Chambers order starts with **Engine cold start** and
-   then **Ordinary activation** so no I3 Filesystem read appears to precede Engine readiness.
+   For Chambers specifically, verify that `procman` is leftmost wherever present. When OCI content must
+   become runnable, Image Materializer and `containerd` follow it before the trusted host runtime; otherwise
+   the runtime may immediately follow `procman`. `activate_chamber`/`stop_chamber` must still target that
+   runtime rather than the Chamber subject. The public Chambers order starts with **Engine cold start**,
+   **Core bootstrap**, and **Ordinary activation**. Engine cold start must contain exactly one
+   `activate_chamber` under “No Engine Chamber is ready,” no application-level identity-attest call, and a
+   common pinned-Noise/HPM-admission path after the branch. Core bootstrap must start Filesystem before
+   ordinary activation reads the exact Realization manifest and accepted OCI/mount objects through it.
 
    Totals alone are not semantic proof. In particular, inspect note-only `alt`/`else` branches and nested control fragments; a note must not be attached to an unrelated nearby call merely because its line number is close.
 

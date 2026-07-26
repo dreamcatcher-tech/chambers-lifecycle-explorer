@@ -19,77 +19,85 @@ MANIFEST_PATH = SOURCE_DIR / "manifest.json"
 OUTPUT_PATH = ROOT / "site" / "data.js"
 
 CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
-    "Mode 1 - Host activation": {
+    "Engine cold start": {
         "id": "host-activation",
         "shortTitle": "Engine cold start",
-        "kicker": "Mode 1 · startup boundary",
-        "summary": "How a running procman uses boot custody and the trusted host runtime to create the selected Engine Chamber.",
-        "question": "What happens from authenticated host wake until the selected I3 Engine is ready?",
-        "status": "current",
+        "kicker": "Step 1 · wake",
+        "summary": "How a running procman reuses or creates the exact Engine Chamber, then admits it over pinned libp2p Noise.",
+        "question": "How does the Engine become callable without a redundant application-level identity challenge?",
+        "status": "core",
+    },
+    "Bootstrap core services": {
+        "id": "core-bootstrap",
+        "shortTitle": "Core bootstrap",
+        "kicker": "Step 2 · basic Ark",
+        "summary": "How the first Filesystem Service and Supervisor restore the smallest useful Ark state without a storage dependency cycle.",
+        "question": "How can the Filesystem Service start before its own I3 route exists?",
+        "status": "core",
     },
     "Ordinary Chamber activation kernel": {
         "id": "activation-kernel",
         "shortTitle": "Ordinary activation",
-        "kicker": "Shared primitive · Engine ready",
-        "summary": "How an exact non-Engine Realization becomes a fresh, admitted, routable Chamber.",
-        "question": "What must be true before a newly started ordinary Chamber is actually ready?",
+        "kicker": "Step 3 · core ready",
+        "summary": "How a ready Engine and Filesystem turn one exact Realization into one admitted Chamber.",
+        "question": "What is read, materialized, authenticated, and authorized before a Chamber is ready?",
         "status": "core",
     },
-    "Mode 2 - Form and activate a candidate": {
-        "id": "candidate-formation",
-        "shortTitle": "Form a candidate",
-        "kicker": "Mode 2",
-        "summary": "How a locator or lock becomes an exact candidate without changing current.",
-        "question": "How are resolution, build, acceptance, custody, and execution kept separate?",
-        "status": "current",
-    },
-    "Mode 3 - Fenced development": {
+    "Fenced development": {
         "id": "fenced-development",
         "shortTitle": "Fenced development",
-        "kicker": "Mode 3",
+        "kicker": "Step 4 · development",
         "summary": "How a mutable workspace is edited, sealed, and closed without exposing a host path.",
         "question": "How does development produce immutable input without promoting a running Chamber?",
         "status": "current",
     },
-    "Mode 4 - Build an artifact": {
+    "Form and activate a candidate": {
+        "id": "candidate-formation",
+        "shortTitle": "Form a candidate",
+        "kicker": "Step 5 · realization",
+        "summary": "How a locator or lock becomes an exact candidate without changing current.",
+        "question": "How are resolution, build, acceptance, custody, and execution kept separate?",
+        "status": "current",
+    },
+    "Build an artifact": {
         "id": "artifact-build",
         "shortTitle": "Build an artifact",
-        "kicker": "Mode 4 · later",
-        "summary": "How exact inputs produce sealed OCI bytes and a receipt—but not acceptance.",
-        "question": "Where does building end, and why is the output not current yet?",
+        "kicker": "Step 6 · optional",
+        "summary": "How exact inputs produce authoritative sealed OCI bytes without giving Builders the containerd socket.",
+        "question": "Where does building end, and how does later activation import accepted output?",
         "status": "later",
     },
-    "Later mode - Attested multi-Ark builds": {
-        "id": "attested-builds",
-        "shortTitle": "Attested builds",
-        "kicker": "Later mode",
-        "summary": "How independent builders, attestations, and inspectors strengthen artifact evidence.",
-        "question": "What does multi-Ark convergence prove, and what still needs policy judgment?",
-        "status": "later",
-    },
-    "Mode 5 - Verify a candidate": {
+    "Verify a candidate": {
         "id": "candidate-verification",
         "shortTitle": "Verify a candidate",
-        "kicker": "Mode 5",
-        "summary": "How exact candidate and fixture Chambers are tested, evidenced, and reaped.",
+        "kicker": "Step 7 · evidence",
+        "summary": "How exact candidate and fixture Chambers produce a durable verdict without selecting current.",
         "question": "How can a verdict remain exact even after its test Chambers disappear?",
         "status": "current",
     },
-    "Mode 6 - Select or roll back": {
+    "Select or roll back": {
         "id": "selection-rollback",
         "shortTitle": "Select or roll back",
-        "kicker": "Mode 6",
-        "summary": "How one fenced compare-and-swap changes current without moving any Chamber.",
+        "kicker": "Step 8 · selection",
+        "summary": "How a fenced compare-and-swap changes current without renaming live Chambers.",
         "question": "What changes at selection time—and what deliberately does not?",
         "status": "current",
     },
-    "Mode 7 - Quiesce and wake": {
+    "Quiesce and wake": {
         "id": "quiesce-wake",
         "shortTitle": "Quiesce and wake",
-        "kicker": "Mode 7",
-        "summary": "How live Chambers stop while selections, custody, receipts, and resources survive.",
-        "question": "What must be flushed and handed off before the final Engine disappears?",
+        "kicker": "Step 9 · idle edge",
+        "summary": "How every Chamber can disappear while current selections and durable custody survive.",
+        "question": "What survives quiescence, and what recreates a ready Engine later?",
         "status": "current",
+    },
+    "Attested multi-Ark builds (later)": {
+        "id": "attested-builds",
+        "shortTitle": "Attested builds",
+        "kicker": "Later · multi-Ark",
+        "summary": "How independent builders, attestations, and inspectors strengthen artifact evidence.",
+        "question": "What does multi-Ark convergence prove, and what still needs policy judgment?",
+        "status": "later",
     },
 }
 
@@ -178,7 +186,7 @@ DOCUMENT_CONFIGS: OrderedDict[str, dict[str, Any]] = OrderedDict(
                 "title": "Chambers lifecycle",
                 "subtitle": "Immutable Realizations, fresh Chambers, evidence, selection, and wake",
                 "description": "Explore how exact Realizations become admitted Chambers and move through development, verification, selection, rollback, and quiescence.",
-                "functionHeading": "Engine function table",
+                "functionHeading": "Lifecycle call table",
                 "functionIntro": "Every I3 and conventional host-boundary function named by the Chambers lifecycle sequences.",
                 "manifestSnapshot": "chambers-lifecycle-sequences.md",
                 "sequenceMeta": CHAMBERS_SEQUENCE_META,
@@ -225,9 +233,18 @@ def slugify(value: str) -> str:
 
 def participant_role(label: str, participant_id: str) -> str:
     text = f"{label} {participant_id}".lower()
-    if "procman" in text or "host runtime" in text or participant_id.lower() == "runtime":
+    if (
+        "procman" in text
+        or "host runtime" in text
+        or "image materializer" in text
+        or "containerd" in text
+        or participant_id.lower() == "runtime"
+    ):
         return "host"
-    if any(word in text for word in ("filesystem", "custody", "cas", "provider", "vault")):
+    if any(
+        word in text
+        for word in ("filesystem", "custody", "cas", "provider", "vault", "boot store", "artifact store")
+    ):
         return "resource"
     if any(
         word in text

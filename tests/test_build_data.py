@@ -28,6 +28,7 @@ class BuildDataTests(unittest.TestCase):
             "chambers": {
                 "activation-kernel",
                 "host-activation",
+                "core-bootstrap",
                 "candidate-formation",
                 "fenced-development",
                 "artifact-build",
@@ -71,7 +72,7 @@ class BuildDataTests(unittest.TestCase):
 
     def test_document_counts_match_the_two_sources(self) -> None:
         chambers = self.documents["chambers"]["stats"]
-        self.assertEqual((9, 76, 37, 60, 16), (
+        self.assertEqual((10, 89, 40, 62, 27), (
             chambers["sequences"], chambers["calls"], chambers["functions"],
             chambers["i3Calls"], chambers["hostCalls"],
         ))
@@ -88,29 +89,45 @@ class BuildDataTests(unittest.TestCase):
             if function["kind"] == "host"
         }
         self.assertEqual(
-            {"wake_engine", "activate_chamber", "stop_chamber", "deliver_final_reply"},
+            {
+                "wake_engine", "materialize_image", "inspect_image", "import_image",
+                "unpack_image", "activate_chamber", "stop_chamber", "deliver_final_reply",
+            },
             chambers_host,
         )
         self.assertTrue(all(function["kind"] == "i3" for function in self.documents["cardflow"]["functions"]))
 
-    def test_chambers_display_starts_with_cold_engine_then_ordinary_activation(self) -> None:
+    def test_chambers_display_starts_with_bootstrap_then_ordinary_activation(self) -> None:
         sequences = self.documents["chambers"]["sequences"]
         self.assertEqual(
-            [("host-activation", "Engine cold start"), ("activation-kernel", "Ordinary activation")],
-            [(sequence["id"], sequence["shortTitle"]) for sequence in sequences[:2]],
+            [
+                ("host-activation", "Engine cold start"),
+                ("core-bootstrap", "Core bootstrap"),
+                ("activation-kernel", "Ordinary activation"),
+            ],
+            [(sequence["id"], sequence["shortTitle"]) for sequence in sequences[:3]],
         )
         self.assertEqual(list(range(1, len(sequences) + 1)), [sequence["ordinal"] for sequence in sequences])
 
         host_calls = [call["function"] for call in sequences[0]["calls"]]
-        ordinary_calls = [call["function"] for call in sequences[1]["calls"]]
+        core_calls = [call["function"] for call in sequences[1]["calls"]]
+        ordinary_calls = [call["function"] for call in sequences[2]["calls"]]
         self.assertNotIn("filesystem::object::read", host_calls)
+        self.assertIn("filesystem::object::read", core_calls)
         self.assertIn("filesystem::object::read", ordinary_calls)
         self.assertIn("wake_engine", host_calls)
+        self.assertNotIn("engine::identity::attest", host_calls)
+        self.assertEqual(1, host_calls.count("activate_chamber"))
 
-        ready_attest = sequences[0]["calls"][1]
-        cold_activate = sequences[0]["calls"][2]
-        self.assertFalse(any("Read current[engine]" in note["text"] for note in ready_attest["notes"]))
-        self.assertTrue(any("Read current[engine]" in note["text"] for note in cold_activate["notes"]))
+        cold_activate = next(call for call in sequences[0]["calls"] if call["function"] == "activate_chamber")
+        self.assertTrue(
+            any(
+                "Read current[engine]" in note["text"]
+                for call in sequences[0]["calls"]
+                for note in call["notes"]
+            )
+        )
+        self.assertTrue(any(context["label"] == "No Engine Chamber is ready" for context in cold_activate["context"]))
 
     def test_procman_and_physical_runtime_projection_preserve_authority_order(self) -> None:
         chambers = self.documents["chambers"]
@@ -123,14 +140,27 @@ class BuildDataTests(unittest.TestCase):
                 if call["function"] in {"activate_chamber", "stop_chamber"}
             ]
             if physical:
-                self.assertEqual(["procman", "Runtime"], participant_ids[:2], sequence["id"])
+                if "Materializer" in participant_ids:
+                    self.assertEqual(
+                        ["procman", "Materializer", "containerd", "Runtime"],
+                        participant_ids[:4],
+                        sequence["id"],
+                    )
+                else:
+                    self.assertEqual(["procman", "Runtime"], participant_ids[:2], sequence["id"])
                 self.assertTrue(all(call["from"] == "procman" and call["to"] == "Runtime" for call in physical))
                 runtime = next(participant for participant in sequence["participants"] if participant["id"] == "Runtime")
                 self.assertEqual("host", runtime["role"])
 
+        host_activation = next(sequence for sequence in chambers["sequences"] if sequence["id"] == "host-activation")
+        roles = {participant["id"]: participant["role"] for participant in host_activation["participants"]}
+        self.assertEqual("host", roles["Materializer"])
+        self.assertEqual("host", roles["containerd"])
+
         functions = {function["id"]: function for function in chambers["functions"]}
         self.assertEqual("Trusted host runtime", functions["activate_chamber"]["owner"])
         self.assertEqual("Trusted host runtime", functions["stop_chamber"]["owner"])
+        self.assertEqual("Image materializer and containerd", functions["materialize_image"]["owner"])
 
     def test_sequence_actor_references_and_ids_are_sound_per_document(self) -> None:
         for document in self.documents.values():
