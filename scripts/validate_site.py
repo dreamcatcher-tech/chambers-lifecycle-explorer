@@ -224,7 +224,7 @@ def validate_source_refresh_contract() -> None:
         RUNBOOK: (
             "Refresh an already registered authority",
             "Register a new sequence-document family",
-            "node qa/browser-smoke.js",
+            "managed external browser",
             "note-only `alt`/`else` branches",
             "`sequenceMeta` registry order",
             "Do **not** discover and publish every matching Fundamentals file automatically",

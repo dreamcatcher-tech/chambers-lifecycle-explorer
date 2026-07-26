@@ -21,13 +21,12 @@ This repository publishes a public interactive projection of deliberately regist
 - Local SVG controls own their Enter/Space keys and must retain focus across sequence rerenders. Global shortcuts must ignore handled events and native/ARIA interactive controls.
 - SVG branch-context labels must be laid out independently of the centered `I3` / `HOST BOUNDARY` kind label; long branch text may truncate, but the two labels must never overlap.
 - Keep `site/` self-contained and GitHub Pages compatible; do not add CDN/runtime dependencies unless expressly required.
-- Before publishing, run:
+- Before deployment, run the deterministic non-visual gate:
 
 ```bash
 make validate
 node --check site/app.js
-node qa/browser-smoke.js
-node qa/layout-audit.js
+git diff --check
 ```
 
-- Website changes require browser interaction smoke checks and desktop/tablet/390px/320px visual or geometry QA. Exercise every registered workspace, the densest sequence/map, deep links, keyboard/accessibility behavior, and the live Pages URL/assets after deployment.
+- For website changes, commit and push the bounded change, wait for GitHub Pages, and use the cache-busted public deployment as the preview. Perform visual acceptance in a managed external browser, not locally hosted Chrome against localhost; the site does not need to be production-ready for this loop. Exercise desktop/tablet/390px/320px, every registered workspace, the densest sequence/map, deep links, keyboard/accessibility behavior, console errors, and live asset readback. If QA finds a defect, push the next bounded fix and repeat against Pages.

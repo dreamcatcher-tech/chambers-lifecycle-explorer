@@ -62,19 +62,18 @@ The registration surfaces of record are:
 
    Totals alone are not semantic proof. In particular, inspect note-only `alt`/`else` branches and nested control fragments; a note must not be attached to an unrelated nearby call merely because its line number is close.
 
-6. Run the complete local gate:
+6. Run the deterministic pre-deployment gate without treating a locally hosted browser as visual evidence:
 
    ```bash
    make validate
    node --check site/app.js
-   node qa/browser-smoke.js
-   node qa/layout-audit.js
+   git diff --check
    ```
 
-   Browser checks must exercise every registered workspace and sequence. For call selection, assert that the requested call becomes current, the top step/route/function summary keeps one constant height with no duplicated branch pills, `scrollLeft` remains unchanged, an already visible call does not move the page, and an off-screen call uses the primary page scrollbar for only the minimum top/bottom reveal required. Confirm that full branch and note context remains present in the inspector and that its keyed function metadata never stretches to the context-column height. Sweep every SVG row for branch-context versus `I3` / `HOST BOUNDARY` label collisions; branch text may truncate in the diagram but must retain its full value in the inspector. The diagram must not own a vertical scrollbar. While a long diagram crosses the page viewport, assert that its sticky actor labels remain below sticky page controls, mirror every actor, stay horizontally aligned after panning, and are included in selected-call occlusion geometry. Also sweep representative calls to prove the active sequence's inspector height is stable and unclipped. Exercise reset, sidebar/mobile/search selection, a real scrub with a frame between `input` and `change`, next/previous, playback restart, Map and Functions drill-down, document switching, URL history with exact Back/Forward scroll restoration, filter-induced selection, keyboard focus retention, shortcut isolation on local controls, and accessibility roles.
+7. Commit only the intended projection changes, push `main`, and wait for `Publish Lifecycle Atlas`. Read back cache-busted live HTML/assets and require them to match the committed publication bytes.
+8. Use a managed external browser against the deployed GitHub Pages URL for visual and interaction acceptance. Do not use locally hosted Chrome against localhost as the visual-QA substitute; Pages is the iterative preview even while the site is not production-ready. Inspect desktop, tablet, 390px mobile, and 320px mobile; check dense and bidirectional maps, branch/kind labels, touch targets, initial context, and page-level overflow—not only the first/default sequence. If QA finds a defect, push another bounded fix and repeat against Pages.
 
-7. Preview and inspect desktop, tablet, 390px mobile, and 320px mobile. Check dense and bidirectional maps, branch/kind labels, touch targets, initial context, and page-level overflow—not only the first/default sequence.
-8. Commit only the intended projection changes, push `main`, watch `Publish Lifecycle Atlas`, then verify the cache-busted live HTML/assets and a browser interaction in every changed workspace.
+   External browser checks must exercise every registered workspace and sequence. For call selection, assert that the requested call becomes current, the top step/route/function summary keeps one constant height with no duplicated branch pills, `scrollLeft` remains unchanged, an already visible call does not move the page, and an off-screen call uses the primary page scrollbar for only the minimum top/bottom reveal required. Confirm that full branch and note context remains present in the inspector and that its keyed function metadata never stretches to the context-column height. Sweep every SVG row for branch-context versus `I3` / `HOST BOUNDARY` label collisions; branch text may truncate in the diagram but must retain its full value in the inspector. The diagram must not own a vertical scrollbar. While a long diagram crosses the page viewport, assert that its sticky actor labels remain below sticky page controls, mirror every actor, stay horizontally aligned after panning, and are included in selected-call occlusion geometry. Also sweep representative calls to prove the active sequence's inspector height is stable and unclipped. Exercise reset, sidebar/mobile/search selection, a real scrub with a frame between `input` and `change`, next/previous, playback restart, Map and Functions drill-down, document switching, URL history with exact Back/Forward scroll restoration, filter-induced selection, keyboard focus retention, shortcut isolation on local controls, and accessibility roles.
 
 ## Register a new sequence-document family
 
