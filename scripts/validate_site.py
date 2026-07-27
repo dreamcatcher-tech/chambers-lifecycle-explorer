@@ -67,7 +67,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     documents = payload.get("documents", [])
     if [document.get("id") for document in documents] != ["chambers", "cardflow"]:
         fail("bundle must contain Chambers and Cardflow in that order")
-    if payload.get("stats") != {"documents": 2, "sequences": 19, "calls": 166, "functions": 74, "dictionaryTerms": 74}:
+    if payload.get("stats") != {"documents": 2, "sequences": 21, "calls": 205, "functions": 76, "dictionaryTerms": 76}:
         fail(f"unexpected combined stats: {payload.get('stats')}")
 
     manifest_by_id = {entry["id"]: entry for entry in manifest.get("documents", [])}
@@ -100,13 +100,14 @@ def validate_manifest_and_bundle(payload: dict) -> None:
             fail(f"{document['id']} dictionary source-line binding failed")
 
     chambers, cardflow = documents
-    if chambers["stats"] != {"sequences": 10, "actors": 25, "calls": 100, "i3Calls": 62, "hostCalls": 38, "functions": 41, "usedFunctions": 40, "dictionaryTerms": 44}:
+    if chambers["stats"] != {"sequences": 12, "actors": 27, "calls": 139, "i3Calls": 73, "hostCalls": 66, "functions": 43, "usedFunctions": 42, "dictionaryTerms": 46}:
         fail(f"unexpected Chambers stats: {chambers['stats']}")
     if cardflow["stats"] != {"sequences": 9, "actors": 19, "calls": 66, "i3Calls": 66, "hostCalls": 0, "functions": 33, "usedFunctions": 31, "dictionaryTerms": 30}:
         fail(f"unexpected Cardflow stats: {cardflow['stats']}")
 
-    if [sequence["id"] for sequence in chambers["sequences"][:3]] != ["host-activation", "core-bootstrap", "activation-kernel"]:
-        fail("Chambers must present Engine cold start, core bootstrap, then ordinary activation")
+    expected_startup = ["core-installation", "host-activation", "core-bootstrap", "core-reboot", "activation-kernel"]
+    if [sequence["id"] for sequence in chambers["sequences"][:5]] != expected_startup:
+        fail("Chambers must present first install, Engine cold start, core bootstrap, selected-Core reboot, then ordinary activation")
     for sequence in chambers["sequences"]:
         participants = [participant["id"] for participant in sequence["participants"]]
         if "procman" in participants and participants[0] != "procman":
@@ -126,7 +127,8 @@ def validate_manifest_and_bundle(payload: dict) -> None:
             if any(call["from"] != "procman" or call["to"] != "Runtime" for call in physical_calls):
                 fail(f"{sequence['id']} contains a physical call aimed at a Chamber subject")
 
-    host_activation = chambers["sequences"][0]
+    sequence_by_id = {sequence["id"]: sequence for sequence in chambers["sequences"]}
+    host_activation = sequence_by_id["host-activation"]
     host_calls = [call["function"] for call in host_activation["calls"]]
     if "engine::identity::attest" in host_calls or host_calls.count("activate_chamber") != 1:
         fail("Engine cold start must have one conditional activation and no identity-attest call")
@@ -147,6 +149,27 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     }
     if persistence_roles != {"resource"}:
         fail(f"Persistence must remain a resource actor, got {persistence_roles}")
+
+    chambers_snapshot = (SOURCE / chambers["source"]["snapshotPath"]).read_text(encoding="utf-8")
+    required_core_markers = (
+        "Persistence-owned, host-readable canonical storage representation",
+        "manifest rename as the sole `current` effect",
+        "Image Materializer is deliberately inside the host upgrade boundary",
+    )
+    missing_core_markers = [marker for marker in required_core_markers if marker not in chambers_snapshot]
+    if missing_core_markers:
+        fail(f"Chambers Core authority contract is incomplete: {missing_core_markers}")
+    if "Procman Boot ledger" in chambers_snapshot or "core_boot[" in chambers_snapshot:
+        fail("legacy Procman-owned Core selection authority remains")
+
+    reboot = sequence_by_id["core-reboot"]
+    reboot_calls = [call["function"] for call in reboot["calls"]]
+    if reboot_calls.count("activate_chamber") != 3 or "pull_image" in reboot_calls:
+        fail("selected-Core reboot must activate exactly Engine/Persistence/Supervisor from local exact closure")
+    selection = sequence_by_id["selection-rollback"]
+    selection_calls = [call["function"] for call in selection["calls"]]
+    if selection_calls.index("stage_core_closure") >= selection_calls.index("persistence::selection::commit"):
+        fail("critical closure must be staged before Persistence commits selection")
 
 
 def validate_html_and_assets(payload: dict) -> None:
@@ -267,6 +290,8 @@ def validate_source_refresh_contract() -> None:
             "Adding another Fundamentals sequence authority",
             "python3 scripts/sync_source.py ../fundamentals",
             "Engine cold start",
+            "First core installation",
+            "core-current.json",
         ),
         RUNBOOK: (
             "Refresh an already registered authority",

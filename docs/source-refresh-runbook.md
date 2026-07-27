@@ -60,15 +60,18 @@ The registration surfaces of record are:
    For Chambers specifically, verify that `procman` is leftmost wherever present. When OCI content must
    become runnable, Image Materializer and `containerd` follow it before the trusted host runtime; otherwise
    the runtime may immediately follow `procman`. `activate_chamber`/`stop_chamber` must still target that
-   runtime rather than the Chamber subject. The public Chambers order starts with **Engine cold start**,
-   **Core bootstrap**, and **Ordinary activation**. Engine cold start must contain exactly one
+   runtime rather than the Chamber subject. The public Chambers order starts with **First core installation**,
+   **Engine cold start**, **Core bootstrap**, **Reboot selected Core**, and **Ordinary activation**. Engine cold start must contain exactly one
    `activate_chamber` under “No Engine Chamber is ready,” no application-level identity-attest call, and a
-   common pinned-Noise/HPM-admission path after the branch. Procman must read the exact selected Engine and
-   Persistence Realizations and matching active Boot capsules from its durable Boot ledger. A Boot Seed may
-   initialize an empty ledger or supply bounded bytes, but must never become mutable selection or automatic
-   fallback authority. Persistence must not be portrayed as an OCI layer store. The Image Materializer is the only
-   `containerd` client: it consumes bounded data/capabilities supplied by `procman`, while `containerd`
-   keeps OCI content and snapshots on a disposable host slice and never calls Persistence or I3.
+   common pinned-Noise/HPM-admission path after the branch. Persistence must remain the sole normal selection
+   writer and own `core-current.json` as the canonical Engine/Persistence current representation in the same
+   backup domain as its general state. Procman reads and verifies that bounded file directly for cold boot but
+   never owns a shadow current or image-mapping database. Missing, malformed, stale, or mismatched normal boot
+   state fails closed; only an externally accepted one-use Boot Seed may establish a provably unenrolled Ark.
+   Persistence must not be portrayed as an OCI layer store. The host-resident minimum Image Materializer is the
+   only `containerd` client and never selects lifecycle state: it consumes exact bounded data/capabilities supplied
+   by `procman`, while richer provider/build logic may live in upgradeable Chambers. `containerd` keeps OCI content
+   and snapshots on a disposable host slice and never calls Persistence or I3.
 
    Totals alone are not semantic proof. In particular, inspect note-only `alt`/`else` branches and nested control fragments; a note must not be attached to an unrelated nearby call merely because its line number is close.
 

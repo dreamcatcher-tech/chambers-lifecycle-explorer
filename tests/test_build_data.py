@@ -27,8 +27,10 @@ class BuildDataTests(unittest.TestCase):
         expected = {
             "chambers": {
                 "activation-kernel",
+                "core-installation",
                 "host-activation",
                 "core-bootstrap",
+                "core-reboot",
                 "candidate-formation",
                 "fenced-development",
                 "artifact-build",
@@ -72,7 +74,7 @@ class BuildDataTests(unittest.TestCase):
 
     def test_document_counts_match_the_two_sources(self) -> None:
         chambers = self.documents["chambers"]["stats"]
-        self.assertEqual((10, 100, 41, 62, 38, 44), (
+        self.assertEqual((12, 139, 43, 73, 66, 46), (
             chambers["sequences"], chambers["calls"], chambers["functions"],
             chambers["i3Calls"], chambers["hostCalls"], chambers["dictionaryTerms"],
         ))
@@ -81,7 +83,7 @@ class BuildDataTests(unittest.TestCase):
             cardflow["sequences"], cardflow["calls"], cardflow["functions"],
             cardflow["i3Calls"], cardflow["hostCalls"], cardflow["dictionaryTerms"],
         ))
-        self.assertEqual(74, self.payload["stats"]["dictionaryTerms"])
+        self.assertEqual(76, self.payload["stats"]["dictionaryTerms"])
 
     def test_host_boundary_is_explicit_and_chambers_only(self) -> None:
         chambers_host = {
@@ -92,40 +94,47 @@ class BuildDataTests(unittest.TestCase):
         self.assertEqual(
             {
                 "wake_engine", "materialize_runtime", "inspect_image", "pull_image", "import_image",
-                "unpack_image", "activate_chamber", "stop_chamber", "deliver_final_reply",
+                "unpack_image", "stage_core_closure", "activate_chamber", "stop_chamber", "deliver_final_reply",
             },
             chambers_host,
         )
         self.assertTrue(all(function["kind"] == "i3" for function in self.documents["cardflow"]["functions"]))
 
-    def test_chambers_display_starts_with_bootstrap_then_ordinary_activation(self) -> None:
+    def test_chambers_display_starts_with_genesis_bootstrap_reboot_then_ordinary_activation(self) -> None:
         sequences = self.documents["chambers"]["sequences"]
         self.assertEqual(
             [
+                ("core-installation", "First core installation"),
                 ("host-activation", "Engine cold start"),
                 ("core-bootstrap", "Core bootstrap"),
+                ("core-reboot", "Reboot selected Core"),
                 ("activation-kernel", "Ordinary activation"),
             ],
-            [(sequence["id"], sequence["shortTitle"]) for sequence in sequences[:3]],
+            [(sequence["id"], sequence["shortTitle"]) for sequence in sequences[:5]],
         )
         self.assertEqual(list(range(1, len(sequences) + 1)), [sequence["ordinal"] for sequence in sequences])
 
-        host_calls = [call["function"] for call in sequences[0]["calls"]]
-        core_calls = [call["function"] for call in sequences[1]["calls"]]
-        ordinary_calls = [call["function"] for call in sequences[2]["calls"]]
+        by_id = {sequence["id"]: sequence for sequence in sequences}
+        installation_calls = [call["function"] for call in by_id["core-installation"]["calls"]]
+        host_calls = [call["function"] for call in by_id["host-activation"]["calls"]]
+        core_calls = [call["function"] for call in by_id["core-bootstrap"]["calls"]]
+        reboot_calls = [call["function"] for call in by_id["core-reboot"]["calls"]]
+        ordinary_calls = [call["function"] for call in by_id["activation-kernel"]["calls"]]
+        self.assertIn("stage_core_closure", installation_calls)
         self.assertNotIn("persistence::realization::read", host_calls)
         self.assertIn("persistence::realization::read", core_calls)
+        self.assertIn("persistence::realization::read", reboot_calls)
         self.assertIn("persistence::realization::read", ordinary_calls)
         self.assertLess(core_calls.index("activate_chamber"), core_calls.index("persistence::realization::read"))
         self.assertIn("wake_engine", host_calls)
         self.assertNotIn("engine::identity::attest", host_calls)
         self.assertEqual(1, host_calls.count("activate_chamber"))
 
-        cold_activate = next(call for call in sequences[0]["calls"] if call["function"] == "activate_chamber")
+        cold_activate = next(call for call in by_id["host-activation"]["calls"] if call["function"] == "activate_chamber")
         self.assertTrue(
             any(
-                "Read current[engine] and the matching active Boot capsule" in note["text"]
-                for call in sequences[0]["calls"]
+                "Persistence-owned core-current.json" in note["text"]
+                for call in by_id["host-activation"]["calls"]
                 for note in call["notes"]
             )
         )
@@ -197,6 +206,71 @@ class BuildDataTests(unittest.TestCase):
         self.assertNotIn("containerd", {participant["id"] for participant in build["participants"]})
         self.assertIn("persistence::build::record", [call["function"] for call in build["calls"]])
 
+    def test_core_manifest_selection_and_reboot_authority_survive_projection(self) -> None:
+        chambers = self.documents["chambers"]
+        snapshot = (ROOT / "source" / chambers["source"]["snapshotPath"]).read_text(encoding="utf-8")
+        self.assertIn("Persistence-owned, host-readable canonical storage representation", snapshot)
+        self.assertIn("core-current.json", snapshot)
+        self.assertIn("manifest rename as the sole `current` effect", snapshot)
+        self.assertIn("Image Materializer is deliberately inside the host upgrade boundary", snapshot)
+        self.assertNotIn("Procman Boot ledger", snapshot)
+        self.assertNotIn("core_boot[", snapshot)
+
+        sequences = {sequence["id"]: sequence for sequence in chambers["sequences"]}
+        reboot = sequences["core-reboot"]
+        reboot_functions = [call["function"] for call in reboot["calls"]]
+        self.assertEqual(3, reboot_functions.count("activate_chamber"))
+        self.assertNotIn("pull_image", reboot_functions)
+        reboot_notes = [note["text"] for call in reboot["calls"] for note in call["notes"]]
+        self.assertTrue(any("do not consult containerd tags or recency for selection" in note for note in reboot_notes))
+        self.assertTrue(any("same selected Realization IDs" in note for note in reboot_notes))
+
+        selection = sequences["selection-rollback"]
+        functions = [call["function"] for call in selection["calls"]]
+        self.assertLess(functions.index("stage_core_closure"), functions.index("persistence::selection::commit"))
+        commit = next(call for call in selection["calls"] if call["function"] == "persistence::selection::commit")
+        self.assertEqual(("procman", "Persistence"), (commit["from"], commit["to"]))
+
+    def test_break_and_else_note_contexts_are_preserved(self) -> None:
+        registry = {
+            "test::go": {
+                "id": "test::go",
+                "owner": "Test",
+                "path": "I3",
+                "kind": "i3",
+                "implementationStatus": "unmarked",
+                "contract": "Exercise parser context.",
+                "sourceLine": 1,
+                "usages": [],
+            }
+        }
+        block = [
+            (1, "sequenceDiagram"),
+            (2, "participant A"),
+            (3, "participant B"),
+            (4, "alt Exact runtime is ready"),
+            (5, "A->>B: `test::go`"),
+            (6, "else Exact runtime is unavailable"),
+            (7, "Note over A: Fail closed"),
+            (8, "end"),
+            (9, "break Exact runtime is unavailable"),
+            (10, "Note over A: Terminalize this attempt"),
+            (11, "end"),
+            (12, "A->>B: `test::go`"),
+        ]
+        sequence = build_data.parse_mermaid_sequence(
+            block,
+            "Context fixture",
+            registry,
+            1,
+            {"Context fixture": {"id": "context-fixture"}},
+        )
+        notes = [note for call in sequence["calls"] for note in call["notes"]]
+        contexts = [context for note in notes for context in note["context"]]
+        self.assertTrue(any(context["type"] == "alt" and context["branch"] == "Exact runtime is unavailable" for context in contexts))
+        self.assertTrue(any(context["type"] == "break" and context["branch"] == "Exact runtime is unavailable" for context in contexts))
+        self.assertFalse(sequence["calls"][-1]["context"])
+
     def test_sequence_actor_references_and_ids_are_sound_per_document(self) -> None:
         for document in self.documents.values():
             call_ids: set[str] = set()
@@ -262,7 +336,7 @@ class BuildDataTests(unittest.TestCase):
         chambers = {entry["id"]: entry for entry in self.documents["chambers"]["dictionary"]}
         self.assertIn("not an alias for Realization", chambers["covenant-lock"]["definition"])
         self.assertIn("Covenant lock plus one normalized launch specification", chambers["realization"]["definition"])
-        self.assertIn("boot-ledger", chambers["boot-capsule"]["related"])
+        self.assertIn("core-boot-manifest", chambers["boot-capsule"]["related"])
 
         cardflow = {entry["id"]: entry for entry in self.documents["cardflow"]["dictionary"]}
         self.assertIn("Chambers-defined immutable executable lifecycle identity", cardflow["realization"]["definition"])

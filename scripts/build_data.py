@@ -19,26 +19,42 @@ MANIFEST_PATH = SOURCE_DIR / "manifest.json"
 OUTPUT_PATH = ROOT / "site" / "data.js"
 
 CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
+    "First core installation": {
+        "id": "core-installation",
+        "shortTitle": "First core installation",
+        "kicker": "Step 1 · genesis",
+        "summary": "How one externally accepted genesis bundle establishes exact Engine, Persistence, and Supervisor Realizations before Persistence or I3 exists.",
+        "question": "What establishes first trusted Core state without treating a missing file as authority?",
+        "status": "core",
+    },
     "Engine cold start": {
         "id": "host-activation",
         "shortTitle": "Engine cold start",
-        "kicker": "Step 1 · wake",
-        "summary": "How a running procman reuses or creates the exact Engine Chamber, then admits it over pinned libp2p Noise.",
+        "kicker": "Step 2 · wake",
+        "summary": "How running Procman reuses or creates the exact Engine selected by Persistence-owned core-current.json, then admits it over pinned libp2p Noise.",
         "question": "How does the Engine become callable without a redundant application-level identity challenge?",
         "status": "core",
     },
     "Bootstrap core services": {
         "id": "core-bootstrap",
         "shortTitle": "Core bootstrap",
-        "kicker": "Step 2 · basic Ark",
+        "kicker": "Step 3 · basic Ark",
         "summary": "How the first Persistence Chamber and Supervisor restore the smallest useful Ark state without a durable-data dependency cycle.",
         "question": "How can Persistence start before its own I3 route exists?",
+        "status": "core",
+    },
+    "Host reboot into selected core services": {
+        "id": "core-reboot",
+        "shortTitle": "Reboot selected Core",
+        "kicker": "Step 4 · reboot proof",
+        "summary": "How Procman starts the exact selected Engine, Persistence, and Supervisor from durable Core state after a host restart.",
+        "question": "How does reboot prove it is using upgraded selections rather than containerd tags or cache recency?",
         "status": "core",
     },
     "Ordinary Chamber activation kernel": {
         "id": "activation-kernel",
         "shortTitle": "Ordinary activation",
-        "kicker": "Step 3 · core ready",
+        "kicker": "Step 5 · core ready",
         "summary": "How a ready Engine and Persistence turn exact launch data into one admitted Chamber while OCI materialization stays disposable.",
         "question": "What durable data is read, what does containerd materialize, and what must be authenticated before readiness?",
         "status": "core",
@@ -46,7 +62,7 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
     "Fenced development": {
         "id": "fenced-development",
         "shortTitle": "Fenced development",
-        "kicker": "Step 4 · development",
+        "kicker": "Step 6 · development",
         "summary": "How a mutable workspace is edited, sealed, and closed without exposing a host path.",
         "question": "How does development produce immutable input without promoting a running Chamber?",
         "status": "current",
@@ -54,7 +70,7 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
     "Form and activate a candidate": {
         "id": "candidate-formation",
         "shortTitle": "Form a candidate",
-        "kicker": "Step 5 · realization",
+        "kicker": "Step 7 · realization",
         "summary": "How a locator or lock becomes an exact candidate without changing current.",
         "question": "How are resolution, build, acceptance, durable launch data, and execution kept separate?",
         "status": "current",
@@ -62,7 +78,7 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
     "Build an artifact": {
         "id": "artifact-build",
         "shortTitle": "Build an artifact",
-        "kicker": "Step 6 · optional",
+        "kicker": "Step 8 · optional",
         "summary": "How exact inputs produce an OCI digest and receipt while output bytes stay disposable and Builders never receive the containerd socket.",
         "question": "Where does building end, what remains durable, and how can later activation import the exact output?",
         "status": "later",
@@ -70,23 +86,23 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
     "Verify a candidate": {
         "id": "candidate-verification",
         "shortTitle": "Verify a candidate",
-        "kicker": "Step 7 · evidence",
+        "kicker": "Step 9 · evidence",
         "summary": "How exact candidate and fixture Chambers produce a durable verdict without selecting current.",
         "question": "How can a verdict remain exact even after its test Chambers disappear?",
         "status": "current",
     },
-    "Select or roll back": {
+    "Select, upgrade, or roll back": {
         "id": "selection-rollback",
-        "shortTitle": "Select or roll back",
-        "kicker": "Step 8 · selection",
-        "summary": "How a fenced compare-and-swap changes current without renaming live Chambers.",
-        "question": "What changes at selection time—and what deliberately does not?",
+        "shortTitle": "Select, upgrade, or roll back",
+        "kicker": "Step 10 · selection",
+        "summary": "How Persistence consumes a fenced compare-and-swap permit, stages critical closure, and commits exact current state without renaming live Chambers.",
+        "question": "What makes a selection durable, materializable, and authoritative on the next reboot?",
         "status": "current",
     },
     "Quiesce and wake": {
         "id": "quiesce-wake",
         "shortTitle": "Quiesce and wake",
-        "kicker": "Step 9 · idle edge",
+        "kicker": "Step 11 · idle edge",
         "summary": "How every Chamber can disappear while current selections and durable custody survive.",
         "question": "What survives quiescence, and what recreates a ready Engine later?",
         "status": "current",
@@ -184,8 +200,8 @@ DOCUMENT_CONFIGS: OrderedDict[str, dict[str, Any]] = OrderedDict(
                 "id": "chambers",
                 "name": "Chambers",
                 "title": "Chambers lifecycle",
-                "subtitle": "Immutable Realizations, fresh Chambers, evidence, selection, and wake",
-                "description": "Explore how exact Realizations become admitted Chambers and move through development, verification, selection, rollback, and quiescence.",
+                "subtitle": "Genesis, exact Core reboot, immutable Realizations, selection, and wake",
+                "description": "Explore how exact Realizations are installed, admitted, upgraded, selected for reboot, verified, rolled back, and quiesced without deriving authority from containerd.",
                 "functionHeading": "Lifecycle call table",
                 "functionIntro": "Every I3 and conventional host-boundary function named by the Chambers lifecycle sequences.",
                 "manifestSnapshot": "chambers-lifecycle-sequences.md",
@@ -480,6 +496,13 @@ def parse_mermaid_sequence(
             label = clean_markdown(stripped[4:])
             fragments.append(
                 {"id": f"fragment-{fragment_counter}", "type": "par", "label": label, "branch": label}
+            )
+            continue
+        if stripped.startswith("break "):
+            fragment_counter += 1
+            label = clean_markdown(stripped[6:])
+            fragments.append(
+                {"id": f"fragment-{fragment_counter}", "type": "break", "label": label, "branch": label}
             )
             continue
         if stripped.startswith("and "):

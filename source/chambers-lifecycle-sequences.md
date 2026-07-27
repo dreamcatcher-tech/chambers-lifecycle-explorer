@@ -20,14 +20,16 @@ This status establishes design authority; it does not claim implementation or ru
 - [Lifecycle call table](#lifecycle-call-table)
 - [Authoring and state shapes](#authoring-and-state-shapes)
 - [Overall lifecycle](#overall-lifecycle)
+- [First core installation](#first-core-installation)
 - [Engine cold start](#engine-cold-start)
 - [Bootstrap core services](#bootstrap-core-services)
+- [Host reboot into selected core services](#host-reboot-into-selected-core-services)
 - [Ordinary Chamber activation kernel](#ordinary-chamber-activation-kernel)
 - [Fenced development](#fenced-development)
 - [Form and activate a candidate](#form-and-activate-a-candidate)
 - [Build an artifact](#build-an-artifact)
 - [Verify a candidate](#verify-a-candidate)
-- [Select or roll back](#select-or-roll-back)
+- [Select, upgrade, or roll back](#select-upgrade-or-roll-back)
 - [Quiesce and wake](#quiesce-and-wake)
 - [Attested multi-Ark builds (later)](#attested-multi-ark-builds-later)
 - [Failure and recovery formulas](#failure-and-recovery-formulas)
@@ -47,34 +49,36 @@ navigational and does not alter the definition.
 | Admission | Procman-owned, lease-scoped authority binding a fresh PeerId to one exact Chamber, Realization, registration contract, Engine listener, epoch, profile, and expiry. | Chamber lease; libp2p PeerId; Registration contract |
 | Artifact-backed launch spec | A normalized launch specification whose executable root is one exact OCI descriptor with an exact provider or bounded rebuild provenance and fixed runtime and security configuration. | Normalized launch spec; OCI digest; Source-composed launch spec |
 | Assembly Covenant | A Covenant that expands to a process-tree subtree. The Assembly itself has no Chamber. | Covenant; Runnable Covenant |
-| Boot capsule | An immutable, bounded boot projection for one exact Engine or Persistence Realization: its Realization ID, normalized launch specification, provider locators, resource revisions, registration contract, and bounded materialization capabilities. It need not contain OCI bytes. | Boot ledger; Boot Seed; Realization |
-| Boot ledger | Procman-owned durable, host-readable state containing the exact current Engine and Persistence revisions and their active Boot capsule references. Only the same fenced selection transaction that changes current may change an active capsule reference. | Boot capsule; Current selection; Procman |
-| Boot Seed | Externally accepted initial or explicit-recovery input that may initialize an empty Boot ledger and supply bounded bootstrap bytes or capabilities. It is not a mutable current selector and is never an automatic fallback from a missing or invalid Boot ledger. | Boot capsule; Boot ledger |
+| Boot capsule | An immutable, bounded, launch-ready closure for one exact Engine or Persistence Realization: its Realization ID, normalized launch specification, exact resources, registration contract, and content-addressed materialization inputs. It is stored in the Core recovery store and never selects itself. | Boot Seed; Core boot manifest; Core recovery store; Realization |
+| Boot Seed | Externally accepted genesis or explicit-recovery input that can initialize the first Core boot manifest for a provably unenrolled Ark and stage exact bootstrap closure. It is not a mutable selector and is never an automatic fallback from a missing or invalid manifest on an initialized Ark. | Boot capsule; Core boot manifest; Core recovery store |
 | Build receipt | Durable evidence binding one build request, Builder Realization, output artifact identity, and evidence root. | Acceptance receipt; Realization |
 | Candidate | One exact accepted or testable Realization retained under a bounded Hold but not selected as current. | Current selection; Hold; Realization |
 | Chamber | One ephemeral host-local activation of one exact Runnable Covenant Realization. Every activation or restart receives a fresh Chamber ID and independent fate. | Activation; Chamber lease; Realization |
 | Chamber lease | Bounded Procman authority for one exact Chamber, including its admission, lifetime, and cleanup scope. | Admission; Chamber |
-| containerd | Disposable host materialization storage and tooling used only behind the Image Materializer. Its tags, image records, content, snapshots, and task state never select what should run. | Image Materializer; OCI digest |
+| containerd | Disposable host materialization storage and tooling used only behind the Image Materializer. Its tags or labels may index verified cache entries, but its image records, content, snapshots, and task state never select what should run. | Image Materializer; Materialization index; OCI digest |
 | Contract Covenant | A promise-only Covenant with no Chamber of its own. | Covenant; Runnable Covenant |
+| Core boot manifest | The Persistence-owned, host-readable canonical storage representation of `current[engine]` and `current[persistence]`, their selection revisions, and exact Boot capsule digests. Persistence is the sole normal writer; Procman is a direct read-only consumer through a stable bootstrap schema. | Boot capsule; Boot Seed; Current selection; Persistence |
+| Core recovery store | A durable, content-addressed, host-readable namespace containing verified immutable closure for selected critical services. It is in the same backup and restore set as Persistence data, while its append-only blob writes and canonical selection writes remain separately scoped. | Boot capsule; Boot Seed; Image Materializer; OCI digest |
 | Covenant | A location-independent promise describing offered behavior, required dependencies, resources, workers, evidence, and policy without naming the repository that carries it. | Assembly Covenant; Contract Covenant; Runnable Covenant |
 | Covenant locator | Provider coordinates plus an optional logical credential need used to resolve Covenant content. It is not immutable runtime identity. | Covenant; Credential; Provider |
 | Covenant lock | The exact transitive closure of Covenant bytes, provider-native revisions, base-image and build inputs, mounts, workers, hardware, and launch policy. It is an input to candidate formation, not launch authority and not an alias for Realization. | Covenant; Normalized launch spec; Realization |
 | Credential | A named Vault need. It is never a secret value, token, or leased credential embedded in lifecycle identity. | Covenant locator; Provider |
-| Current selection | The sole revisioned named choice `current[name] = {revision, realization}`. It can validly have zero live Chambers and is never inferred from recency, health, routes, OCI tags, or cache state. | Boot ledger; Candidate; Realization; Selection |
+| Current selection | The sole Persistence-owned revisioned named choice `current[name] = {revision, realization}`. It can validly have zero live Chambers and is never inferred from recency, health, routes, OCI tags, or cache state. | Candidate; Core boot manifest; Realization; Selection |
 | Engine | The I3 actor that owns typed transport, authenticated Worker Manager admission, function registration, derived routing, and Engine-specific lifecycle functions. Ordinary I3 calls are drawn directly to the actor that registered the target function, not through Engine. | I3 function; Registration contract; Route |
 | Hold | A bounded reference retaining one exact candidate and its custody, owner, expiry, and cleanup authority. | Candidate; Realization |
 | I3 function | A named function registered by one owning actor and invoked at that actor. Sequence diagrams omit Engine's ordinary brokerage path; Engine is the arrow target only for functions registered by Engine workers. | Engine; Registration contract; Worker |
-| Image Materializer | The mechanism-only host component that turns one exact normalized launch specification into a runtime view and is the sole holder of the containerd socket. It cannot select, build, or substitute inputs. | containerd; Normalized launch spec |
+| Image Materializer | The host-envelope helper that turns one exact normalized launch specification into a runtime view and is the sole holder of the containerd socket. It can stage verified immutable core closure but cannot select, build, or substitute inputs; it upgrades with the host envelope rather than as a Chamber. | containerd; Core recovery store; Normalized launch spec |
 | Immutable identity | A provider-native commit, tree, digest, CID, or snapshot that identifies exact content rather than a moving locator. | Covenant lock; OCI digest; Provider |
 | Inspection receipt | Durable evidence binding one exact artifact, inspection plan, evidence root, and verdict. | Acceptance receipt; OCI digest |
 | Kind | The logical content form being addressed, independent of provider and location. | Provider |
 | Latest | A moving resolution policy. It is never runtime identity or selection authority. | Covenant locator; Current selection |
 | libp2p PeerId | Proof-of-possession transport identity authenticated by Noise. It is neither Chamber identity nor lifecycle authority without a matching live Admission. | Admission; Chamber |
+| Materialization index | A disposable host-local mapping from an exact Realization and runtime-profile digest to verified containerd content, snapshot, or runtime-view receipts. It may use containerd labels or tags and can always be discarded and reconstructed. | containerd; Image Materializer; Realization |
 | Normalized launch spec | One exact source-composed or artifact-backed runtime composition with fixed platform, resources, launcher, runtime, and security inputs. | Artifact-backed launch spec; Source-composed launch spec; Realization |
 | OCI digest | Immutable materialization and verification identity for one OCI object or graph. It does not by itself express a Covenant, acceptance, launch plan, or Ark-local promise to retain bytes. | Artifact-backed launch spec; containerd; Realization |
 | Operation | Durable exact lifecycle intent retained until a matching terminal receipt; retries reconcile that same intent before conflicting work. | Activation; Selection |
-| Persistence | The durable service owning Realization manifests, exact source and resource revisions, provider locators, receipts, and Holds. It does not own current selection or retain rebuildable OCI blobs as ordinary Ark state. | Boot capsule; Hold; Realization |
-| Procman | The non-Chamber host process manager owning current and candidate mutation, Chamber state, Admission, physical activation and reaping, the Engine wake edge, and the durable Boot ledger. | Boot ledger; Current selection; Engine |
+| Persistence | The durable service owning current selections, candidate Holds, Realization manifests, exact source and resource revisions, provider locators, receipts, and the Core boot manifest. It does not treat rebuildable OCI blobs as ordinary lifecycle state. | Core boot manifest; Hold; Realization |
+| Procman | The non-Chamber host process manager owning Chamber state, Admission, physical operation intent, activation and reaping, the Engine wake edge, and read-only consumption of selected lifecycle state. It owns no parallel current-selection store. | Core boot manifest; Current selection; Engine |
 | Provider | An access, authority, and location family capable of resolving or supplying exact content under scoped credentials. | Covenant locator; Credential; Immutable identity |
 | Realization | The sole public immutable executable lifecycle identity: one exact Covenant lock plus one normalized launch specification, acceptance evidence, and launch plan. It is immediately materializable without mutable lookup, dependency choice, build, or substitution. | Covenant lock; Normalized launch spec; Chamber |
 | Realization ID | The digest of the canonical Realization manifest body. | Realization |
@@ -136,6 +140,10 @@ navigational and does not alter the definition.
 - `Activation` is not a separate lifecycle identity or record; `activate` is the operation that creates a Chamber.
 - `containerd content, image records, and snapshots = disposable host materialization`.
 - `containerd root = dedicated disposable storage slice`; `containerd state = volatile runtime storage`.
+- `containerd tags or labels = optional disposable Materialization index`; they may locate a cache hit only
+  after its resolved digest and runtime profile match the selected Realization.
+- `critical-service Core recovery store = durable bootstrap availability`, not selection authority or an
+  ordinary containerd root.
 - `current realization may have zero live Chambers`.
 - `activate(realization, lease) = committed Chamber intent -> fresh Chamber id -> readiness or terminal failure`.
 - `restart = same realization + fresh Chamber id`.
@@ -152,10 +160,15 @@ navigational and does not alter the definition.
 
 - `durable named process tree = Assembly-expanded logical names + revisioned current selections`.
 - `current[name] = {revision, realization}`.
-- `core_boot[name] = {revision, realization, boot capsule}` for `engine` and `persistence`; its revision and
-  Realization must equal `current[name]` in the same Procman-owned Boot ledger transaction.
+- `current[name]` is owned and committed by Persistence.
+- `core-current.json = {schema, ark, manifest revision, previous manifest digest, engine selection,
+  persistence selection, commit evidence}`; it is the canonical storage representation of
+  `current[engine]` and `current[persistence]`, not a projection of second writable records.
+- each core selection in `core-current.json` is `{revision, realization, boot capsule digest}`.
 - `boot_capsules[boot capsule id] = immutable bounded boot projection`; an inactive capsule is evidence or
   staged input, never an alternate selector.
+- `materialization_index[(realization, runtime profile)] = disposable verified cache observation`; it may be
+  absent or stale without changing selection.
 - `candidates[name][realization id] = Hold reference`; candidate state adds no duplicate realization fields.
 - `chambers[Chamber id] = {name, realization, lease, phase}`.
 - `admissions[lease] = {peer id, Chamber id, realization, registration contract, listener,
@@ -187,14 +200,14 @@ than repeated in candidate state.
   the HPM admission permits the Worker Manager stream, the Engine has assigned `chamber::<Chamber id>`,
   and the complete registration contract has matched.
 - Engine routing is built in; a physical route cache is never authority.
-- `procman` supplies current revisions and exact Chamber observations to Engine routing;
-  it does not maintain a second writable current or route authority.
+- `procman` supplies Persistence-owned current revisions and exact Procman-owned Chamber observations to
+  Engine routing; it does not maintain a second writable current or route authority.
 
 ### Transition
 
 - `operation intent -> physical/Engine effect -> evidence -> operation receipt`.
 - Intent is durable before effect; completion follows evidence.
-- `selection = compare-and-swap current[name] from expected revision to exact candidate realization`.
+- `selection = Persistence compare-and-swap current[name] from expected revision to exact candidate realization`.
 - `promotion selects a realization, never a Chamber`.
 - `selection affects future Chambers`; existing Chambers remain pinned until completion, cancellation, or
   explicit drain.
@@ -204,10 +217,20 @@ than repeated in candidate state.
 ### Authority
 
 - Supervisor proposes logical change and ordinary Chamber activation.
-- `procman` owns current/candidate/Chamber state mutation and physical Chamber creation/reaping.
-- `procman` owns the durable host-readable Boot ledger. Initial external acceptance may initialize an
-  empty ledger from a Boot Seed; later Engine or Persistence selection atomically changes `current[name]`
-  and the matching active Boot capsule reference. Missing or mismatched state fails closed.
+- Persistence owns current selection, candidates, Holds, Realizations, selection history, and their durable
+  commit. For `engine` and `persistence`, its canonical current representation is the Core boot manifest.
+- Persistence is the sole normal writer of the Core boot manifest. It writes a complete canonical temporary
+  file, fsyncs it, atomically renames it over `core-current.json`, and fsyncs the containing directory; the
+  rename is the core-selection commit point.
+- `procman` receives a read-only capability to that one stable manifest and reads the same canonical bytes
+  during both live operation and cold boot. It never opens Persistence's general database schema and never
+  writes the manifest.
+- A lower host installer may initialize the manifest only under an externally accepted one-use genesis or
+  recovery capability. Absence alone never proves a blank Ark: an initialized host with missing, corrupt,
+  or mismatched state fails closed rather than booting a compiled-in default.
+- `procman` owns Chamber, Admission, physical operation-intent, reconciliation, and receipt state. Those
+  execution-plane writes do not select a Realization and are not required to recover selected current after
+  restoring the Persistence backup set.
 - Supervisor resolves the Covenant/Realization worker exports into an immutable, content-addressed
   registration contract; `procman` binds that contract to the physical launch admission.
 - `procman` mints each non-Engine Chamber's fresh lease-scoped libp2p identity, commits only its
@@ -224,10 +247,14 @@ than repeated in candidate state.
 - `procman` owns the irreducible Engine wake edge; it may activate only the exact selected
   Engine realization and does not choose application policy.
 - Persistence owns durable Realization manifests, exact source/resource revisions, provider locators,
-  receipts, and Holds; it does not retain rebuildable OCI blobs as ordinary Ark state. A bounded exact
-  Engine or Persistence Boot capsule is a Procman-owned boot projection, not a second Persistence service.
-- The Image Materializer is the sole bridge from exact launch data or a Boot Seed to `containerd`;
-  `containerd` never calls Persistence or I3.
+  receipts, Holds, current selections, and the Core boot manifest. Ordinary rebuildable OCI graphs remain
+  outside lifecycle state; the bounded Core recovery store retains only selected critical-service closure.
+- The Image Materializer is the sole bridge from exact launch data, the Core recovery store, or a Boot Seed
+  to `containerd`; `containerd` never calls Persistence or I3. The materializer may append digest-addressed
+  verified blobs to the Core recovery store, but only Persistence may commit a manifest that selects them.
+- Image Materializer is part of the lower host envelope with `procman`, containerd, runsc, and the kernel.
+  It is a small library or privilege-contained helper, not a Chamber. Making the only materializer a Chamber
+  would require another lower materializer to start it and merely move the recursion boundary.
 - Builders may use bounded disposable OCI output staging but receive neither the `containerd` socket nor
   authority to turn their output into durable selection state.
 - Tester or the gate-appropriate verifier judges an exact candidate realization and Chamber.
@@ -260,8 +287,8 @@ Participant lanes are declared in architectural order, not in first-call order. 
 therefore legitimate and clearer than moving foundational actors between diagrams merely to make every
 message point right. Apply these strata consistently from left to right:
 
-1. `procman`, whenever present, is the leftmost lane because it is the irreducible host lifecycle authority;
-2. the mechanism-only Image Materializer and its disposable `containerd` store follow `procman` when
+1. `procman`, whenever present, is the leftmost lane because it is the irreducible host lifecycle mechanism;
+2. the host-envelope Image Materializer and its disposable `containerd` store follow `procman` when
    an exact runtime composition must become locally runnable;
 3. the trusted host runtime follows those host-materialization lanes whenever a physical create, start,
    stop, or reap effect appears;
@@ -279,8 +306,8 @@ Chamber that is the subject of the effect; a note names that exact subject.
 
 | Function | Invocation path | Brief contract |
 | --- | --- | --- |
-| `chambers::process::propose` | I3 | The sole public `procman` mutation surface. Submit one exact typed and fenced lifecycle operation; `procman` commits intent before changing current, candidates, Chambers, attachments, admission, or quiescence state. |
-| `chambers::process::inspect` | I3 | Return a capability-scoped read-only view of current selections, candidate Holds, Chambers, lease admissions, open operations, and receipt references. It cannot mutate state or establish a second route authority. |
+| `chambers::process::propose` | I3 | The sole public `procman` coordination surface. Submit one exact typed and fenced lifecycle operation; `procman` commits host-effect intent before changing Chambers, attachments, Admission, or quiescence state and delegates canonical selection commits to Persistence. |
+| `chambers::process::inspect` | I3 | Return a capability-scoped read-only view composed from Persistence-owned current selections and candidate Holds plus Procman-owned Chambers, Admissions, open operations, and receipt references. It cannot mutate state or establish a second route authority. |
 | `wake_engine` | **External conventional call (not I3)** | An authenticated lower wake source submits one bounded wake and reply capability directly to `procman` while the Engine may be absent. |
 | `deliver_final_reply` | **External conventional call (not I3)** | `procman` uses the handed-off lower reply capability after the required terminal receipt is durable; no stopped Engine is involved. |
 
@@ -293,13 +320,17 @@ After exact Engine readiness, `procman` registers `chambers::process::propose` a
 | Function | Invocation path | Brief contract |
 | --- | --- | --- |
 | `materialize_runtime` | **External conventional call (not I3)** | `procman` asks the mechanism-only Image Materializer to realize one exact normalized launch spec. It may project exact resources over a pinned base or use an exact artifact-backed image, but it cannot build or choose inputs. |
+| `stage_core_closure` | **External conventional call (not I3)** | `procman` or the one-use host installer asks the Image Materializer to verify and append one exact critical-service launch closure to the Core recovery store. The returned digest and fsync evidence are prerequisites to selection, not selection authority. |
 | `inspect_image` | **External conventional call (not I3)** | The Image Materializer inspects disposable `containerd` manifest, content, and unpacked-snapshot records by exact digest; a tag or name is insufficient. |
 | `pull_image` | **External conventional call (not I3)** | The Image Materializer asks `containerd` to pull one exact manifest graph from the declared OCI provider through a scoped resolver/credential capability. |
-| `import_image` | **External conventional call (not I3)** | The Image Materializer imports digest-verified OCI content from one bounded Boot Seed, build-output, or transfer capability into disposable `containerd` storage. |
+| `import_image` | **External conventional call (not I3)** | The Image Materializer imports digest-verified OCI content from one bounded Core-recovery object, Boot Seed, build-output, or transfer capability into disposable `containerd` storage. |
 | `unpack_image` | **External conventional call (not I3)** | The Image Materializer asks `containerd` to create a disposable unpacked snapshot for the exact base or image and host-pinned runtime profile. |
 
 Only the Image Materializer holds the `containerd` socket. It consumes realization data and scoped
-capabilities supplied by `procman`; it does not call Persistence itself. `containerd` stores OCI content,
+capabilities supplied by `procman`; it does not call Persistence itself. It may encode its disposable
+Materialization index as containerd labels or tags, because a cache hint is safe when the selected digest
+and runtime profile are independently supplied and verified. The index is never read to decide `current`.
+`containerd` stores OCI content,
 image metadata, and unpacked or writable snapshots on a dedicated disposable host slice. Its own `root`
 may survive a daemon restart, but that does not make it product durability;
 the whole slice may be discarded. Its `state` directory is volatile. Builders and Persistence never
@@ -308,6 +339,14 @@ receive the socket.
 In this lifecycle, containerd does not own Chamber process identity or the runsc task. The Image Materializer
 hands the exact prepared root filesystem and runtime-view receipt to `procman`; the separate trusted host
 runtime boundary performs `activate_chamber` and `stop_chamber` through pinned runsc.
+
+The Image Materializer is deliberately inside the host upgrade boundary. It may be linked into `procman` or
+run as a narrowly privileged helper, but it is versioned with the host envelope and is never selected as a
+Chamber. Its irreducible operations are exact-digest inspect, import or pull, verification, unpack, fixed
+resource projection, runtime-bundle assembly, and append-only staging of already accepted critical closure.
+Provider resolution, dependency choice, compilation, package installation, and image construction belong
+to ordinary upgradable Builder or provider Chambers. Containerizing those rich mechanisms is safe; making
+the sole socket-holding materializer a Chamber would still require a lower host materializer to launch it.
 
 Deleting that slice must not delete the selected Realization, exact source/resource revisions, build and
 acceptance receipts, or provider locators. A source-composed Realization can be rematerialized from those
@@ -343,8 +382,9 @@ different candidate. `containerd` does not build images.
 | `resource::resolve` | I3 | Resolve a permitted locator once, or fetch an exact selector, and return verified immutable descriptors or bounded transfer capabilities. |
 | `persistence::realization::read` | I3 | Read one exact Realization record, normalized launch spec, receipts, provider descriptors, and scoped immutable-resource capabilities. It returns no OCI layer store. |
 | `persistence::build::record` | I3 | Persist exact build definition/input identities, output OCI digest, receipt, and declared provider or rebuild policy without retaining the OCI graph. |
+| `persistence::selection::read` | I3 | Read one exact canonical Current selection and revision. Core reads through this API and Procman's direct manifest read resolve to the same canonical `core-current.json` bytes. |
+| `persistence::selection::commit` | I3 | Consume one exact promoter permit and compare-and-swap expected current to a candidate, transfer its Hold, and append selection history. For Engine or Persistence, atomically replace the canonical Core boot manifest only after the exact Boot capsule is durable. |
 | `persistence::hold::acquire` | I3 | Acquire one bounded Hold over exact candidate Realization data and durable resource/evidence custody. |
-| `persistence::hold::transfer` | I3 | Transfer one exact candidate Hold into selected-current custody under the fenced selection operation. |
 | `persistence::hold::release` | I3 | Release one exact candidate Hold after authorized rejection, expiry, cancellation, or cleanup. |
 | `resource::workspace::open` | I3 | Open one writer-fenced mutable workspace from an exact base and return its scoped attachment capability. |
 | `resource::workspace::edit` | I3 | Apply an authorized mutation through the workspace fence without exposing a raw host path. |
@@ -372,11 +412,13 @@ different candidate. `containerd` does not build images.
 | `artifact::accept` | I3 | Judge one exact artifact, evidence set, and policy and return an acceptance receipt or rejection. |
 | `attestation::verify` *(later)* | I3 | Appraise fresh confidential-environment evidence bound to one builder identity and exact statement. |
 | `verification::invoke` | I3 | Execute the exact candidate and fixture verification plan through exact Chamber routes and return subject-bound evidence and a verdict. |
-| `selection::authorize` | I3 | Have the distinct fenced promoter validate fresh MET evidence and issue and consume one exact, one-use compare-and-swap permit. |
+| `selection::authorize` | I3 | Have the distinct fenced promoter validate fresh MET evidence and issue one exact, one-use compare-and-swap permit for Persistence to consume. |
 
-Only `chambers::process::propose` may reach `procman`-owned mutation. Selecting `current` additionally requires
-the distinct promoter authorization described in **Select or roll back**; neither Supervisor nor Persistence can confer
-that authority by invoking their own functions.
+Only `chambers::process::propose` may reach `procman`-owned execution mutation. Selecting `current`
+additionally requires the distinct promoter authorization described in **Select, upgrade, or roll back**, and only
+`persistence::selection::commit` writes the canonical selection. Procman coordinates that call but cannot
+write or infer selection; Persistence stores an authorized decision but cannot confer promoter authority on
+itself.
 
 Engine startup deliberately adds no application-level identity challenge signed by the same identity that
 Noise has already authenticated. Noise mutually proves possession of the two libp2p identities. HPM state
@@ -476,6 +518,79 @@ does not duplicate a dependency table. An operation-scoped development child rec
 custody and Chamber identity without manufacturing another durable logical name; an exact Realization it
 produces may later become a candidate for an already authorized durable name.
 
+### Core boot manifest
+
+`core-current.json` is a deliberately small, stable bootstrap ABI inside Persistence's durable backup and
+restore set. It is the canonical current record for the two services that must be known while Persistence
+itself is absent:
+
+```text
+Persistence durable volume / one backup-and-restore set
+├── lifecycle/                         # Persistence's ordinary private store
+├── boot-control/core-current.json     # Persistence write; Procman read-only
+└── core-recovery/                     # Materializer append-only; Procman read-only
+    ├── capsules/sha256:...
+    └── content/sha256:...
+```
+
+This is the same durability domain, not shared access to Persistence's private database. Persistence receives
+a narrowly mounted write capability for `boot-control`; Procman receives a host-side read-only capability for
+`boot-control` and selected recovery objects; the Image Materializer receives only append/create-by-digest
+authority in `core-recovery`. No Chamber receives the containerd socket or an unrestricted raw host path.
+
+```json
+{
+  "schema": "dreamcatcher.core-boot/v1",
+  "ark": "ark@sha256:...",
+  "manifest_revision": 44,
+  "previous_manifest": "sha256:...",
+  "current": {
+    "engine": {
+      "revision": 12,
+      "realization": "sha256:R-engine",
+      "boot_capsule": "sha256:B-engine"
+    },
+    "persistence": {
+      "revision": 9,
+      "realization": "sha256:R-persistence",
+      "boot_capsule": "sha256:B-persistence"
+    }
+  },
+  "commit": {
+    "operation": "selection@sha256:...",
+    "permit": "sha256:..."
+  }
+}
+```
+
+The referenced capsules and their complete launch-ready content are immutable, digest-addressed objects in
+the Core recovery store. The Image Materializer stages and fsyncs those objects before selection. During
+normal operation, Persistence is the sole manifest writer: it validates the promoter permit and expected
+revision, writes a complete canonical temporary file, fsyncs it, renames it over `core-current.json`, and
+fsyncs the directory. That rename is the selection commit point. Persistence's normal selection API reads
+these same canonical bytes for `engine` and `persistence`; there is no second database row to reconcile.
+
+The Core-selection write protocol does not pretend that a private database transaction and a filesystem
+rename are one atomic primitive. Persistence first makes the accepted Realization, immutable capsule,
+expected revision, permit, and prepared Hold-transfer/selection evidence durable; it then performs the
+manifest rename as the sole `current` effect and finally applies the Hold transfer and terminalizes selection
+history. After interruption, the manifest revision and embedded operation/permit evidence decide whether
+Persistence completes the prepared effect or abandons an uncommitted preparation. No second
+`current[engine]` or `current[persistence]` value exists in the private database. Backup and restore must
+preserve this durability set together and reject a manifest whose referenced accepted Realization or capsule
+closure is absent.
+
+Procman receives only a read-only capability to this schema and the referenced capsules. It may read the
+same file while Persistence is live or absent, and an atomic reader sees either the complete prior manifest
+or the complete successor. It never opens Persistence's general database or migrates this schema. A schema
+change incompatible with the installed host reader requires an accepted host-envelope upgrade first.
+
+The lower installer may create the first manifest only after proving the Ark is unenrolled and consuming a
+one-use accepted genesis capability. On an enrolled Ark, absence, parse failure, digest mismatch, or a
+missing capsule is corruption: Procman fails closed and requires explicit backup restore or accepted recovery.
+It never interprets absence as permission to boot a bundled default. The manifest selects exact Realizations,
+not Covenant locks; each selected Realization transitively identifies its lock.
+
 ### Current, candidates, and Chambers
 
 A durable logical name selects one exact current Realization independently of runtime residency.
@@ -483,34 +598,34 @@ Candidates are exact Realizations under bounded Holds. Chambers are the only hos
 records, and several may refer to the same current or candidate Realization.
 
 ```yaml
-current:
-  gateway:
-    revision: 43
-    realization: sha256:R18
+persistence:
+  current:
+    gateway:
+      revision: 43
+      realization: sha256:R18
+  candidates:
+    gateway:
+      sha256:R19: hold@sha256:H19
+      sha256:R20: hold@sha256:H20
 
-candidates:
-  gateway:
-    sha256:R19: hold@sha256:H19
-    sha256:R20: hold@sha256:H20
-
-chambers:
-  chamber:C42:
-    name: gateway
-    realization: sha256:R18
-    lease: lease@sha256:L42
-    phase: ready
-  chamber:C43:
-    name: gateway
-    realization: sha256:R18
-    lease: lease@sha256:L43
-    phase: ready
-  chamber:C50:
-    name: gateway
-    realization: sha256:R19
-    lease: lease@sha256:L50
-    phase: ready
-
-operations: {}
+procman:
+  chambers:
+    chamber:C42:
+      name: gateway
+      realization: sha256:R18
+      lease: lease@sha256:L42
+      phase: ready
+    chamber:C43:
+      name: gateway
+      realization: sha256:R18
+      lease: lease@sha256:L43
+      phase: ready
+    chamber:C50:
+      name: gateway
+      realization: sha256:R19
+      lease: lease@sha256:L50
+      phase: ready
+  operations: {}
 ```
 
 Realization manifests are retrieved by their content identities; the state above does not repeat lock,
@@ -568,7 +683,7 @@ stateDiagram-v2
     state "Fenced development" as Develop
     state "Form exact candidate" as Realize
     state "Verify candidate" as Verify
-    state "Select or roll back" as Select
+    state "Select, upgrade, or roll back" as Select
     state "No resident Chambers" as Quiescent
 
     [*] --> Wake
@@ -586,10 +701,109 @@ stateDiagram-v2
     Normal --> Wake: Engine/runtime discontinuity
 ```
 
+## First core installation
+
+This sequence is the one-time genesis path for the critical Chamber set: Engine, Persistence, and
+Supervisor. It does not discover a newest image. External acceptance supplies exact Realizations, complete
+launch-ready closure, and a one-use genesis capability to a host that is independently proved unenrolled.
+
+`entry = accepted host envelope + proved-unenrolled Core recovery store + accepted genesis bundle`
+
+`exit = canonical first core selections + ready Engine + ready Persistence + ready Supervisor`
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant procman
+    participant Materializer as Image Materializer
+    participant containerd
+    participant Runtime as Trusted host runtime (runsc)
+    participant Engine
+    participant Supervisor
+    participant Persistence
+    actor Installer as External host installer
+
+    Note over Installer: Prove this Ark is unenrolled and consume one accepted,<br/>one-use genesis capability, because mere file absence is insufficient
+    loop Exact Engine, Persistence, and Supervisor genesis closure
+        Installer->>Materializer: `stage_core_closure`
+        Note over Materializer,Installer: Verify content identities, append immutable closure to the<br/>Core recovery store, fsync bytes and directories, and return evidence
+    end
+    Note over Installer: Seed Persistence's durable data with the exact accepted Realizations,<br/>Holds/receipts, and current[supervisor]
+    Note over Installer: Atomically initialize Persistence-owned core-current.json with<br/>current[engine] and current[persistence] plus exact Boot capsule digests
+
+    Installer->>procman: `wake_engine`
+    Note over procman: Read and verify the canonical Engine selection and capsule<br/>directly from core-current.json through the read-only bootstrap capability
+    procman->>Materializer: `materialize_runtime`
+    Materializer->>containerd: `inspect_image`
+    alt Exact Engine runtime cache matches selected digests and host profile
+        Note over Materializer,containerd: Reuse the verified disposable cache entry
+    else Exact Engine closure is present in the Core recovery store
+        Materializer->>containerd: `import_image`
+        Materializer->>containerd: `unpack_image`
+    else Required accepted closure is absent
+        Note over Materializer: Fail closed and never choose a tag, build a replacement,<br/>or infer a default Engine
+    end
+    break Exact Engine runtime view is unavailable
+        Note over procman,Installer: Terminalize the failed genesis attempt without starting any later core service
+    end
+    procman->>Runtime: `activate_chamber`
+    Note over Runtime,Engine: Create the first Engine Chamber from the selected Realization<br/>and exact runtime view through host-pinned runsc
+    Note over procman,Engine: Complete pinned-PeerId Noise admission and exact procman registration
+    procman->>Engine: `engine::wake::deliver`
+
+    Note over procman: Read and verify the canonical Persistence selection and capsule<br/>from the same core-current.json manifest
+    procman->>Materializer: `materialize_runtime`
+    Materializer->>containerd: `inspect_image`
+    alt Exact Persistence runtime cache matches selected digests and host profile
+        Note over Materializer,containerd: Reuse the verified disposable cache entry
+    else Exact Persistence closure is present in the Core recovery store
+        Materializer->>containerd: `import_image`
+        Materializer->>containerd: `unpack_image`
+    else Required accepted closure is absent
+        Note over Materializer: Fail closed without creating Persistence
+    end
+    break Exact Persistence runtime view is unavailable
+        Note over procman,Installer: Leave the Ark non-ready and retain the accepted selections for explicit recovery
+    end
+    procman->>Runtime: `activate_chamber`
+    Note over Runtime,Persistence: Create the first Persistence Chamber from the exact<br/>manifest-selected Realization and Boot capsule
+    Note over Persistence,Engine: Complete Noise admission and exact registration publication
+    procman->>Engine: `engine::route::inspect`
+
+    procman->>Persistence: `persistence::selection::read`
+    Note over procman,Persistence: Read exact current[supervisor] from the seeded canonical lifecycle store
+    procman->>Persistence: `persistence::realization::read`
+    procman->>Materializer: `materialize_runtime`
+    Materializer->>containerd: `inspect_image`
+    alt Exact Supervisor runtime cache matches selected digests and host profile
+        Note over Materializer,containerd: Reuse the verified disposable cache entry
+    else Exact Supervisor closure is present in the Core recovery store
+        Materializer->>containerd: `import_image`
+        Materializer->>containerd: `unpack_image`
+    else Required accepted closure is absent
+        Note over Materializer: Fail closed without creating Supervisor
+    end
+    break Exact Supervisor runtime view is unavailable
+        Note over procman,Installer: Leave the partial Ark non-ready without changing any selection
+    end
+    procman->>Runtime: `activate_chamber`
+    Note over Runtime,Supervisor: Create the first Supervisor Chamber from the exact<br/>Persistence-selected Realization
+    Note over Supervisor,Engine: Complete Noise admission and exact registration publication
+    procman->>Engine: `engine::route::inspect`
+```
+
+The external installer physically writes the first manifest because no Persistence Chamber exists yet, but
+it does so only through the one-use genesis authority. Procman does not gain a manifest-write capability.
+After genesis, only the currently selected Persistence service may commit a successor manifest; explicit
+external recovery is a separately accepted lower-platform action.
+
+The three accepted launch closures are staged before their selections become usable. The Core recovery store
+and Persistence data are one backup and restore unit. Containerd may be empty at first activation and may be
+wiped later; its tags and labels can accelerate lookup but cannot change any selected identity.
+
 ## Engine cold start
 
-`entry = running procman + valid core_boot[engine] in the Procman Boot ledger`, or explicit
-empty-ledger initialization from an externally accepted Boot Seed.
+`entry = running procman + valid Persistence-owned core-current.json + exact selected Engine Boot capsule`
 
 `exit = one ready Engine Chamber for admitted wake work`; no other current Realization must be resident.
 
@@ -614,18 +828,15 @@ sequenceDiagram
     Note over procman: Authenticate the lower wake, reconcile interrupted operations,<br/>and inspect ready Engine Chambers
 
     opt No Engine Chamber is ready
-        Note over procman: Read current[engine] and the matching active Boot capsule<br/>from the durable Procman Boot ledger
-        Note over procman: Reject a missing revision, Realization, or capsule match and<br/>never infer selection from containerd, a tag, or recency
+        Note over procman: Read current[engine] and its exact Boot capsule digest directly<br/>from Persistence-owned core-current.json through the read-only capability
+        Note over procman: Reject a missing revision, Realization, capsule, or digest match and<br/>never infer selection from containerd, a tag, a label, or recency
         Note over procman: Commit a fresh Engine Chamber intent from that exact capsule
         Note over procman: Commit the fresh Engine Chamber, PeerId, Realization,<br/>listener, lease, and epoch binding before launch
         procman->>Materializer: `materialize_runtime`
         Materializer->>containerd: `inspect_image`
         alt Exact required base or artifact and unpacked snapshot are verified locally
             Note over Materializer,containerd: Reuse only by exact digest from the disposable slice
-        else Exact OCI graph is available from the capsule-declared provider
-            Materializer->>containerd: `pull_image`
-            Materializer->>containerd: `unpack_image`
-        else Exact OCI graph is available through a bounded Boot Seed capability
+        else Exact launch-ready closure is present in the Core recovery store
             Materializer->>containerd: `import_image`
             Materializer->>containerd: `unpack_image`
         else No exact OCI source is available
@@ -656,18 +867,19 @@ a missing Engine takes the one `activate_chamber` branch only after exact materi
 paths converge on the same mutually authenticated Noise session and HPM authorization. There is no second
 same-key challenge-response ceremony.
 
-The Procman Boot ledger is the boot-selection authority. `procman` reads `core_boot[engine]`, whose revision
-and Realization must exactly match `current[engine]`, and then reads that entry's immutable Boot capsule. It
-does not ask `containerd` which image is latest, inspect a mutable tag, or choose the newest cached object.
-The Image Materializer may reuse local bytes only after their immutable digest matches the selected capsule.
+The Persistence-owned Core boot manifest is the boot-selection authority. Procman reads the one canonical
+`current[engine]` entry and immutable Boot capsule digest directly from `core-current.json`; it does not open
+Persistence's general database or ask a stopped Persistence Chamber through I3. It also does not ask
+containerd which image is latest, inspect a mutable tag as authority, or choose the newest cached object.
+The Image Materializer may use a tag or label as a Materialization-index hint only after the resolved content
+and runtime-profile digests match the selected capsule.
 
-The Boot Seed is narrower: it is an externally accepted first-boot or explicit-recovery input, not a second
-Persistence service, mutable selector, or ordinary OCI archive. It may initialize an empty Boot ledger and
-may supply bounded bootstrap bytes or capabilities. Once a ledger exists, a missing, corrupt, or mismatched
-entry fails closed; `procman` never falls back automatically to an older Boot Seed. An online capsule may
-name an exact OCI provider, while an offline capsule must retain an exact lower installation-media or seed
-capability. A digest without available bytes cannot boot. Wiping containerd remains safe for durable Ark
-data, but cold readiness then depends on one of those capsule-declared rematerialization sources.
+The Boot Seed is narrower: it is an externally accepted genesis or explicit-recovery input, not a second
+Persistence service, mutable selector, or ordinary fallback. On first installation it stages exact closure
+and initializes the manifest only after independent proof that the Ark is unenrolled. Once enrolled, a
+missing, corrupt, or mismatched manifest or capsule fails closed; Procman never falls back automatically to
+an older seed or compiled-in default. Selected Engine closure is retained in the Core recovery store, so an
+empty containerd slice can be reconstructed without discovering, building, or substituting another image.
 
 If admitted wake work needs another selected Runnable, the ready Engine invokes
 `chambers::process::propose`; that target then follows the ordinary Chamber activation kernel.
@@ -682,26 +894,26 @@ running Engine or an authorized Supervisor Chamber may request ordinary Chamber 
 be the only mechanism that wakes the absent Engine containing it. `procman` may execute the exact
 pre-authorized wake; it does not select a different Engine Realization or decide application policy.
 
-First acceptance of the host envelope and Engine/Persistence bootstrap subjects remains an external
-verification and selection ceremony that initializes the empty Boot ledger. Engine cold start never forms
-a Realization from a Covenant lock and never certifies its own seed or capsule.
+First acceptance of the host envelope and Engine/Persistence bootstrap subjects remains the external
+verification and genesis ceremony shown in **First core installation**. Engine cold start never forms a
+Realization from a Covenant lock and never certifies its own seed, manifest, or capsule.
 
 ## Bootstrap core services
 
 This is the bridge from a ready Engine to the smallest useful Ark service set. It makes the bootstrap
 exception explicit instead of letting ordinary activation appear to assume Persistence from nowhere. The
-accepted bootstrap plan names the exact Persistence and Supervisor Realizations; `procman` executes that
-plan but does not choose replacements.
+Core boot manifest names the exact Persistence Realization, and the canonical Persistence store names the
+exact Supervisor Realization; Procman executes those selections but does not choose replacements.
 
-`entry = ready Engine + authenticated wake operation + accepted bootstrap plan + valid core_boot[persistence]`
+`entry = ready Engine + authenticated wake operation + valid core-current.json and Persistence Boot capsule`
 
 `exit = ready Engine + ready Persistence + ready Supervisor`
 
 The first Persistence Chamber cannot read its own Realization through an I3 Persistence route. `procman`
-therefore reads `core_boot[persistence]` and its exact Boot capsule from the durable Procman Boot ledger,
-then uses the same Image Materializer and disposable containerd slice as every other activation. A Boot
-Seed may have initialized that ledger or may remain one capsule-declared byte source, but it does not decide
-which Persistence Realization is current. Once Persistence is ready, the Supervisor follows the ordinary
+therefore reads `current[persistence]` and its exact Boot capsule directly from Persistence-owned
+`core-current.json`, then uses the same Image Materializer and disposable containerd slice as every other
+activation. A Boot Seed may have initialized that manifest only in **First core installation**; it does not
+decide which Persistence Realization is current. Once Persistence is ready, the Supervisor follows the ordinary
 durable-data path through Persistence. This exit is the basic Ark state assumed by ordinary Chamber
 activation and fenced development.
 
@@ -716,20 +928,17 @@ sequenceDiagram
     participant Supervisor
     participant Persistence
 
-    Note over procman: Continue the authenticated wake operation<br/>under the accepted bootstrap plan
+    Note over procman: Continue the authenticated wake operation under the exact<br/>Core boot manifest revision already used for Engine
 
     opt No Persistence Chamber is ready
-        Note over procman: Read current[persistence] and the matching active Boot capsule<br/>from the durable Procman Boot ledger
-        Note over procman: Reject a missing revision, Realization, or capsule match and<br/>never infer selection from containerd, a tag, or recency
+        Note over procman: Read current[persistence] and its exact Boot capsule digest directly<br/>from Persistence-owned core-current.json through the read-only capability
+        Note over procman: Reject a missing revision, Realization, capsule, or digest match and<br/>never infer selection from containerd, a tag, a label, or recency
         Note over procman: Commit the exact Persistence Chamber intent and<br/>PeerId admission before physical effects
         procman->>Materializer: `materialize_runtime`
         Materializer->>containerd: `inspect_image`
         alt Exact required base or artifact and unpacked snapshot are verified locally
             Note over Materializer,containerd: Reuse only by exact digest from the disposable slice
-        else Exact OCI graph is available from the capsule-declared provider
-            Materializer->>containerd: `pull_image`
-            Materializer->>containerd: `unpack_image`
-        else Exact OCI graph is available through a bounded Boot Seed capability
+        else Exact launch-ready closure is present in the Core recovery store
             Materializer->>containerd: `import_image`
             Materializer->>containerd: `unpack_image`
         else No exact OCI source is available
@@ -749,16 +958,15 @@ sequenceDiagram
     alt One exact selected Persistence Chamber is ready
         opt No Supervisor Chamber is ready
             Note over procman: Commit the exact Supervisor Chamber intent and<br/>PeerId admission before physical effects
+            procman->>Persistence: `persistence::selection::read`
+            Note over procman,Persistence: Read exact current[supervisor] from canonical selection state
             procman->>Persistence: `persistence::realization::read`
             Note over procman,Persistence: Read the exact Supervisor launch data and bounded<br/>resource/provider capabilities, never OCI layer custody
             procman->>Materializer: `materialize_runtime`
             Materializer->>containerd: `inspect_image`
             alt Exact required base or artifact and unpacked snapshot are verified locally
                 Note over Materializer,containerd: Reuse only by exact digest
-            else Exact OCI graph is available from its declared provider
-                Materializer->>containerd: `pull_image`
-                Materializer->>containerd: `unpack_image`
-            else Exact OCI graph is available through one bounded output capability
+            else Exact selected Supervisor closure is present in the Core recovery store
                 Materializer->>containerd: `import_image`
                 Materializer->>containerd: `unpack_image`
             else No exact OCI source is available
@@ -780,22 +988,120 @@ sequenceDiagram
     end
 ```
 
-The Procman Boot ledger closes the recurring circular dependency: it preserves the exact selected core
-revisions and active capsule references while both Engine and Persistence Chambers are absent. The Boot
-Seed closes only first boot or explicit external recovery by initializing an empty ledger and optionally
-supplying bounded bytes. Neither needs to retain an ordinary OCI graph. An offline capsule must nevertheless
-provide exact bootstrap bytes through lower installation media or a seed capability. The disposable
-containerd slice may be empty at entry and may be deleted later without losing Persistence data; the
-capsule-declared materialization sources determine whether cold bootstrap can succeed again.
+The Persistence-owned Core boot manifest closes the recurring circular dependency: it is a minimal stable
+file that Procman can read directly while Engine and Persistence Chambers are absent. It is not a Procman
+ledger and not a duplicate of another core current record. Persistence's ordinary selection API uses those
+same canonical bytes. The Boot Seed closes only proved genesis or explicit external recovery. The Core
+recovery store retains complete selected critical-service closure, so the disposable containerd slice may be
+empty or deleted without losing either selection or the exact inputs required for cold bootstrap.
 
 `containerd` never discovers, selects, or invokes Persistence. The Image Materializer receives exact capsule
-data from `procman`, and after Persistence is ready `procman` obtains ordinary Realization data through
-`persistence::realization::read`. This avoids giving either containerd or the host materializer a general I3
-identity, resource-policy role, or durable-data authority.
+data from Procman, and after Persistence is ready Procman obtains the ordinary Supervisor selection and
+Realization through `persistence::selection::read` and `persistence::realization::read`. This avoids giving
+either containerd or the host materializer a general I3 identity, resource-policy role, or selection authority.
 
-The Boot ledger and capsules are narrow: they can restore only the exact core selections committed by
-external initialization or the fenced selection sequence. They cannot resolve a moving locator, build an
-image, select another Realization, or become a general application-policy path.
+The Core boot manifest and capsules are narrow: they can restore only the exact Engine and Persistence
+selections committed by external initialization or `persistence::selection::commit`. They cannot resolve a
+moving locator, build an image, select another Realization, or become a general application-policy path.
+
+## Host reboot into selected core services
+
+This sequence makes the selection-to-reboot edge explicit. The lower platform starts the accepted host
+envelope—Procman, Image Materializer, containerd, runsc, and kernel—but those mechanisms do not select any
+Chamber Realization. Procman reads one Core boot manifest revision and retains that read fence through Engine
+and Persistence activation. After Persistence is ready, it reads the canonical Supervisor selection.
+
+`entry = enrolled host + available or restored Persistence/Core-recovery backup set + running accepted host envelope`
+
+`exit = ready basic Ark whose three critical Chamber run receipts match their canonical selected Realizations`
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant procman
+    participant Materializer as Image Materializer
+    participant containerd
+    participant Runtime as Trusted host runtime (runsc)
+    participant Engine
+    participant Supervisor
+    participant Persistence
+    actor Host as Lower host wake
+
+    Host->>procman: `wake_engine`
+    Note over procman: Read one complete core-current.json revision M and verify its Ark identity,<br/>schema, digest chain, commit evidence, Engine selection, and Persistence selection
+    Note over procman: Bind the wake operation to (M, current[engine], current[persistence])<br/>and do not consult containerd tags or recency for selection
+
+    procman->>Materializer: `materialize_runtime`
+    Materializer->>containerd: `inspect_image`
+    alt Exact selected Engine view is already verified for this host profile
+        Note over Materializer,containerd: Reuse only the matching disposable cache entry
+    else Exact Engine closure is present in the Core recovery store
+        Materializer->>containerd: `import_image`
+        Materializer->>containerd: `unpack_image`
+    else Exact selected Engine cannot be materialized
+        Note over Materializer: Fail the reboot without choosing an older or newer image
+    end
+    break Exact Engine runtime view is unavailable
+        Note over procman,Host: Terminalize this boot attempt and do not start later core services
+    end
+    procman->>Runtime: `activate_chamber`
+    Note over Runtime,Engine: Create a fresh Engine Chamber whose intent and runtime view<br/>name exactly M.current.engine.realization
+    Note over procman,Engine: Complete pinned-PeerId Noise admission and exact procman registration
+    procman->>Engine: `engine::wake::deliver`
+
+    Note over procman: Re-read or retain-fence manifest revision M and reject a changed,<br/>missing, or mismatched Persistence entry during the same boot operation
+    procman->>Materializer: `materialize_runtime`
+    Materializer->>containerd: `inspect_image`
+    alt Exact selected Persistence view is already verified for this host profile
+        Note over Materializer,containerd: Reuse only the matching disposable cache entry
+    else Exact Persistence closure is present in the Core recovery store
+        Materializer->>containerd: `import_image`
+        Materializer->>containerd: `unpack_image`
+    else Exact selected Persistence cannot be materialized
+        Note over Materializer: Fail the basic-Ark reboot without selection fallback
+    end
+    break Exact Persistence runtime view is unavailable
+        Note over procman,Host: Leave the Ark non-ready and require repair of the exact selected closure
+    end
+    procman->>Runtime: `activate_chamber`
+    Note over Runtime,Persistence: Create a fresh Persistence Chamber whose intent and runtime view<br/>name exactly M.current.persistence.realization
+    Note over Persistence,Engine: Complete Noise admission and exact registration publication
+    procman->>Engine: `engine::route::inspect`
+
+    procman->>Persistence: `persistence::selection::read`
+    Note over procman,Persistence: Read current[supervisor] from the restored canonical lifecycle store
+    procman->>Persistence: `persistence::realization::read`
+    procman->>Materializer: `materialize_runtime`
+    Materializer->>containerd: `inspect_image`
+    alt Exact selected Supervisor view is already verified for this host profile
+        Note over Materializer,containerd: Reuse only the matching disposable cache entry
+    else Exact Supervisor closure is present in the Core recovery store
+        Materializer->>containerd: `import_image`
+        Materializer->>containerd: `unpack_image`
+    else Exact selected Supervisor cannot be materialized
+        Note over Materializer: Keep the partial Ark non-ready and do not substitute another Supervisor
+    end
+    break Exact Supervisor runtime view is unavailable
+        Note over procman,Host: Leave the partial Ark non-ready without changing current[supervisor]
+    end
+    procman->>Runtime: `activate_chamber`
+    Note over Runtime,Supervisor: Create a fresh Supervisor Chamber from exactly<br/>Persistence current[supervisor].realization
+    Note over Supervisor,Engine: Complete Noise admission and exact registration publication
+    procman->>Engine: `engine::route::inspect`
+    Note over procman,Persistence: Complete boot only when the three run/registration receipts prove<br/>the same selected Realization IDs read from M and Persistence
+```
+
+An Engine or Persistence upgrade becomes reboot authority only when
+`persistence::selection::commit` has atomically installed the successor entry in `core-current.json`; a
+Supervisor upgrade becomes reboot authority when that same function commits `current[supervisor]` in the
+canonical Persistence store. Existing Chambers may continue running their prior Realizations until drained,
+but every fresh activation snapshots the new selection. After a host reboot there are no old Chambers to
+adopt, so the sequence above must create fresh Chambers for those exact successor Realizations.
+
+This proof does not depend on containerd survival. A tag may say which exact cache object the materializer
+last observed, but Procman first obtains the selected Realization from the canonical store and then verifies
+the tag's resolved digest against it. A stale, missing, or malicious tag is therefore a cache miss or
+integrity failure, never a rollback or upgrade decision.
 
 ## Ordinary Chamber activation kernel
 
@@ -1181,11 +1487,11 @@ The first Tester is judged by the external bootstrap verifier. Once separately s
 Tester Realization normally supplies an on-demand Tester Chamber for other Covenants. Tester never
 writes current selection.
 
-## Select or roll back
+## Select, upgrade, or roll back
 
 `selection authority = gate-appropriate fenced promoter`
 
-`selection effect = one compare-and-swap of current[name] + matching core_boot[name] when core + derived Engine factory revision`
+`selection effect = one Persistence-owned compare-and-swap of current[name] + atomic Core boot manifest replacement when Engine or Persistence + derived Engine factory revision`
 
 `entry = exact candidate Realization + valid Hold + fresh gate evidence + expected current revision`
 
@@ -1193,6 +1499,7 @@ writes current selection.
 sequenceDiagram
     autonumber
     participant procman
+    participant Materializer as Image Materializer
     participant Engine
     participant Supervisor
     participant Persistence
@@ -1204,21 +1511,23 @@ sequenceDiagram
     Promoter->>procman: `chambers::process::inspect`
     Promoter->>procman: `chambers::process::propose`
 
-    Note over procman: Commit the selection operation with exact before and after values
-    opt Target name is engine or persistence
+    Note over procman: Commit the host coordination intent with exact before and after values,<br/>but this intent is not current-selection authority
+    opt Target name is engine, persistence, or supervisor
         procman->>Persistence: `persistence::realization::read`
-        Note over procman,Persistence: Read and verify the exact candidate launch data,<br/>then stage an immutable Boot capsule without activating it
+        Note over procman,Persistence: Read and verify the exact accepted candidate launch data<br/>and its critical-service availability policy
+        procman->>Materializer: `stage_core_closure`
+        Note over procman,Materializer: Require digest and fsync evidence for complete launch-ready closure<br/>before any critical-service selection may commit
     end
     procman->>Engine: `engine::route::fence`
+    procman->>Persistence: `persistence::selection::commit`
 
     alt Expected current revision or Hold is stale
-        Note over procman: Emit a failed-selection receipt without changing current<br/>or any active Boot capsule reference
+        Note over procman,Persistence: Persistence consumes no permit and leaves current unchanged,<br/>while staged immutable closure is unselected and later garbage-collectable
         procman->>Engine: `engine::route::reopen`
     else Exact compare-and-swap succeeds
-        Note over procman: Set current[name] to the candidate Realization at the next revision and<br/>for engine or persistence atomically set matching core_boot[name]
-        procman->>Persistence: `persistence::hold::transfer`
+        Note over Persistence: Transfer the Hold, append selection history, and set current[name],<br/>with atomic core-current.json replacement as the Engine or Persistence commit point
         procman->>Engine: `engine::route::install`
-        Note over procman: Emit the selection receipt and terminalize the operation
+        Note over procman,Persistence: Emit matching selection and host-coordination receipts,<br/>then terminalize the operation
     end
 
 ```
@@ -1228,26 +1537,35 @@ already be gone. Chambers of the prior current Realization remain pinned to it u
 leases complete, cancel, expire, or are explicitly drained. Only calls admitted after the new current
 revision activate the newly selected Realization.
 
-For `engine` and `persistence`, the selection receipt is not terminal until the same Procman durable
-transaction commits both `current[name]` and the matching active `core_boot[name]` capsule reference.
-That is the exact record Procman reads after a host reboot. The full Realization remains owned by
-Persistence; the Boot capsule is only the bounded boot projection needed while Persistence is absent.
-An ordinary name needs no core capsule. First core acceptance initializes an empty Boot ledger through the
-external bootstrap ceremony because no Persistence route yet exists.
+For `engine` and `persistence`, the selection commit point is Persistence's atomic replacement of
+`core-current.json` with the next current revision and exact Boot capsule digest. There is no second
+Procman-owned current record to update and therefore no cross-writer reconciliation window. The currently
+running Persistence Chamber performs that commit before it can be replaced; when Persistence is absent,
+ordinary selection is unavailable and Procman may only reboot the already committed current. First core
+acceptance uses the one-time external path in **First core installation** because no Persistence route exists.
+
+For the critical service set—Engine, Persistence, and Supervisor—the Image Materializer stages complete
+launch-ready closure in the Core recovery store before Persistence commits selection. Those append-only,
+content-addressed writes cannot change current. Persistence alone writes selection, Procman alone writes its
+host execution journal, and containerd alone writes its disposable cache. The namespaces and authorities do
+not contend.
 
 `current` is defined only by the authoritative selection record. It is never inferred from newest
 creation, latest health, fleet majority, a ready Chamber, or route-cache contents. A failure to activate
 the selected Realization fails that execution; it does not silently select another one.
 
-Supervisor replacement uses the same sequence; `supervisor` is only another logical name. Authority is
-bound to the selected Supervisor Realization and attenuated capabilities granted to its Chambers, not to
-one immortal Supervisor Chamber.
+Engine, Persistence, and Supervisor replacement all use this sequence. Selecting a successor is the durable
+upgrade; it does not relabel an already running Chamber. A new Engine Chamber reads its successor from the
+Core boot manifest, a new Persistence Chamber reads its successor from that same manifest, and a new
+Supervisor Chamber reads its successor through Persistence after Persistence is ready. **Host reboot into
+selected core services** proves the three fresh Chambers match those committed successor identities.
 
 Rollback uses this same selection operation with a retained accepted Realization as target. Selection
-history can identify a prior target but cannot make it materializable. A source-composed target needs its
-complete durable launch closure and providers; an artifact-backed target needs its exact OCI graph from a
-declared provider or still-live disposable cache/output capability. Without those conditions, a valid Hold,
-required evidence, and authorization, rollback fails closed.
+history can identify a prior target but cannot make it materializable. A critical-service rollback stages
+and verifies complete closure in the Core recovery store before commit. An ordinary source-composed target
+needs its complete durable launch closure and providers; an ordinary artifact-backed target needs its exact
+OCI graph from a declared provider or still-live disposable cache/output capability. Without those
+conditions, a valid Hold, required evidence, and authorization, rollback fails closed.
 
 ## Quiesce and wake
 
@@ -1371,10 +1689,16 @@ source disappears, rebuilding is candidate work and a different digest is a diff
   Chamber of the same Realization without changing current.
 - `Chamber lease expires or work terminates -> stop and reap that Chamber`; sibling Chambers and current are unchanged.
 - `Engine Chamber absent + authenticated wake -> procman activates exact current[engine] through Engine cold start`.
-- `host restart -> procman reads exact core_boot[engine] and core_boot[persistence] from its durable Boot
-  ledger`; each must match its `current` revision and Realization before materialization.
-- `core_boot entry missing, corrupt, or mismatched -> cold activation fails closed`; never inspect a mutable
-  OCI tag, choose the newest containerd record, or silently fall back to an older Boot Seed.
+- `host restart -> procman reads one exact Persistence-owned core-current.json revision through its read-only
+  capability`; the Engine and Persistence entries each bind one current revision, Realization, and Boot
+  capsule before materialization.
+- `enrolled host + Core boot manifest or capsule missing, corrupt, or mismatched -> cold activation fails
+  closed`; never inspect a mutable OCI tag, choose the newest containerd record, infer a default, or silently
+  fall back to an older Boot Seed.
+- `proved-unenrolled host + accepted one-use genesis capability -> external installer may create the first
+  manifest`; Procman never converts mere absence into write authority.
+- `containerd tag resolves to exact selected digest and runtime profile -> permitted cache hit`; stale,
+  missing, or different tag -> cache miss or integrity failure, never a selection change.
 - `candidate Hold expires -> reap its candidate Chambers + remove candidates[name][R] + emit cleanup receipt`,
   unless another current, candidate, or operation reference still retains the exact durable launch data.
 - `source-composed runtime cache unavailable -> rematerialize from exact durable launch data while its
@@ -1398,8 +1722,8 @@ source disappears, rebuilding is candidate work and a different digest is a diff
 - `verifier unavailable or verdict UNKNOWN -> no selection`.
 - `stale current revision, Hold, lease, operation subject, or selection permit -> reject before effect`.
 - `cleanup names exact Chamber ids and candidate Holds`; unrelated candidates and sibling Chambers are unaffected.
-- `history preserves receipts and launch identities, not materialization availability`; rollback needs the
-  complete source-composed closure or an available exact artifact provider/cache.
+- `history preserves receipts and launch identities, not ordinary materialization availability`; a selected
+  critical-service rollback additionally requires complete staged Core recovery closure before commit.
 - `procman unavailable -> only an explicitly lower platform may wake or replace it`; no Chamber can bootstrap its own absent procman.
 
 ## Implementation handoff
@@ -1411,21 +1735,28 @@ source disappears, rebuilding is candidate work and a different digest is a diff
   `mounts`, and plural `workers`;
 - exact Covenant locks and content-addressed, immediately materializable Realization manifests with
   source-composed and artifact-backed launch modes;
-- `current[name] = {revision, realization}` as the only stable named selection;
-- a `procman`-owned durable Boot ledger with exact `core_boot[engine]` and `core_boot[persistence]`
-  capsule references committed atomically with those current selections;
+- Persistence-owned `current[name] = {revision, realization}` as the only stable named selection;
+- Persistence-owned `core-current.json` as the canonical host-readable representation of
+  `current[engine]` and `current[persistence]`, with exact Boot capsule digests and atomic
+  write-fsync-rename-directory-fsync commit;
+- one read-only Procman bootstrap capability to that stable manifest schema, with no Procman-owned parallel
+  selection store and no direct dependency on Persistence's general database schema;
 - `candidates[name][realization] = Hold reference` with several bounded candidates permitted;
 - `chambers[id] = {name, realization, lease, phase}` with independent operations and cleanup;
 - no separate Activation record and no Chamber-bearing `last/current/next` slots;
 - a `procman`-owned Engine wake edge plus Engine-native activation factories for ordinary selected names;
-- an explicit basic-state bootstrap from ready Engine to ready Persistence and Supervisor, with only
-  the first externally accepted core set allowed to initialize an empty Boot ledger from a Boot Seed
-  before a Persistence I3 route exists; subsequent reboot reads the selected capsule from the ledger;
-- a mechanism-only Image Materializer as the sole holder of the `containerd` socket, exact-digest
+- an explicit first-core install in which a lower installer proves an unenrolled Ark, stages exact Engine,
+  Persistence, and Supervisor closure, seeds Persistence data, and consumes one accepted genesis capability;
+- an explicit host-reboot sequence proving fresh Engine and Persistence Chambers equal the Realizations in
+  one manifest revision and the fresh Supervisor equals the canonical Persistence selection;
+- a host-envelope Image Materializer as the sole holder of the `containerd` socket, exact-digest
   inspect/pull/import/unpack branches, no direct Persistence/I3 access, and all `containerd` content,
-  image, and snapshot state on a dedicated disposable host slice;
-- Persistence as the durable Realization, source/resource, receipt, provider-descriptor, and Hold service,
-  with rebuildable OCI graphs excluded from ordinary durable custody;
+  image, labels/tags, and snapshot state on a dedicated disposable host slice;
+- a bounded Core recovery store in the Persistence backup/restore set, with append-only materializer staging
+  separated from Persistence-only manifest selection writes;
+- Persistence as the durable current-selection, candidate/Hold, Realization, source/resource, receipt,
+  provider-descriptor, and Core boot-manifest service, with rebuildable OCI graphs excluded from ordinary
+  lifecycle custody;
 - explicit `procman -> trusted host runtime` conventional calls for exact Chamber create/start and stop/reap
   effects, with the Chamber represented as the subject rather than a receiver that could exist before start;
 - exact-Chamber routes for execution, verification, and cleanup;
@@ -1451,6 +1782,8 @@ source disappears, rebuilding is candidate work and a different digest is a diff
 - multi-Ark confidential Builder attestations, independent inspection, and collective acceptance;
 - shared reusable Chamber pools, prewarm controllers, and service traffic balancing;
 - lower-platform automation that also stops and wakes `procman`;
+- independently accepted host-envelope replacement for Procman, Image Materializer, containerd, runsc, and
+  kernel revisions; no Chamber can upgrade the irreducible helper that would be required to start it;
 - hot dual-Engine migration;
 - process-memory or rootfs checkpoint recovery.
 - migration of ordinary Ark-to-Ark RBAC handshakes to the reusable Noise-plus-authorization-contract
@@ -1467,4 +1800,8 @@ source disappears, rebuilding is candidate work and a different digest is a diff
 - I3 Engine router/first-host-worker contract, including pinned Engine and `procman` PeerIds;
 - Persistence naming, Realization/build-record/Hold/resource contracts, provider adapters, and Vault
   credential-need contracts;
+- Persistence-owned selection APIs, canonical Core boot-manifest schema, atomic file publication,
+  Core-recovery backup/restore, one-use genesis/recovery tooling, and read-only Procman bootstrap capability;
+- host-envelope Image Materializer staging, content verification, disposable Materialization index, and
+  exact-cache invalidation contracts;
 - generated traceability after its authoritative inputs change.
