@@ -19,42 +19,42 @@ MANIFEST_PATH = SOURCE_DIR / "manifest.json"
 OUTPUT_PATH = ROOT / "site" / "data.js"
 
 CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
-    "First core installation": {
+    "First boot installation": {
         "id": "core-installation",
-        "shortTitle": "First core installation",
+        "shortTitle": "First boot installation",
         "kicker": "Step 1 · genesis",
-        "summary": "How an accepted one-use Boot Seed imports an Engine-first Boot set with exact Engine and Core Control Covenant Realizations plus an optional separate Builder.",
-        "question": "What establishes first trusted Engine and Core Control state without building on the host or treating absence as authority?",
+        "summary": "How an accepted one-use Boot Seed imports exact Engine, Router, Persistence, and Supervisor Covenant Realizations plus an optional separate Builder.",
+        "question": "What establishes the first trusted four-member boot root without building on the host or treating absence as authority?",
         "status": "core",
     },
     "Selected Boot set cold start": {
         "id": "host-activation",
         "shortTitle": "Selected Boot set cold start",
         "kicker": "Step 2 · wake",
-        "summary": "How the Host Agent resolves one exact Boot-set tag, starts or reuses Engine first, and then starts Core Control without build, recency, or fallback.",
-        "question": "How do two exact Covenant Realizations become callable in dependency order while I3 is initially absent?",
+        "summary": "How the Host Agent resolves one exact Boot-set tag and starts or reuses Engine, Router, Persistence, then Supervisor without build, recency, or fallback.",
+        "question": "How do four exact Covenant Realizations become callable in dependency order while I3 is initially absent?",
         "status": "core",
     },
-    "Core Covenant bootstrap": {
+    "Boot control bootstrap": {
         "id": "core-bootstrap",
-        "shortTitle": "Core Covenant bootstrap",
+        "shortTitle": "Boot control bootstrap",
         "kicker": "Step 3 · basic Ark",
-        "summary": "How the Core Control Covenant connects Route Manager first, recovers Persistence, starts Supervisor, and installs stable routes into the already-running Engine.",
-        "question": "How can Covenant-owned routing bootstrap without depending on the routes it is creating?",
+        "summary": "How Router registers protected bootstrap hooks, Persistence recovers durable state, and Supervisor reconstructs stable routes in the already-running Engine.",
+        "question": "How can a separate Router Covenant bootstrap without depending on the routes it is creating?",
         "status": "core",
     },
     "Host reboot into the selected Boot set": {
         "id": "core-reboot",
         "shortTitle": "Reboot selected Boot set",
         "kicker": "Step 4 · reboot proof",
-        "summary": "How the Host Agent reuses the same one-tag cold kernel to create fresh Engine and Core Chambers after host restart.",
-        "question": "How does reboot prove one coherent selected Engine/Core pair rather than mix independently tagged services?",
+        "summary": "How the Host Agent reuses the same one-tag cold kernel to create four fresh boot Chambers after host restart.",
+        "question": "How does reboot prove one coherent selected quartet rather than mix independently tagged services?",
         "status": "core",
     },
     "Ordinary Chamber activation kernel": {
         "id": "activation-kernel",
         "shortTitle": "Ordinary activation",
-        "kicker": "Step 5 · core ready",
+        "kicker": "Step 5 · boot ready",
         "summary": "How chamber::activate turns one exact Realization and lease into an admitted ordinary Chamber while host mechanics stay encapsulated.",
         "question": "What exact authority crosses the three-function Host Agent boundary before readiness?",
         "status": "core",
@@ -96,23 +96,23 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
         "shortTitle": "Select, upgrade, or roll back",
         "kicker": "Step 10 · selection",
         "summary": "How ordinary Persistence selection and lower Host Agent Boot-set selection remain distinct fenced operations over immutable targets.",
-        "question": "Which selector moves, and why does Core selection require no Engine route group?",
+        "question": "Which selector moves, and why does Boot-set selection require no Engine route group?",
         "status": "current",
     },
     "Live Boot-set cutover": {
         "id": "core-cutover",
         "shortTitle": "Live Boot-set cutover",
-        "kicker": "Step 11 · Core handoff",
-        "summary": "How Core-only replacement keeps an exact matching Engine alive while an Engine-changing Boot set performs a bounded ordered replacement.",
-        "question": "When can Core upgrade without replacing Engine, and what changes when the Engine Realization also moves?",
+        "kicker": "Step 11 · control handoff",
+        "summary": "How Router and Supervisor hand one another over, Persistence remains the durable witness, and Engine-changing Boot sets use a bounded ordered replacement.",
+        "question": "How can Router, Persistence, or Supervisor change independently, and what changes when Engine also moves?",
         "status": "current",
     },
     "Quiesce and wake": {
         "id": "quiesce-wake",
         "shortTitle": "Quiesce and wake",
         "kicker": "Step 12 · idle edge",
-        "summary": "How ordinary Chambers, Core Control, and Engine stop in dependency order while both selectors and durable custody survive.",
-        "question": "What survives quiescence, and what recreates the selected Engine/Core pair later?",
+        "summary": "How ordinary Chambers and the four boot Chambers stop in dependency order while both selectors and durable custody survive.",
+        "question": "What survives quiescence, and what recreates the selected four-member Boot set later?",
         "status": "current",
     },
     "Attested multi-Ark builds (later)": {
@@ -208,8 +208,8 @@ DOCUMENT_CONFIGS: OrderedDict[str, dict[str, Any]] = OrderedDict(
                 "id": "chambers",
                 "name": "Chambers",
                 "title": "Chambers lifecycle",
-                "subtitle": "Engine-first Boot sets, Covenant-owned Core routing, exact Realizations, and wake",
-                "description": "Explore how one protected Boot-set tag binds a prepared Engine Covenant and a separate Core Control Covenant while ordinary Chambers use an exact three-function Host Agent boundary.",
+                "subtitle": "Engine-first Boot sets, replaceable Router and Supervisor, exact Realizations, and wake",
+                "description": "Explore how one protected Boot-set tag binds separate Engine, Router, Persistence, and Supervisor Covenants while ordinary Chambers use an exact three-function Host Agent boundary.",
                 "functionHeading": "Lifecycle call table",
                 "functionIntro": "Every I3 and conventional host-boundary function named by the Chambers lifecycle sequences.",
                 "manifestSnapshot": "chambers-lifecycle-sequences.md",
@@ -358,7 +358,7 @@ def participant_role(label: str, participant_id: str) -> str:
         for word in ("verifier", "tester", "acceptor", "promoter", "attestation", "inspector", "recovery")
     ):
         return "assurance"
-    if any(word in text for word in ("supervisor", "cardflow", "engine", "core init")):
+    if any(word in text for word in ("supervisor", "router", "cardflow", "engine", "core init")):
         return "control" if "engine" not in text else "engine"
     if any(word in text for word in ("chamber", "builder", "candidate", "fixture", "developer", "members")):
         return "chamber"

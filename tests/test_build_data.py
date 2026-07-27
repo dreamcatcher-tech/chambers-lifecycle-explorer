@@ -75,7 +75,7 @@ class BuildDataTests(unittest.TestCase):
 
     def test_document_counts_match_the_two_sources(self) -> None:
         chambers = self.documents["chambers"]["stats"]
-        self.assertEqual((13, 112, 45, 78, 34, 49), (
+        self.assertEqual((13, 170, 50, 119, 51, 53), (
             chambers["sequences"], chambers["calls"], chambers["functions"],
             chambers["i3Calls"], chambers["hostCalls"], chambers["dictionaryTerms"],
         ))
@@ -84,7 +84,7 @@ class BuildDataTests(unittest.TestCase):
             cardflow["sequences"], cardflow["calls"], cardflow["functions"],
             cardflow["i3Calls"], cardflow["hostCalls"], cardflow["dictionaryTerms"],
         ))
-        self.assertEqual(79, self.payload["stats"]["dictionaryTerms"])
+        self.assertEqual(83, self.payload["stats"]["dictionaryTerms"])
 
     def test_host_boundary_is_explicit_and_chambers_only(self) -> None:
         chambers_host = {
@@ -94,9 +94,9 @@ class BuildDataTests(unittest.TestCase):
         }
         self.assertEqual(
             {
-                "install_boot_seed", "wake_core", "deliver_final_reply", "containerd_import",
+                "install_boot_seed", "wake_bootset", "deliver_final_reply", "containerd_import",
                 "containerd_resolve", "containerd_tag_update", "containerd_task_start",
-                "containerd_task_stop", "start_core_worker",
+                "containerd_task_stop",
             },
             chambers_host,
         )
@@ -106,9 +106,9 @@ class BuildDataTests(unittest.TestCase):
         sequences = self.documents["chambers"]["sequences"]
         self.assertEqual(
             [
-                ("core-installation", "First core installation"),
+                ("core-installation", "First boot installation"),
                 ("host-activation", "Selected Boot set cold start"),
-                ("core-bootstrap", "Core Covenant bootstrap"),
+                ("core-bootstrap", "Boot control bootstrap"),
                 ("core-reboot", "Reboot selected Boot set"),
                 ("activation-kernel", "Ordinary activation"),
             ],
@@ -125,20 +125,24 @@ class BuildDataTests(unittest.TestCase):
         self.assertIn("containerd_import", installation_calls)
         self.assertIn("containerd_tag_update", installation_calls)
         self.assertNotIn("persistence::realization::read", host_calls)
-        self.assertEqual(3, core_calls.count("start_core_worker"))
+        self.assertEqual(2, core_calls.count("routing::authenticate"))
+        self.assertEqual(2, core_calls.count("routing::authorize_registration"))
+        self.assertIn("persistence::routing::read", core_calls)
         self.assertIn("routing::reconcile", core_calls)
         self.assertNotIn("persistence::realization::read", reboot_calls)
         self.assertIn("persistence::realization::read", ordinary_calls)
         self.assertIn("chamber::activate", ordinary_calls)
-        self.assertIn("wake_core", host_calls)
+        self.assertIn("wake_bootset", host_calls)
         self.assertNotIn("engine::identity::attest", host_calls)
-        self.assertEqual(2, host_calls.count("containerd_task_start"))
+        self.assertEqual(4, host_calls.count("containerd_task_start"))
 
         cold_starts = [call for call in by_id["host-activation"]["calls"] if call["function"] == "containerd_task_start"]
         labels = {context["label"] for call in cold_starts for context in call["context"]}
         branches = {context["branch"] for call in cold_starts for context in call["context"]}
         self.assertIn("No matching ready Engine task exists", labels)
-        self.assertIn("No matching ready Core Control task exists", labels)
+        self.assertIn("No matching ready Router task exists", labels)
+        self.assertIn("No matching ready Persistence task exists", labels)
+        self.assertIn("No matching ready Supervisor task exists", labels)
         self.assertIn("Exact selected closures are retained", branches)
 
     def test_host_agent_and_containerd_projection_preserve_authority_order(self) -> None:
@@ -165,7 +169,8 @@ class BuildDataTests(unittest.TestCase):
         self.assertEqual("Host Agent", functions["chamber::activate"]["owner"])
         self.assertEqual("Host Agent", functions["chamber::stop"]["owner"])
         self.assertEqual("Host Agent", functions["bootset::select"]["owner"])
-        self.assertEqual("containerd and Core init", functions["containerd_task_start"]["owner"])
+        self.assertEqual("containerd and boot members", functions["containerd_task_start"]["owner"])
+        self.assertEqual("Router", functions["routing::reconcile"]["owner"])
 
     def test_protected_boot_and_reconstructable_runtime_semantics_survive_projection(self) -> None:
         chambers = self.documents["chambers"]
@@ -205,14 +210,15 @@ class BuildDataTests(unittest.TestCase):
         chambers = self.documents["chambers"]
         snapshot = (ROOT / "source" / chambers["source"]["snapshotPath"]).read_text(encoding="utf-8")
         self.assertIn("dreamcatcher/bootset:current", snapshot)
-        self.assertIn("Selection uses one image-record mutation over the coherent pair", snapshot)
+        self.assertIn("Selection uses one image-record mutation over the coherent quartet", snapshot)
         self.assertIn("A crash before the image-record update leaves the complete predecessor selected", snapshot)
-        self.assertIn("Builder remains outside this Chamber", snapshot)
+        self.assertIn("Builder remains outside every boot Chamber", snapshot)
+        self.assertIn("Router and Supervisor are the mutual live-upgrade pair", snapshot)
 
         sequences = {sequence["id"]: sequence for sequence in chambers["sequences"]}
         reboot = sequences["core-reboot"]
         reboot_functions = [call["function"] for call in reboot["calls"]]
-        self.assertEqual(2, reboot_functions.count("containerd_task_start"))
+        self.assertEqual(4, reboot_functions.count("containerd_task_start"))
         self.assertNotIn("containerd_import", reboot_functions)
         self.assertNotIn("artifact::build", reboot_functions)
 
@@ -224,8 +230,52 @@ class BuildDataTests(unittest.TestCase):
 
         cutover_functions = [call["function"] for call in sequences["core-cutover"]["calls"]]
         self.assertLess(cutover_functions.index("containerd_tag_update"), cutover_functions.index("routing::inspect"))
-        self.assertEqual(6, cutover_functions.count("containerd_task_start"))
-        self.assertEqual(2, cutover_functions.count("containerd_tag_update"))
+        self.assertEqual(12, cutover_functions.count("containerd_task_start"))
+        self.assertEqual(4, cutover_functions.count("containerd_tag_update"))
+        self.assertIn("routing::claim", cutover_functions)
+        self.assertIn("persistence::routing::prepare", cutover_functions)
+
+    def test_mutual_router_supervisor_handover_context_survives_projection(self) -> None:
+        chambers = self.documents["chambers"]
+        cutover = next(sequence for sequence in chambers["sequences"] if sequence["id"] == "core-cutover")
+        participants = {participant["id"]: participant["role"] for participant in cutover["participants"]}
+        self.assertEqual("control", participants["Router"])
+        self.assertEqual("control", participants["NextRouter"])
+        self.assertEqual("control", participants["Supervisor"])
+        self.assertEqual("resource", participants["Persistence"])
+
+        branch_of = lambda call: {context["branch"] for context in call["context"]}
+        claim_index, claim = next(
+            (index, call) for index, call in enumerate(cutover["calls"])
+            if call["function"] == "routing::claim"
+        )
+        router_branch = "Same Engine and only Router changes"
+        self.assertIn(router_branch, branch_of(claim))
+        predecessor_stop_index, predecessor_stop = next(
+            (index, call) for index, call in enumerate(cutover["calls"])
+            if call["function"] == "containerd_task_stop"
+            and router_branch in branch_of(call)
+            and any("task fencing, not route selection" in note["text"] for note in call["notes"])
+        )
+        self.assertLess(predecessor_stop_index, claim_index)
+
+        completed_branches = {
+            branch
+            for call in cutover["calls"] if call["function"] == "persistence::routing::complete"
+            for branch in branch_of(call)
+        }
+        self.assertEqual(
+            {
+                "Same Engine and only Supervisor changes",
+                "Same Engine and only Router changes",
+                "Same Engine and only Persistence changes",
+                "Successor changes the Bootstrap Engine Realization",
+            },
+            completed_branches,
+        )
+
+        forbidden = {"routing::reconcile", "routing::fence", "routing::install", "routing::reopen", "routing::claim"}
+        self.assertFalse(any(call["from"] == "HostAgent" and call["function"] in forbidden for call in cutover["calls"]))
 
     def test_break_and_else_note_contexts_are_preserved(self) -> None:
         registry = {
@@ -332,9 +382,11 @@ class BuildDataTests(unittest.TestCase):
         chambers = {entry["id"]: entry for entry in self.documents["chambers"]["dictionary"]}
         self.assertIn("not an alias for Realization", chambers["covenant-lock"]["definition"])
         self.assertIn("Covenant lock plus one normalized launch specification", chambers["realization"]["definition"])
-        self.assertIn("core-boot-selection", chambers["boot-set"]["related"])
+        self.assertIn("boot-set-selection", chambers["boot-set"]["related"])
         self.assertIn("bootstrap-engine-covenant", chambers["boot-set"]["related"])
-        self.assertIn("core-control-covenant", chambers["boot-set"]["related"])
+        self.assertIn("router-covenant", chambers["boot-set"]["related"])
+        self.assertIn("persistence-covenant", chambers["boot-set"]["related"])
+        self.assertIn("supervisor-covenant", chambers["boot-set"]["related"])
 
         cardflow = {entry["id"]: entry for entry in self.documents["cardflow"]["dictionary"]}
         self.assertIn("Chambers-defined immutable executable lifecycle identity", cardflow["realization"]["definition"])
@@ -383,7 +435,7 @@ class BuildDataTests(unittest.TestCase):
         self.assertIn("rightCharacters", app)
         self.assertIn("kindWidth", app)
         self.assertIn('data-view="dictionary"', html)
-        self.assertIn("wake_core", html)
+        self.assertIn("wake_bootset", html)
         self.assertNotIn("wake_engine", html)
         self.assertIn('id="dictionarySearch"', html)
         self.assertIn("renderDictionaryCatalog", app)
