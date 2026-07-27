@@ -374,6 +374,7 @@ class BuildDataTests(unittest.TestCase):
         self.assertIn("results[state.searchIndex].scrollIntoView", app)
         self.assertIn("overflow-y: clip", css)
         self.assertIn("overflow-anchor: none", css)
+        self.assertNotIn("min-width: 320px", css)
         self.assertIn("touch-action: pan-x pan-y", css)
         self.assertIn("height: var(--call-inspector-height", css)
         self.assertIn("call-function-meta", app)
