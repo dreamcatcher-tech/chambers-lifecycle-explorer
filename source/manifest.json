@@ -1,18 +1,18 @@
 {
   "schemaVersion": 2,
   "repository": "dreamcatcher-tech/fundamentals",
-  "repositoryHead": "b297458b899546a3fa9484d435c0553a59b66f72",
-  "repositoryHeadTimestamp": "2026-07-27T06:09:03Z",
+  "repositoryHead": "5acbec8b9a5affeaf226e279197bc3c426b7a15b",
+  "repositoryHeadTimestamp": "2026-07-27T10:31:19Z",
   "projectionMode": "exact committed document snapshots; generated browser data",
   "documents": [
     {
       "id": "chambers",
       "path": "docs/chambers-lifecycle-sequences.md",
       "snapshotPath": "chambers-lifecycle-sequences.md",
-      "sourceCommit": "b297458b899546a3fa9484d435c0553a59b66f72",
-      "sourceTimestamp": "2026-07-27T06:09:03Z",
-      "documentSha256": "d496ff1a8f0eb5de72d1ea95d1f7a384abd4c417db09a463c67e86f33fdada65",
-      "documentBytes": 91877
+      "sourceCommit": "5acbec8b9a5affeaf226e279197bc3c426b7a15b",
+      "sourceTimestamp": "2026-07-27T10:31:19Z",
+      "documentSha256": "5d06d4fe8f2adb1bcfb89717da25f8df7767f78fd609fb05d70f56dceb1f8de8",
+      "documentBytes": 105899
     },
     {
       "id": "cardflow",

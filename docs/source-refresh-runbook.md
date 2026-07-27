@@ -62,24 +62,31 @@ The registration surfaces of record are:
    standard backend, and every drawn `containerd_*` call originates at `HostAgent`. Ordinary activation and
    stopping use the typed I3 functions `chamber::activate`, `chamber::inspect`, and `chamber::stop`; they do
    not expose Image Materializer, direct `runsc`, or raw runtime lanes. The public Chambers order starts with
-   **First core installation**, **Core image cold start**, **Core process bootstrap**, **Reboot selected Core**,
-   and **Ordinary activation**, while preserving the published IDs for those renamed sequences. Core image
-   cold start contains exactly one `containerd_task_start` under “No matching ready Core task exists,” no
-   application-level identity-attest call, and no build, mutable pull, recency, or fallback branch.
+   **First core installation**, **Selected Boot set cold start**, **Core Covenant bootstrap**, **Reboot selected
+   Boot set**, and **Ordinary activation**, while preserving the published IDs for those renamed sequences.
+   Cold start contains exactly two `containerd_task_start` calls: Engine under “No matching ready Engine task
+   exists,” then Core Control under “No matching ready Core Control task exists.” It contains no
+   application-level identity-attest call and no build, mutable pull, recency, or fallback branch.
 
    The Host Agent is the sole containerd client and sole writer of the protected
-   `dreamcatcher/core:current` image record. That record selects one exact immutable Boot-set artifact whose
-   only runnable member is one Core image; Engine, Persistence, and Supervisor start locally in one gVisor
-   Core Chamber. The selected and predecessor closures are pinned in the product-durable boot namespace,
-   while the ordinary runtime namespace remains reconstructable. Persistence remains the sole normal writer
-   of ordinary `current[name]`, and Engine route state never selects the Core. `bootset::stage`,
-   `bootset::inspect`, and `bootset::select` perform lower-host Core selection without route-group promotion.
-   Core-local processes use the exact local registration contract rather than intra-Core PeerIds; ordinary
-   Chambers retain fresh PeerIds and reconnect across Core cutover to the host-custodied stable Engine
-   identity under a fresh boot epoch. Builder remains a separately sandboxed ordinary Chamber; an accepted
+   `dreamcatcher/bootset:current` image record. That record selects one exact immutable Boot-set root binding
+   two ordered accepted Runnable Covenant Realizations: a prepared Bootstrap Engine image and a separate Core
+   Control image. Engine starts first in one gVisor Engine Chamber with only intrinsic Worker Manager,
+   registration, dispatch, and connection cleanup. Core Control starts second in one gVisor Core Chamber;
+   Route Manager connects first through an exact direct bootstrap prefix, Persistence recovers, and Supervisor
+   asks Route Manager to reconcile the stable route projection. Route policy is Covenant-owned live worker
+   registration, not code injected permanently into Engine.
+
+   The selected and predecessor Boot-set, Engine, and Core closures are pinned in the product-durable boot
+   namespace while the ordinary runtime namespace remains reconstructable. Persistence remains the sole normal
+   writer of ordinary `current[name]`, and Engine transport state never selects the Boot set. `bootset::stage`,
+   `bootset::inspect`, `bootset::select`, and `bootset::quiesce` perform lower-host selection and shutdown
+   without route-group promotion. A Core-only replacement keeps an exact matching Engine Chamber and epoch
+   alive while fencing and rebuilding Core routes; an Engine-changing replacement stops Core before Engine and
+   starts successor Engine before Core. Builder remains a separately sandboxed ordinary Covenant; an accepted
    first Builder image may be imported by the Boot Seed, but build never enters Host Agent or cold start.
-   Missing, malformed, unaccepted, or mismatched selected boot state fails closed; only an externally
-   accepted one-use Boot Seed may establish a provably unenrolled Ark.
+   Missing, malformed, unaccepted, or mismatched selected boot state fails closed; only an externally accepted
+   one-use Boot Seed may establish a provably unenrolled Ark.
 
    Totals alone are not semantic proof. In particular, inspect note-only `alt`/`else` branches and nested control fragments; a note must not be attached to an unrelated nearby call merely because its line number is close.
 

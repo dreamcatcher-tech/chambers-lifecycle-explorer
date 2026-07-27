@@ -67,7 +67,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     documents = payload.get("documents", [])
     if [document.get("id") for document in documents] != ["chambers", "cardflow"]:
         fail("bundle must contain Chambers and Cardflow in that order")
-    if payload.get("stats") != {"documents": 2, "sequences": 22, "calls": 162, "functions": 78, "dictionaryTerms": 75}:
+    if payload.get("stats") != {"documents": 2, "sequences": 22, "calls": 178, "functions": 78, "dictionaryTerms": 79}:
         fail(f"unexpected combined stats: {payload.get('stats')}")
 
     manifest_by_id = {entry["id"]: entry for entry in manifest.get("documents", [])}
@@ -100,14 +100,14 @@ def validate_manifest_and_bundle(payload: dict) -> None:
             fail(f"{document['id']} dictionary source-line binding failed")
 
     chambers, cardflow = documents
-    if chambers["stats"] != {"sequences": 13, "actors": 26, "calls": 96, "i3Calls": 74, "hostCalls": 22, "functions": 45, "usedFunctions": 44, "dictionaryTerms": 45}:
+    if chambers["stats"] != {"sequences": 13, "actors": 27, "calls": 112, "i3Calls": 78, "hostCalls": 34, "functions": 45, "usedFunctions": 45, "dictionaryTerms": 49}:
         fail(f"unexpected Chambers stats: {chambers['stats']}")
     if cardflow["stats"] != {"sequences": 9, "actors": 19, "calls": 66, "i3Calls": 66, "hostCalls": 0, "functions": 33, "usedFunctions": 31, "dictionaryTerms": 30}:
         fail(f"unexpected Cardflow stats: {cardflow['stats']}")
 
     expected_startup = ["core-installation", "host-activation", "core-bootstrap", "core-reboot", "activation-kernel"]
     if [sequence["id"] for sequence in chambers["sequences"][:5]] != expected_startup:
-        fail("Chambers must present first install, Core image cold start, Core process bootstrap, selected-Core reboot, then ordinary activation")
+        fail("Chambers must present first install, selected Boot-set cold start, Core Covenant bootstrap, selected-Boot-set reboot, then ordinary activation")
     for sequence in chambers["sequences"]:
         participants = [participant["id"] for participant in sequence["participants"]]
         if "HostAgent" in participants and participants[0] != "HostAgent":
@@ -123,24 +123,29 @@ def validate_manifest_and_bundle(payload: dict) -> None:
                 fail(f"{sequence['id']} lets containerd initiate lifecycle work")
             if call["function"] in {
                 "chamber::activate", "chamber::inspect", "chamber::stop",
-                "bootset::stage", "bootset::inspect", "bootset::select",
+                "bootset::stage", "bootset::inspect", "bootset::select", "bootset::quiesce",
             } and call["to"] != "HostAgent":
                 fail(f"{sequence['id']} aims a Host Agent I3 function at {call['to']}")
 
     sequence_by_id = {sequence["id"]: sequence for sequence in chambers["sequences"]}
     host_activation = sequence_by_id["host-activation"]
     host_calls = [call["function"] for call in host_activation["calls"]]
-    if "engine::identity::attest" in host_calls or host_calls.count("containerd_task_start") != 1:
-        fail("Core image cold start must have one conditional task start and no identity-attest call")
-    activation = next(call for call in host_activation["calls"] if call["function"] == "containerd_task_start")
-    if not any(context["label"] == "No matching ready Core task exists" for context in activation["context"]):
-        fail("Core task start must remain inside the no-matching-ready-Core branch")
+    if "engine::identity::attest" in host_calls or host_calls.count("containerd_task_start") != 2:
+        fail("selected Boot-set cold start must have Engine-first and Core-second conditional starts and no identity-attest call")
+    activations = [call for call in host_activation["calls"] if call["function"] == "containerd_task_start"]
+    activation_labels = {context["label"] for call in activations for context in call["context"]}
+    if not {"No matching ready Engine task exists", "No matching ready Core Control task exists"} <= activation_labels:
+        fail("cold-start task starts must retain separate no-matching Engine and Core Control branches")
 
     all_calls = [call for sequence in chambers["sequences"] for call in sequence["calls"]]
     if any(call["from"] == "containerd" for call in all_calls):
         fail("containerd must not initiate lifecycle, Persistence, or I3 calls")
     if any({call["from"], call["to"]} == {"containerd", "Persistence"} for call in all_calls):
         fail("containerd and Persistence must remain separated by the Host Agent boundary")
+    if any("Engine" in {call["from"], call["to"]} for call in all_calls):
+        fail("Engine must remain transport rather than a Dreamcatcher lifecycle function owner")
+    if any(call["function"].startswith("routing::") and call["to"] != "RouteManager" for call in all_calls):
+        fail("every routing function must target the Covenant-owned Route Manager")
     persistence_roles = {
         participant["role"]
         for sequence in chambers["sequences"]
@@ -152,18 +157,21 @@ def validate_manifest_and_bundle(payload: dict) -> None:
 
     chambers_snapshot = (SOURCE / chambers["source"]["snapshotPath"]).read_text(encoding="utf-8")
     required_core_markers = (
-        "dreamcatcher/core:current",
-        "Selection uses one image-record mutation, never three service tags",
+        "dreamcatcher/bootset:current",
+        "Selection uses one image-record mutation over the coherent pair",
+        "Bootstrap Engine Covenant",
+        "Core Control Covenant",
+        "Route Manager as the first Core worker",
         "one mechanism-only Host Agent replacing separate Procman, Image Materializer, and direct-runsc adapter roles",
-        "Builder is deliberately not a process in that image",
+        "Builder remains outside this Chamber",
     )
     missing_core_markers = [marker for marker in required_core_markers if marker not in chambers_snapshot]
     if missing_core_markers:
         fail(f"Chambers Core authority contract is incomplete: {missing_core_markers}")
     reboot = sequence_by_id["core-reboot"]
     reboot_calls = [call["function"] for call in reboot["calls"]]
-    if reboot_calls.count("containerd_task_start") != 1 or "containerd_import" in reboot_calls:
-        fail("selected-Core reboot must start exactly one retained single-image Core task")
+    if reboot_calls.count("containerd_task_start") != 2 or "containerd_import" in reboot_calls:
+        fail("selected-Boot-set reboot must start retained Engine first and Core Control second")
     selection = sequence_by_id["selection-rollback"]
     selection_calls = [call["function"] for call in selection["calls"]]
     if selection_calls.index("bootset::stage") >= selection_calls.index("bootset::select"):
@@ -171,8 +179,10 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     if "containerd_tag_update" not in selection_calls:
         fail("Core selection must expose the one Host Agent containerd tag update")
     cutover_calls = [call["function"] for call in sequence_by_id["core-cutover"]["calls"]]
-    if cutover_calls.count("containerd_task_start") != 2 or "containerd_tag_update" not in cutover_calls:
-        fail("live Core cutover must preflight, commit the tag, and start the successor")
+    if cutover_calls.count("containerd_task_start") != 6 or cutover_calls.count("containerd_tag_update") != 2:
+        fail("live Boot-set cutover must preserve separate same-Engine and Engine-changing branches")
+    if cutover_calls.index("containerd_tag_update") >= cutover_calls.index("routing::inspect"):
+        fail("live Boot-set cutover must prove successor routing only after the selection decision")
 
 
 def validate_html_and_assets(payload: dict) -> None:
@@ -292,9 +302,9 @@ def validate_source_refresh_contract() -> None:
             "docs/source-refresh-runbook.md",
             "Adding another Fundamentals sequence authority",
             "python3 scripts/sync_source.py ../fundamentals",
-            "Core image cold start",
+            "Selected Boot set cold start",
             "First core installation",
-            "dreamcatcher/core:current",
+            "dreamcatcher/bootset:current",
         ),
         RUNBOOK: (
             "Refresh an already registered authority",

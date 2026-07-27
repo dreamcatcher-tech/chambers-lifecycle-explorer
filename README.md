@@ -7,7 +7,7 @@ A polished, playable explorer for the authoritative Chambers lifecycle and Cardf
 ## What it provides
 
 - **Two explicit document workspaces** — switch between **Chambers** and **Cardflow** without mixing their actors, calls, functions, or provenance. Desktop uses document tabs; tablet/mobile uses a document selector.
-- **Legible Chambers startup ladder** — Chambers opens with **First core installation**, **Core image cold start**, **Core process bootstrap**, **Reboot selected Core**, then **Ordinary activation**. One protected containerd image record, `dreamcatcher/core:current`, selects one exact Boot-set artifact and one runnable Core image. The Host Agent is the sole containerd client and starts Engine, Persistence, and Supervisor locally in one gVisor Core Chamber; ordinary lifecycle uses the typed `chamber::activate`, `chamber::inspect`, and `chamber::stop` I3 surface. The selected/predecessor Core closure is product-durable while the ordinary runtime namespace is reconstructable. Persistence remains the sole writer of ordinary `current[name]`. An accepted Builder image may be imported at genesis but runs only as a separate ordinary Chamber, so build never enters Host Agent or cold start.
+- **Legible Chambers startup ladder** — Chambers opens with **First core installation**, **Selected Boot set cold start**, **Core Covenant bootstrap**, **Reboot selected Boot set**, then **Ordinary activation**. One protected containerd image record, `dreamcatcher/bootset:current`, selects an immutable root binding exact prepared Bootstrap Engine and Core Control Covenant Realizations. The Host Agent is the sole containerd client: it starts or reuses the separate Engine Chamber first, then starts the Core Chamber. Route Manager connects first from Core Control through a direct bootstrap prefix; Persistence recovers and Supervisor drives stable-route reconciliation. Ordinary lifecycle uses the typed `chamber::activate`, `chamber::inspect`, and `chamber::stop` I3 surface. Selected/predecessor Boot-set, Engine, and Core closures are product-durable while the ordinary runtime namespace is reconstructable. Persistence remains the sole writer of ordinary `current[name]`. An accepted Builder image may be imported at genesis but runs only as a separate ordinary Covenant, so build never enters Host Agent or cold start.
 - **Trace** — custom sequence lanes with play/pause, reset, step, scrub, actor focus, call-type filtering, zoom, keyboard shortcuts, touch gestures, and document-aware deep links. The compact step/route/function summary stays structurally stable while full branch and note context remains in the selected-call inspector. The diagram participates in the primary page flow instead of owning a nested vertical scrollbar; selected calls receive only the minimum vertical reveal required, while horizontal pan is preserved exactly. Actor labels stay pinned below the page controls and track horizontal pan while the page moves through a long diagram. The selected-call inspector keeps a constant height while exploring one sequence.
 - **Browser navigation** — meaningful document, sequence, view, call, and function changes populate browser history, so Back and Forward restore the corresponding app state and primary-page position. A continuous scrub creates one navigable entry rather than corrupting the entry it started from.
 - **Map** — an actor relationship graph with directed, frequency-weighted connections and call drill-down.
@@ -94,10 +94,11 @@ source/cardflow-filesystem-lease-sequences.md ─┘   ├─ parses each functi
 ```
 
 The parser classifies calls from each source's function table rather than visual guesswork. Chambers keeps
-`install_boot_seed`, `wake_core`, `deliver_final_reply`, `containerd_*`, and `start_core_process` as
-conventional host-boundary calls; typed `chamber::*` and `bootset::*` functions remain I3 calls registered by
-the Host Agent after Core readiness. The current Cardflow reference is entirely I3. Cardflow function statuses
-such as **required** and **contract extension required** are preserved in the function inspector.
+`install_boot_seed`, `wake_core`, `deliver_final_reply`, `containerd_*`, and `start_core_worker` as
+conventional host-boundary calls. Typed `chamber::*` and `bootset::*` functions remain I3 calls registered by
+the Host Agent after Engine readiness, while `routing::*` functions are owned by the Core Control Covenant's
+Route Manager. The current Cardflow reference is entirely I3. Cardflow function statuses such as **required**
+and **contract extension required** are preserved in the function inspector.
 
 ## Verification
 
