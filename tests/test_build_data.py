@@ -377,6 +377,8 @@ class BuildDataTests(unittest.TestCase):
         self.assertIn("rightCharacters", app)
         self.assertIn("kindWidth", app)
         self.assertIn('data-view="dictionary"', html)
+        self.assertIn("wake_core", html)
+        self.assertNotIn("wake_engine", html)
         self.assertIn('id="dictionarySearch"', html)
         self.assertIn("renderDictionaryCatalog", app)
         self.assertIn("renderDictionaryCatalog({ revealDetail: true })", app)
