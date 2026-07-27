@@ -178,6 +178,14 @@
     withInstantPageScroll(() => window.scrollBy({ top: delta, behavior: "auto" }));
   }
 
+  function scheduleNarrowDetailReveal(element) {
+    if (!window.matchMedia("(max-width: 1040px)").matches) return;
+    window.requestAnimationFrame(() => {
+      const rect = element.getBoundingClientRect();
+      scrollPageBy(rect.top - stickyViewportTop() - 12);
+    });
+  }
+
   function cancelHistoryScrollSnapshot() {
     window.cancelAnimationFrame(state.historyScrollFrame);
     state.historyScrollFrame = null;
@@ -1181,7 +1189,7 @@
     elements.mapDetail.querySelectorAll("[data-open-call]").forEach((button) => button.addEventListener("click", () => openCall(button.dataset.openCall)));
   }
 
-  function renderFunctionCatalog() {
+  function renderFunctionCatalog(options = {}) {
     const query = state.functionQuery.trim().toLowerCase();
     const filtered = data.functions.filter((fn) => {
       const kindMatch = state.functionFilter === "all" || fn.kind === state.functionFilter || (state.functionFilter === "unused" && !fn.usages.length);
@@ -1201,10 +1209,11 @@
     elements.functionList.querySelectorAll("[data-function-id]").forEach((button) => button.addEventListener("click", () => {
       const originScrollY = window.scrollY;
       state.selectedFunctionId = button.dataset.functionId;
-      renderFunctionCatalog();
+      renderFunctionCatalog({ revealDetail: true });
       updateUrl("push", originScrollY);
     }));
     renderFunctionDetail();
+    if (options.revealDetail) scheduleNarrowDetailReveal(elements.functionDetail);
   }
 
   function renderFunctionDetail() {
@@ -1278,7 +1287,7 @@
     return entry.related.map((termId) => dictionaryById.get(termId)).filter(Boolean);
   }
 
-  function renderDictionaryCatalog() {
+  function renderDictionaryCatalog(options = {}) {
     const query = state.dictionaryQuery.trim().toLowerCase();
     const filtered = data.dictionary.filter((entry) => {
       if (!query) return true;
@@ -1296,10 +1305,11 @@
     elements.dictionaryList.querySelectorAll("[data-term-id]").forEach((button) => button.addEventListener("click", () => {
       const originScrollY = window.scrollY;
       state.selectedTermId = button.dataset.termId;
-      renderDictionaryCatalog();
+      renderDictionaryCatalog({ revealDetail: true });
       updateUrl("push", originScrollY);
     }));
     renderDictionaryDetail();
+    if (options.revealDetail) scheduleNarrowDetailReveal(elements.dictionaryDetail);
   }
 
   function renderDictionaryDetail() {
