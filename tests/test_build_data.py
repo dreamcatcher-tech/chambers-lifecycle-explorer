@@ -37,6 +37,7 @@ class BuildDataTests(unittest.TestCase):
                 "attested-builds",
                 "candidate-verification",
                 "selection-rollback",
+                "core-cutover",
                 "quiesce-wake",
             },
             "cardflow": {
@@ -74,7 +75,7 @@ class BuildDataTests(unittest.TestCase):
 
     def test_document_counts_match_the_two_sources(self) -> None:
         chambers = self.documents["chambers"]["stats"]
-        self.assertEqual((12, 139, 43, 73, 66, 46), (
+        self.assertEqual((13, 96, 45, 74, 22, 45), (
             chambers["sequences"], chambers["calls"], chambers["functions"],
             chambers["i3Calls"], chambers["hostCalls"], chambers["dictionaryTerms"],
         ))
@@ -83,7 +84,7 @@ class BuildDataTests(unittest.TestCase):
             cardflow["sequences"], cardflow["calls"], cardflow["functions"],
             cardflow["i3Calls"], cardflow["hostCalls"], cardflow["dictionaryTerms"],
         ))
-        self.assertEqual(76, self.payload["stats"]["dictionaryTerms"])
+        self.assertEqual(75, self.payload["stats"]["dictionaryTerms"])
 
     def test_host_boundary_is_explicit_and_chambers_only(self) -> None:
         chambers_host = {
@@ -93,8 +94,9 @@ class BuildDataTests(unittest.TestCase):
         }
         self.assertEqual(
             {
-                "wake_engine", "materialize_runtime", "inspect_image", "pull_image", "import_image",
-                "unpack_image", "stage_core_closure", "activate_chamber", "stop_chamber", "deliver_final_reply",
+                "install_boot_seed", "wake_core", "deliver_final_reply", "containerd_import",
+                "containerd_resolve", "containerd_tag_update", "containerd_task_start",
+                "containerd_task_stop", "start_core_process",
             },
             chambers_host,
         )
@@ -105,8 +107,8 @@ class BuildDataTests(unittest.TestCase):
         self.assertEqual(
             [
                 ("core-installation", "First core installation"),
-                ("host-activation", "Engine cold start"),
-                ("core-bootstrap", "Core bootstrap"),
+                ("host-activation", "Core image cold start"),
+                ("core-bootstrap", "Core process bootstrap"),
                 ("core-reboot", "Reboot selected Core"),
                 ("activation-kernel", "Ordinary activation"),
             ],
@@ -120,67 +122,56 @@ class BuildDataTests(unittest.TestCase):
         core_calls = [call["function"] for call in by_id["core-bootstrap"]["calls"]]
         reboot_calls = [call["function"] for call in by_id["core-reboot"]["calls"]]
         ordinary_calls = [call["function"] for call in by_id["activation-kernel"]["calls"]]
-        self.assertIn("stage_core_closure", installation_calls)
+        self.assertIn("containerd_import", installation_calls)
+        self.assertIn("containerd_tag_update", installation_calls)
         self.assertNotIn("persistence::realization::read", host_calls)
-        self.assertIn("persistence::realization::read", core_calls)
-        self.assertIn("persistence::realization::read", reboot_calls)
+        self.assertEqual(3, core_calls.count("start_core_process"))
+        self.assertNotIn("persistence::realization::read", reboot_calls)
         self.assertIn("persistence::realization::read", ordinary_calls)
-        self.assertLess(core_calls.index("activate_chamber"), core_calls.index("persistence::realization::read"))
-        self.assertIn("wake_engine", host_calls)
+        self.assertIn("chamber::activate", ordinary_calls)
+        self.assertIn("wake_core", host_calls)
         self.assertNotIn("engine::identity::attest", host_calls)
-        self.assertEqual(1, host_calls.count("activate_chamber"))
+        self.assertEqual(1, host_calls.count("containerd_task_start"))
 
-        cold_activate = next(call for call in by_id["host-activation"]["calls"] if call["function"] == "activate_chamber")
-        self.assertTrue(
-            any(
-                "Persistence-owned core-current.json" in note["text"]
-                for call in by_id["host-activation"]["calls"]
-                for note in call["notes"]
-            )
-        )
-        self.assertTrue(any(context["label"] == "No Engine Chamber is ready" for context in cold_activate["context"]))
+        cold_start = next(call for call in by_id["host-activation"]["calls"] if call["function"] == "containerd_task_start")
+        self.assertTrue(any(context["label"] == "No matching ready Core task exists" for context in cold_start["context"]))
+        self.assertTrue(any(context["branch"] == "Exact selected Boot-set and Core-image closure is retained" for context in cold_start["context"]))
 
-    def test_procman_and_physical_runtime_projection_preserve_authority_order(self) -> None:
+    def test_host_agent_and_containerd_projection_preserve_authority_order(self) -> None:
         chambers = self.documents["chambers"]
         for sequence in chambers["sequences"]:
             participant_ids = [participant["id"] for participant in sequence["participants"]]
-            if "procman" in participant_ids:
-                self.assertEqual("procman", participant_ids[0], sequence["id"])
-            physical = [
-                call for call in sequence["calls"]
-                if call["function"] in {"activate_chamber", "stop_chamber"}
-            ]
-            if physical:
-                if "Materializer" in participant_ids:
-                    self.assertEqual(
-                        ["procman", "Materializer", "containerd", "Runtime"],
-                        participant_ids[:4],
-                        sequence["id"],
-                    )
-                else:
-                    self.assertEqual(["procman", "Runtime"], participant_ids[:2], sequence["id"])
-                self.assertTrue(all(call["from"] == "procman" and call["to"] == "Runtime" for call in physical))
-                runtime = next(participant for participant in sequence["participants"] if participant["id"] == "Runtime")
-                self.assertEqual("host", runtime["role"])
+            if "HostAgent" in participant_ids:
+                self.assertEqual("HostAgent", participant_ids[0], sequence["id"])
+            for call in sequence["calls"]:
+                if call["to"] == "containerd":
+                    self.assertEqual("HostAgent", call["from"], sequence["id"])
+                    self.assertTrue(call["function"].startswith("containerd_"), sequence["id"])
+                self.assertNotEqual("containerd", call["from"], sequence["id"])
+            self.assertNotIn("Runtime", participant_ids)
+            self.assertNotIn("Materializer", participant_ids)
+            self.assertNotIn("procman", participant_ids)
 
         host_activation = next(sequence for sequence in chambers["sequences"] if sequence["id"] == "host-activation")
         roles = {participant["id"]: participant["role"] for participant in host_activation["participants"]}
-        self.assertEqual("host", roles["Materializer"])
+        self.assertEqual("host", roles["HostAgent"])
         self.assertEqual("host", roles["containerd"])
 
         functions = {function["id"]: function for function in chambers["functions"]}
-        self.assertEqual("Trusted host runtime", functions["activate_chamber"]["owner"])
-        self.assertEqual("Trusted host runtime", functions["stop_chamber"]["owner"])
-        self.assertEqual("Image Materializer and containerd", functions["materialize_runtime"]["owner"])
+        self.assertEqual("Host Agent", functions["chamber::activate"]["owner"])
+        self.assertEqual("Host Agent", functions["chamber::stop"]["owner"])
+        self.assertEqual("Host Agent", functions["bootset::select"]["owner"])
+        self.assertEqual("containerd and Core init", functions["containerd_task_start"]["owner"])
 
-    def test_persistence_and_disposable_oci_semantics_survive_projection(self) -> None:
+    def test_protected_boot_and_reconstructable_runtime_semantics_survive_projection(self) -> None:
         chambers = self.documents["chambers"]
         snapshot = (ROOT / "source" / chambers["source"]["snapshotPath"]).read_text(encoding="utf-8")
         self.assertNotIn("Filesystem Service", snapshot)
         self.assertNotIn("filesystem::", snapshot)
-        self.assertIn("OCI digest = materialization and verification identity", snapshot)
-        self.assertIn("containerd root = dedicated disposable storage slice", snapshot)
-        self.assertIn("`containerd` never calls Persistence or I3", snapshot)
+        self.assertIn("containerd boot namespace = product-durable Core boot state", snapshot)
+        self.assertIn("containerd ordinary runtime namespace = reconstructable", snapshot)
+        self.assertIn("containerd state directory = volatile runtime state", snapshot)
+        self.assertIn("only containerd client and the only writer", snapshot)
 
         persistence_roles = {
             participant["role"]
@@ -206,30 +197,30 @@ class BuildDataTests(unittest.TestCase):
         self.assertNotIn("containerd", {participant["id"] for participant in build["participants"]})
         self.assertIn("persistence::build::record", [call["function"] for call in build["calls"]])
 
-    def test_core_manifest_selection_and_reboot_authority_survive_projection(self) -> None:
+    def test_single_image_core_tag_and_cutover_authority_survive_projection(self) -> None:
         chambers = self.documents["chambers"]
         snapshot = (ROOT / "source" / chambers["source"]["snapshotPath"]).read_text(encoding="utf-8")
-        self.assertIn("Persistence-owned, host-readable canonical storage representation", snapshot)
-        self.assertIn("core-current.json", snapshot)
-        self.assertIn("manifest rename as the sole `current` effect", snapshot)
-        self.assertIn("Image Materializer is deliberately inside the host upgrade boundary", snapshot)
-        self.assertNotIn("Procman Boot ledger", snapshot)
-        self.assertNotIn("core_boot[", snapshot)
+        self.assertIn("dreamcatcher/core:current", snapshot)
+        self.assertIn("Selection uses one image-record mutation, never three service tags", snapshot)
+        self.assertIn("A crash before the image-record update leaves the complete predecessor selected", snapshot)
+        self.assertIn("Builder is deliberately not a process in that image", snapshot)
 
         sequences = {sequence["id"]: sequence for sequence in chambers["sequences"]}
         reboot = sequences["core-reboot"]
         reboot_functions = [call["function"] for call in reboot["calls"]]
-        self.assertEqual(3, reboot_functions.count("activate_chamber"))
-        self.assertNotIn("pull_image", reboot_functions)
-        reboot_notes = [note["text"] for call in reboot["calls"] for note in call["notes"]]
-        self.assertTrue(any("do not consult containerd tags or recency for selection" in note for note in reboot_notes))
-        self.assertTrue(any("same selected Realization IDs" in note for note in reboot_notes))
+        self.assertEqual(1, reboot_functions.count("containerd_task_start"))
+        self.assertNotIn("containerd_import", reboot_functions)
+        self.assertNotIn("artifact::build", reboot_functions)
 
         selection = sequences["selection-rollback"]
         functions = [call["function"] for call in selection["calls"]]
-        self.assertLess(functions.index("stage_core_closure"), functions.index("persistence::selection::commit"))
-        commit = next(call for call in selection["calls"] if call["function"] == "persistence::selection::commit")
-        self.assertEqual(("procman", "Persistence"), (commit["from"], commit["to"]))
+        self.assertLess(functions.index("bootset::stage"), functions.index("bootset::select"))
+        tag_update = next(call for call in selection["calls"] if call["function"] == "containerd_tag_update")
+        self.assertEqual(("HostAgent", "containerd"), (tag_update["from"], tag_update["to"]))
+
+        cutover_functions = [call["function"] for call in sequences["core-cutover"]["calls"]]
+        self.assertLess(cutover_functions.index("containerd_tag_update"), cutover_functions.index("engine::route::inspect"))
+        self.assertEqual(2, cutover_functions.count("containerd_task_start"))
 
     def test_break_and_else_note_contexts_are_preserved(self) -> None:
         registry = {
@@ -336,7 +327,8 @@ class BuildDataTests(unittest.TestCase):
         chambers = {entry["id"]: entry for entry in self.documents["chambers"]["dictionary"]}
         self.assertIn("not an alias for Realization", chambers["covenant-lock"]["definition"])
         self.assertIn("Covenant lock plus one normalized launch specification", chambers["realization"]["definition"])
-        self.assertIn("core-boot-manifest", chambers["boot-capsule"]["related"])
+        self.assertIn("core-boot-selection", chambers["boot-set"]["related"])
+        self.assertIn("core-chamber", chambers["boot-set"]["related"])
 
         cardflow = {entry["id"]: entry for entry in self.documents["cardflow"]["dictionary"]}
         self.assertIn("Chambers-defined immutable executable lifecycle identity", cardflow["realization"]["definition"])

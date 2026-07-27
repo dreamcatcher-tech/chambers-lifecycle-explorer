@@ -67,7 +67,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     documents = payload.get("documents", [])
     if [document.get("id") for document in documents] != ["chambers", "cardflow"]:
         fail("bundle must contain Chambers and Cardflow in that order")
-    if payload.get("stats") != {"documents": 2, "sequences": 21, "calls": 205, "functions": 76, "dictionaryTerms": 76}:
+    if payload.get("stats") != {"documents": 2, "sequences": 22, "calls": 162, "functions": 78, "dictionaryTerms": 75}:
         fail(f"unexpected combined stats: {payload.get('stats')}")
 
     manifest_by_id = {entry["id"]: entry for entry in manifest.get("documents", [])}
@@ -100,47 +100,47 @@ def validate_manifest_and_bundle(payload: dict) -> None:
             fail(f"{document['id']} dictionary source-line binding failed")
 
     chambers, cardflow = documents
-    if chambers["stats"] != {"sequences": 12, "actors": 27, "calls": 139, "i3Calls": 73, "hostCalls": 66, "functions": 43, "usedFunctions": 42, "dictionaryTerms": 46}:
+    if chambers["stats"] != {"sequences": 13, "actors": 26, "calls": 96, "i3Calls": 74, "hostCalls": 22, "functions": 45, "usedFunctions": 44, "dictionaryTerms": 45}:
         fail(f"unexpected Chambers stats: {chambers['stats']}")
     if cardflow["stats"] != {"sequences": 9, "actors": 19, "calls": 66, "i3Calls": 66, "hostCalls": 0, "functions": 33, "usedFunctions": 31, "dictionaryTerms": 30}:
         fail(f"unexpected Cardflow stats: {cardflow['stats']}")
 
     expected_startup = ["core-installation", "host-activation", "core-bootstrap", "core-reboot", "activation-kernel"]
     if [sequence["id"] for sequence in chambers["sequences"][:5]] != expected_startup:
-        fail("Chambers must present first install, Engine cold start, core bootstrap, selected-Core reboot, then ordinary activation")
+        fail("Chambers must present first install, Core image cold start, Core process bootstrap, selected-Core reboot, then ordinary activation")
     for sequence in chambers["sequences"]:
         participants = [participant["id"] for participant in sequence["participants"]]
-        if "procman" in participants and participants[0] != "procman":
-            fail(f"{sequence['id']} does not keep procman leftmost")
-        physical_calls = [
-            call for call in sequence["calls"]
-            if call["function"] in {"activate_chamber", "stop_chamber"}
-        ]
-        if physical_calls:
-            expected_prefix = (
-                ["procman", "Materializer", "containerd", "Runtime"]
-                if "Materializer" in participants
-                else ["procman", "Runtime"]
-            )
-            if participants[:len(expected_prefix)] != expected_prefix:
-                fail(f"{sequence['id']} does not preserve host authority/materialization order")
-            if any(call["from"] != "procman" or call["to"] != "Runtime" for call in physical_calls):
-                fail(f"{sequence['id']} contains a physical call aimed at a Chamber subject")
+        if "HostAgent" in participants and participants[0] != "HostAgent":
+            fail(f"{sequence['id']} does not keep Host Agent leftmost")
+        if any(item in participants for item in ("procman", "Materializer", "Runtime")):
+            fail(f"{sequence['id']} retains a removed Chambers host lane")
+        for call in sequence["calls"]:
+            if call["to"] == "containerd" and (
+                call["from"] != "HostAgent" or not call["function"].startswith("containerd_")
+            ):
+                fail(f"{sequence['id']} bypasses the Host Agent containerd boundary")
+            if call["from"] == "containerd":
+                fail(f"{sequence['id']} lets containerd initiate lifecycle work")
+            if call["function"] in {
+                "chamber::activate", "chamber::inspect", "chamber::stop",
+                "bootset::stage", "bootset::inspect", "bootset::select",
+            } and call["to"] != "HostAgent":
+                fail(f"{sequence['id']} aims a Host Agent I3 function at {call['to']}")
 
     sequence_by_id = {sequence["id"]: sequence for sequence in chambers["sequences"]}
     host_activation = sequence_by_id["host-activation"]
     host_calls = [call["function"] for call in host_activation["calls"]]
-    if "engine::identity::attest" in host_calls or host_calls.count("activate_chamber") != 1:
-        fail("Engine cold start must have one conditional activation and no identity-attest call")
-    activation = next(call for call in host_activation["calls"] if call["function"] == "activate_chamber")
-    if not any(context["label"] == "No Engine Chamber is ready" for context in activation["context"]):
-        fail("Engine activation must remain inside the no-ready-Engine branch")
+    if "engine::identity::attest" in host_calls or host_calls.count("containerd_task_start") != 1:
+        fail("Core image cold start must have one conditional task start and no identity-attest call")
+    activation = next(call for call in host_activation["calls"] if call["function"] == "containerd_task_start")
+    if not any(context["label"] == "No matching ready Core task exists" for context in activation["context"]):
+        fail("Core task start must remain inside the no-matching-ready-Core branch")
 
     all_calls = [call for sequence in chambers["sequences"] for call in sequence["calls"]]
     if any(call["from"] == "containerd" for call in all_calls):
         fail("containerd must not initiate lifecycle, Persistence, or I3 calls")
     if any({call["from"], call["to"]} == {"containerd", "Persistence"} for call in all_calls):
-        fail("containerd and Persistence must remain separated by procman and the Image Materializer")
+        fail("containerd and Persistence must remain separated by the Host Agent boundary")
     persistence_roles = {
         participant["role"]
         for sequence in chambers["sequences"]
@@ -152,24 +152,27 @@ def validate_manifest_and_bundle(payload: dict) -> None:
 
     chambers_snapshot = (SOURCE / chambers["source"]["snapshotPath"]).read_text(encoding="utf-8")
     required_core_markers = (
-        "Persistence-owned, host-readable canonical storage representation",
-        "manifest rename as the sole `current` effect",
-        "Image Materializer is deliberately inside the host upgrade boundary",
+        "dreamcatcher/core:current",
+        "Selection uses one image-record mutation, never three service tags",
+        "one mechanism-only Host Agent replacing separate Procman, Image Materializer, and direct-runsc adapter roles",
+        "Builder is deliberately not a process in that image",
     )
     missing_core_markers = [marker for marker in required_core_markers if marker not in chambers_snapshot]
     if missing_core_markers:
         fail(f"Chambers Core authority contract is incomplete: {missing_core_markers}")
-    if "Procman Boot ledger" in chambers_snapshot or "core_boot[" in chambers_snapshot:
-        fail("legacy Procman-owned Core selection authority remains")
-
     reboot = sequence_by_id["core-reboot"]
     reboot_calls = [call["function"] for call in reboot["calls"]]
-    if reboot_calls.count("activate_chamber") != 3 or "pull_image" in reboot_calls:
-        fail("selected-Core reboot must activate exactly Engine/Persistence/Supervisor from local exact closure")
+    if reboot_calls.count("containerd_task_start") != 1 or "containerd_import" in reboot_calls:
+        fail("selected-Core reboot must start exactly one retained single-image Core task")
     selection = sequence_by_id["selection-rollback"]
     selection_calls = [call["function"] for call in selection["calls"]]
-    if selection_calls.index("stage_core_closure") >= selection_calls.index("persistence::selection::commit"):
-        fail("critical closure must be staged before Persistence commits selection")
+    if selection_calls.index("bootset::stage") >= selection_calls.index("bootset::select"):
+        fail("Core Boot-set closure must be staged before Host Agent selection")
+    if "containerd_tag_update" not in selection_calls:
+        fail("Core selection must expose the one Host Agent containerd tag update")
+    cutover_calls = [call["function"] for call in sequence_by_id["core-cutover"]["calls"]]
+    if cutover_calls.count("containerd_task_start") != 2 or "containerd_tag_update" not in cutover_calls:
+        fail("live Core cutover must preflight, commit the tag, and start the successor")
 
 
 def validate_html_and_assets(payload: dict) -> None:
@@ -283,15 +286,15 @@ def validate_source_refresh_contract() -> None:
             "docs/source-refresh-runbook.md",
             "scripts/sync_source.py::DOCUMENTS",
             "scripts/build_data.py::DOCUMENT_CONFIGS",
-            "preserve `procman` as the leftmost lane",
+            "Host Agent as the leftmost lane",
         ),
         ROOT / "README.md": (
             "docs/source-refresh-runbook.md",
             "Adding another Fundamentals sequence authority",
             "python3 scripts/sync_source.py ../fundamentals",
-            "Engine cold start",
+            "Core image cold start",
             "First core installation",
-            "core-current.json",
+            "dreamcatcher/core:current",
         ),
         RUNBOOK: (
             "Refresh an already registered authority",

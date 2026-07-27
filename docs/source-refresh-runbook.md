@@ -57,21 +57,29 @@ The registration surfaces of record are:
    - public sequence order follows the deliberate `sequenceMeta` registry order while every published sequence ID remains stable;
    - document navigation, search, function and Dictionary catalogs, actor roles, and provenance remain scoped to the selected authority.
 
-   For Chambers specifically, verify that `procman` is leftmost wherever present. When OCI content must
-   become runnable, Image Materializer and `containerd` follow it before the trusted host runtime; otherwise
-   the runtime may immediately follow `procman`. `activate_chamber`/`stop_chamber` must still target that
-   runtime rather than the Chamber subject. The public Chambers order starts with **First core installation**,
-   **Engine cold start**, **Core bootstrap**, **Reboot selected Core**, and **Ordinary activation**. Engine cold start must contain exactly one
-   `activate_chamber` under “No Engine Chamber is ready,” no application-level identity-attest call, and a
-   common pinned-Noise/HPM-admission path after the branch. Persistence must remain the sole normal selection
-   writer and own `core-current.json` as the canonical Engine/Persistence current representation in the same
-   backup domain as its general state. Procman reads and verifies that bounded file directly for cold boot but
-   never owns a shadow current or image-mapping database. Missing, malformed, stale, or mismatched normal boot
-   state fails closed; only an externally accepted one-use Boot Seed may establish a provably unenrolled Ark.
-   Persistence must not be portrayed as an OCI layer store. The host-resident minimum Image Materializer is the
-   only `containerd` client and never selects lifecycle state: it consumes exact bounded data/capabilities supplied
-   by `procman`, while richer provider/build logic may live in upgradeable Chambers. `containerd` keeps OCI content
-   and snapshots on a disposable host slice and never calls Persistence or I3.
+   For Chambers specifically, verify that `HostAgent` is the leftmost lane wherever present. `containerd`
+   follows only in the installation, cold-start, reboot, selection, and live-cutover diagrams that expose the
+   standard backend, and every drawn `containerd_*` call originates at `HostAgent`. Ordinary activation and
+   stopping use the typed I3 functions `chamber::activate`, `chamber::inspect`, and `chamber::stop`; they do
+   not expose Image Materializer, direct `runsc`, or raw runtime lanes. The public Chambers order starts with
+   **First core installation**, **Core image cold start**, **Core process bootstrap**, **Reboot selected Core**,
+   and **Ordinary activation**, while preserving the published IDs for those renamed sequences. Core image
+   cold start contains exactly one `containerd_task_start` under “No matching ready Core task exists,” no
+   application-level identity-attest call, and no build, mutable pull, recency, or fallback branch.
+
+   The Host Agent is the sole containerd client and sole writer of the protected
+   `dreamcatcher/core:current` image record. That record selects one exact immutable Boot-set artifact whose
+   only runnable member is one Core image; Engine, Persistence, and Supervisor start locally in one gVisor
+   Core Chamber. The selected and predecessor closures are pinned in the product-durable boot namespace,
+   while the ordinary runtime namespace remains reconstructable. Persistence remains the sole normal writer
+   of ordinary `current[name]`, and Engine route state never selects the Core. `bootset::stage`,
+   `bootset::inspect`, and `bootset::select` perform lower-host Core selection without route-group promotion.
+   Core-local processes use the exact local registration contract rather than intra-Core PeerIds; ordinary
+   Chambers retain fresh PeerIds and reconnect across Core cutover to the host-custodied stable Engine
+   identity under a fresh boot epoch. Builder remains a separately sandboxed ordinary Chamber; an accepted
+   first Builder image may be imported by the Boot Seed, but build never enters Host Agent or cold start.
+   Missing, malformed, unaccepted, or mismatched selected boot state fails closed; only an externally
+   accepted one-use Boot Seed may establish a provably unenrolled Ark.
 
    Totals alone are not semantic proof. In particular, inspect note-only `alt`/`else` branches and nested control fragments; a note must not be attached to an unrelated nearby call merely because its line number is close.
 

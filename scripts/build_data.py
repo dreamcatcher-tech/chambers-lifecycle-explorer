@@ -23,40 +23,40 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
         "id": "core-installation",
         "shortTitle": "First core installation",
         "kicker": "Step 1 · genesis",
-        "summary": "How one externally accepted genesis bundle establishes exact Engine, Persistence, and Supervisor Realizations before Persistence or I3 exists.",
-        "question": "What establishes first trusted Core state without treating a missing file as authority?",
+        "summary": "How an accepted one-use Boot Seed imports one single-image Core Boot set and an optional separate Builder before I3 exists.",
+        "question": "What establishes first trusted Core state without building on the host or treating absence as authority?",
         "status": "core",
     },
-    "Engine cold start": {
+    "Core image cold start": {
         "id": "host-activation",
-        "shortTitle": "Engine cold start",
+        "shortTitle": "Core image cold start",
         "kicker": "Step 2 · wake",
-        "summary": "How running Procman reuses or creates the exact Engine selected by Persistence-owned core-current.json, then admits it over pinned libp2p Noise.",
-        "question": "How does the Engine become callable without a redundant application-level identity challenge?",
+        "summary": "How the Host Agent resolves one exact containerd Core tag and starts one runsc-backed Core task without build, recency, or fallback.",
+        "question": "How does the exact selected Core become callable while I3 is absent?",
         "status": "core",
     },
-    "Bootstrap core services": {
+    "Core process bootstrap": {
         "id": "core-bootstrap",
-        "shortTitle": "Core bootstrap",
+        "shortTitle": "Core process bootstrap",
         "kicker": "Step 3 · basic Ark",
-        "summary": "How the first Persistence Chamber and Supervisor restore the smallest useful Ark state without a durable-data dependency cycle.",
-        "question": "How can Persistence start before its own I3 route exists?",
+        "summary": "How Core init starts Engine, Persistence, and Supervisor locally inside one image, sandbox, boot epoch, and registration contract.",
+        "question": "How do the three Core roles attach without intra-Core PeerIds or route-group promotion?",
         "status": "core",
     },
-    "Host reboot into selected core services": {
+    "Host reboot into the selected Core image": {
         "id": "core-reboot",
         "shortTitle": "Reboot selected Core",
         "kicker": "Step 4 · reboot proof",
-        "summary": "How Procman starts the exact selected Engine, Persistence, and Supervisor from durable Core state after a host restart.",
-        "question": "How does reboot prove it is using upgraded selections rather than containerd tags or cache recency?",
+        "summary": "How the Host Agent reuses the same one-tag cold kernel to create a fresh complete Core Chamber after host restart.",
+        "question": "How does reboot prove one complete selected Boot set rather than mix independently tagged services?",
         "status": "core",
     },
     "Ordinary Chamber activation kernel": {
         "id": "activation-kernel",
         "shortTitle": "Ordinary activation",
         "kicker": "Step 5 · core ready",
-        "summary": "How a ready Engine and Persistence turn exact launch data into one admitted Chamber while OCI materialization stays disposable.",
-        "question": "What durable data is read, what does containerd materialize, and what must be authenticated before readiness?",
+        "summary": "How chamber::activate turns one exact Realization and lease into an admitted ordinary Chamber while host mechanics stay encapsulated.",
+        "question": "What exact authority crosses the three-function Host Agent boundary before readiness?",
         "status": "core",
     },
     "Fenced development": {
@@ -95,16 +95,24 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
         "id": "selection-rollback",
         "shortTitle": "Select, upgrade, or roll back",
         "kicker": "Step 10 · selection",
-        "summary": "How Persistence consumes a fenced compare-and-swap permit, stages critical closure, and commits exact current state without renaming live Chambers.",
-        "question": "What makes a selection durable, materializable, and authoritative on the next reboot?",
+        "summary": "How ordinary Persistence selection and lower Host Agent Boot-set selection remain distinct fenced operations over immutable targets.",
+        "question": "Which selector moves, and why does Core selection require no Engine route group?",
+        "status": "current",
+    },
+    "Live Core-image cutover": {
+        "id": "core-cutover",
+        "shortTitle": "Live Core-image cutover",
+        "kicker": "Step 11 · Core handoff",
+        "summary": "How the Host Agent preflights a successor while the predecessor runs, then transfers the Core tag, data lease, listener, and boot epoch.",
+        "question": "How can a running Ark upgrade its whole Core without asking Engine to replace itself?",
         "status": "current",
     },
     "Quiesce and wake": {
         "id": "quiesce-wake",
         "shortTitle": "Quiesce and wake",
-        "kicker": "Step 11 · idle edge",
-        "summary": "How every Chamber can disappear while current selections and durable custody survive.",
-        "question": "What survives quiescence, and what recreates a ready Engine later?",
+        "kicker": "Step 12 · idle edge",
+        "summary": "How ordinary Chambers and the one Core Chamber can disappear while both selectors and durable custody survive.",
+        "question": "What survives quiescence, and what recreates the selected Core later?",
         "status": "current",
     },
     "Attested multi-Ark builds (later)": {
@@ -200,8 +208,8 @@ DOCUMENT_CONFIGS: OrderedDict[str, dict[str, Any]] = OrderedDict(
                 "id": "chambers",
                 "name": "Chambers",
                 "title": "Chambers lifecycle",
-                "subtitle": "Genesis, exact Core reboot, immutable Realizations, selection, and wake",
-                "description": "Explore how exact Realizations are installed, admitted, upgraded, selected for reboot, verified, rolled back, and quiesced without deriving authority from containerd.",
+                "subtitle": "Single-image Core boot, typed Host Agent lifecycle, exact Realizations, and wake",
+                "description": "Explore how one protected Core tag and one Core image boot Engine, Persistence, and Supervisor while ordinary Chambers use an exact three-function Host Agent boundary.",
                 "functionHeading": "Lifecycle call table",
                 "functionIntro": "Every I3 and conventional host-boundary function named by the Chambers lifecycle sequences.",
                 "manifestSnapshot": "chambers-lifecycle-sequences.md",
@@ -329,7 +337,8 @@ def parse_dictionary(lines: list[str]) -> list[dict[str, Any]]:
 def participant_role(label: str, participant_id: str) -> str:
     text = f"{label} {participant_id}".lower()
     if (
-        "procman" in text
+        "host agent" in text
+        or "procman" in text
         or "host runtime" in text
         or "image materializer" in text
         or "containerd" in text
@@ -349,7 +358,7 @@ def participant_role(label: str, participant_id: str) -> str:
         for word in ("verifier", "tester", "acceptor", "promoter", "attestation", "inspector", "recovery")
     ):
         return "assurance"
-    if any(word in text for word in ("supervisor", "cardflow", "engine")):
+    if any(word in text for word in ("supervisor", "cardflow", "engine", "core init")):
         return "control" if "engine" not in text else "engine"
     if any(word in text for word in ("chamber", "builder", "candidate", "fixture", "developer", "members")):
         return "chamber"
