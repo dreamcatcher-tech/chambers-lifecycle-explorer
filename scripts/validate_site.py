@@ -67,7 +67,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     documents = payload.get("documents", [])
     if [document.get("id") for document in documents] != ["chambers", "cardflow"]:
         fail("bundle must contain Chambers and Cardflow in that order")
-    if payload.get("stats") != {"documents": 2, "sequences": 22, "calls": 236, "functions": 83, "dictionaryTerms": 83}:
+    if payload.get("stats") != {"documents": 2, "sequences": 22, "calls": 238, "functions": 83, "dictionaryTerms": 83}:
         fail(f"unexpected combined stats: {payload.get('stats')}")
 
     manifest_by_id = {entry["id"]: entry for entry in manifest.get("documents", [])}
@@ -100,7 +100,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
             fail(f"{document['id']} dictionary source-line binding failed")
 
     chambers, cardflow = documents
-    if chambers["stats"] != {"sequences": 13, "actors": 34, "calls": 170, "i3Calls": 119, "hostCalls": 51, "functions": 50, "usedFunctions": 49, "dictionaryTerms": 53}:
+    if chambers["stats"] != {"sequences": 13, "actors": 34, "calls": 172, "i3Calls": 121, "hostCalls": 51, "functions": 50, "usedFunctions": 49, "dictionaryTerms": 53}:
         fail(f"unexpected Chambers stats: {chambers['stats']}")
     if cardflow["stats"] != {"sequences": 9, "actors": 19, "calls": 66, "i3Calls": 66, "hostCalls": 0, "functions": 33, "usedFunctions": 31, "dictionaryTerms": 30}:
         fail(f"unexpected Cardflow stats: {cardflow['stats']}")
@@ -180,6 +180,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
         "Persistence Covenant",
         "Supervisor Covenant",
         "Router and Supervisor are the mutual live-upgrade pair",
+        "operation-bound retention receipt + successor-scoped Admission renewal",
         "protected Router control listener",
         "one mechanism-only Host Agent replacing separate Procman, Image Materializer, and direct-runsc adapter roles",
         "Builder remains outside every boot Chamber",
@@ -202,6 +203,14 @@ def validate_manifest_and_bundle(payload: dict) -> None:
         fail("live Boot-set cutover must preserve Supervisor-, Router-, Persistence-, and Engine-changing branches")
     if "routing::claim" not in cutover_calls or "persistence::routing::prepare" not in cutover_calls:
         fail("live Boot-set cutover must preserve durable handover preparation and Router claim")
+    supervisor_branch = "Same Engine and only Supervisor changes"
+    if not any(
+        call["function"] == "routing::reconcile"
+        and call["from"] == "NextSupervisor"
+        and supervisor_branch in {context["branch"] for context in call["context"]}
+        for call in sequence_by_id["core-cutover"]["calls"]
+    ):
+        fail("successor Supervisor must consume the prepared handover through the current Router")
     if cutover_calls.index("containerd_tag_update") >= cutover_calls.index("routing::inspect"):
         fail("live Boot-set cutover must prove successor routing only after the selection decision")
 

@@ -142,6 +142,7 @@ navigational and does not alter the definition.
 - `one Supervisor Chamber -> one Supervisor Covenant Realization -> one replaceable Supervisor worker`.
 - `Engine, Router, Persistence, and Supervisor Chamber fates are independent`; a component-only replacement reuses every unchanged selected Chamber.
 - `one Boot-set selector -> one coherent quartet`; independent task fate never becomes independent durable selection.
+- `unchanged member reuse across Boot sets -> byte-identical Realization, launch plan, registration contract, dependency epochs, and identity + operation-bound retention receipt + successor-scoped Admission renewal`; otherwise that member restarts.
 - `same-Engine live Boot-set cutover -> at most one of Router, Persistence, or Supervisor Realization changes`; changing several requires sequential accepted Boot sets.
 - `Router replacement and Supervisor replacement never overlap`; one current counterpart remains the handover authority until the other is complete.
 - `one ordinary Chamber -> one runnable Covenant realization`.
@@ -186,10 +187,10 @@ bootstrap closure.
 - `current[name] = {revision, realization}` for ordinary lifecycles remains Persistence-owned.
 - `candidates[name][realization id] = Hold reference`; candidate state adds no duplicate realization fields.
 - `chambers[Chamber id] = {name, realization, lease, phase}` for ordinary Chambers.
-- `engine_chamber = {bootset, engine realization, image, Chamber id, task id, listeners, Engine epoch, phase}`.
-- `router_chamber = {bootset, router realization, image, Chamber id, task id, Engine epoch, route epoch, phase}`.
-- `persistence_chamber = {bootset, persistence realization, image, Chamber id, task id, Engine epoch, schema, phase}`.
-- `supervisor_chamber = {bootset, supervisor realization, image, Chamber id, task id, Engine epoch, route epoch, phase}`.
+- `engine_chamber = {started_by_bootset, retained_for_bootset, engine realization, image, Chamber id, task id, listeners, Engine epoch, phase}`.
+- `router_chamber = {started_by_bootset, retained_for_bootset, router realization, image, Chamber id, task id, Engine epoch, route epoch, phase}`.
+- `persistence_chamber = {started_by_bootset, retained_for_bootset, persistence realization, image, Chamber id, task id, Engine epoch, schema, phase}`.
+- `supervisor_chamber = {started_by_bootset, retained_for_bootset, supervisor realization, image, Chamber id, task id, Engine epoch, route epoch, phase}`.
 - `Router RAM = projection(Persistence desired-route snapshot, live Chamber observations, Engine epoch, route epoch)`; it is never the sole durable record of desired routes, selections, handover generation, or fences.
 - `admissions[lease] = {peer id, Chamber id, realization, registration contract, listener, connection epoch, profile, expiry, state}` for ordinary Chambers.
 - `phase = intended | starting | ready | stopping`; terminal Chambers leave immutable receipts, not live state.
@@ -316,7 +317,7 @@ none is a second general process manager or Covenant loader.
 | --- | --- | --- |
 | `routing::authenticate` | I3 | Engine's fixed RBAC authentication hook: verify one exact Boot-set or lease-scoped identity and return its bounded Router profile; default deny. |
 | `routing::authorize_registration` | I3 | Engine's fixed registration hook: admit only the exact profile, prefix, epoch, and registration contract bound by Admission; default deny. |
-| `routing::reconcile` | I3 | Under an exact selected or candidate Router prefix, register or replace the complete stable route and activation-factory projection derived from one Persistence snapshot and route epoch. |
+| `routing::reconcile` | I3 | Under an exact selected or candidate Router prefix, register or replace the complete stable route and activation-factory projection derived from one Persistence snapshot and route epoch. A successor Supervisor may invoke the selected Router only through an operation-bound handover plan after exact Boot-set-tag readback. |
 | `routing::inspect` | I3 | Return operation-bound registration owners, canonical-set digest, desired-snapshot revision, route epoch, fence state, and readiness evidence without mutation. |
 | `routing::fence` | I3 | Fence new admissions for one logical name, one Supervisor profile, or one exact route epoch at the expected revision. |
 | `routing::install` | I3 | Install the derived activation factory for one newly selected ordinary revision and Realization. |
@@ -578,7 +579,9 @@ stage BOOTSET-42, ENGINE-17, ROUTER-42, PERSISTENCE-42, and SUPERVISOR-42 by exa
 A crash before the image-record update leaves the complete predecessor selected. A crash after it leaves the
 complete successor quartet selected. Runtime reconciliation reuses each already running member only when its
 Realization, image, dependency epochs, identity, and task evidence match the selected Boot set; it never combines
-independently chosen components. The operation journal reconciles incomplete pinning, task, listener,
+independently chosen components. Reuse across a tag change also requires an operation-bound retention receipt and
+successor-scoped Admission renewal while preserving the immutable receipt naming the Boot set that originally
+started the Chamber. The operation journal reconciles incomplete pinning, task, listener,
 volume-fence, route, and cleanup effects; it is not a second selection pointer.
 
 The lower installer creates the first tag only after proving the Ark unenrolled and consuming one accepted
@@ -623,7 +626,8 @@ persistence:
 host_agent:
   engine_chamber:
     chamber_id: chamber:ENGINE-7
-    bootset: sha256:BOOTSET-42
+    started_by_bootset: sha256:BOOTSET-42
+    retained_for_bootset: sha256:BOOTSET-42
     realization: sha256:REALIZATION-E17
     image: sha256:ENGINE-17
     task_id: engine-boot-7
@@ -631,7 +635,8 @@ host_agent:
     phase: ready
   router_chamber:
     chamber_id: chamber:ROUTER-9
-    bootset: sha256:BOOTSET-42
+    started_by_bootset: sha256:BOOTSET-42
+    retained_for_bootset: sha256:BOOTSET-42
     realization: sha256:REALIZATION-R42
     image: sha256:ROUTER-42
     task_id: router-9
@@ -640,7 +645,8 @@ host_agent:
     phase: ready
   persistence_chamber:
     chamber_id: chamber:PERSISTENCE-6
-    bootset: sha256:BOOTSET-42
+    started_by_bootset: sha256:BOOTSET-42
+    retained_for_bootset: sha256:BOOTSET-42
     realization: sha256:REALIZATION-P42
     image: sha256:PERSISTENCE-42
     task_id: persistence-6
@@ -649,7 +655,8 @@ host_agent:
     phase: ready
   supervisor_chamber:
     chamber_id: chamber:SUPERVISOR-12
-    bootset: sha256:BOOTSET-42
+    started_by_bootset: sha256:BOOTSET-42
+    retained_for_bootset: sha256:BOOTSET-42
     realization: sha256:REALIZATION-S42
     image: sha256:SUPERVISOR-42
     task_id: supervisor-12
@@ -900,11 +907,13 @@ sequenceDiagram
     Note over Engine,Router: Router connects through the protected control listener, receives a candidate<br/>direct prefix, and registers fixed auth, registration, routing, and inspection functions
     Engine->>Router: `routing::authenticate`
     Engine->>Router: `routing::authorize_registration`
+    Note over HostAgent,Router: Admit Host Agent through an exact Router-gated boot profile—<br/>only Router receives the protected control-listener capability
+    Engine->>Router: `routing::authenticate`
+    Engine->>Router: `routing::authorize_registration`
     Note over Router,Persistence: Admit exact selected Persistence identity and registration contract—<br/>recover selections, receipts, route snapshot, and exclusive volume lease
     Engine->>Router: `routing::authenticate`
     Engine->>Router: `routing::authorize_registration`
     Note over Router,Supervisor: Admit exact selected Supervisor identity and registration contract—<br/>only the selected profile receives lifecycle-mutation authority
-    Note over HostAgent,Router: Host Agent also connects through an exact Router-gated boot profile—<br/>only Router receives the protected control-listener capability
     Supervisor->>Persistence: `persistence::routing::read`
     Supervisor->>Router: `routing::reconcile`
     Note over Router,Engine: Router registers or replaces the complete stable alias and<br/>activation-factory set under one fenced route epoch
@@ -923,7 +932,9 @@ rebuildable projection, while Persistence remains authoritative for desired rout
 Router replacement, the current Supervisor prepares and tests the successor, fences admission, and commands its
 candidate prefix to claim the canonical function set one ID at a time. Stale predecessor disconnect cleanup
 cannot remove successor-owned IDs, but admission stays closed until the complete owner set is proved.
-Builder remains outside every boot Chamber and is activated only as a separate ordinary Covenant.
+Builder remains outside every boot Chamber and is activated only as a separate ordinary Covenant. After boot
+readiness, Supervisor brings up every non-boot service only by invoking the ordinary `chamber::activate` kernel;
+Host Agent executes the exact physical plan without interpreting why that service was chosen.
 
 ## Host reboot into the selected Boot set
 
@@ -1022,9 +1033,10 @@ source-composed Realization may be rematerialized from its exact base and resour
 artifact-backed graph is not rebuilt in this kernel: an authorized rebuild returns through candidate
 formation, and a different digest is a different candidate.
 
-The Noise connection is not admission by itself. Engine checks the Host Agent admission projection both when
-the secure connection identifies the remote PeerId and when the peer requests Worker Manager. A claimed
-Chamber ID is never authority. Private identities are fresh per lease and destroyed with the Chamber.
+The Noise connection is not admission by itself. Engine invokes Router's fixed authentication and registration
+hooks; Router validates the Host Agent-issued Admission both when the secure connection identifies the remote
+PeerId and when the peer requests Worker Manager. A claimed Chamber ID is never authority. Private identities
+are fresh per lease and destroyed with the Chamber.
 
 The current revision or candidate Hold is captured when intent commits. A concurrent selection change never
 relabels the Chamber, and a selected Realization may have zero live Chambers before or after this kernel.
@@ -1311,6 +1323,12 @@ Persistence-, or Supervisor-only cutover. A Boot set that changes Engine uses a 
 baseline does not claim zero downtime: III ownership transfer is per function ID, Persistence authority is
 exclusive, and Engine has no atomic multi-registration or whole-control-set promotion primitive.
 
+After the tag decision, Host Agent retains each unchanged member only by proving its exact selected Realization,
+launch plan, registration contract, identity, and dependency epochs, then recording a successor-scoped retention
+receipt and renewing its Boot-set Admission. This reconciliation changes no component selector and gives Host
+Agent no route-policy authority. Failure to prove or renew one unchanged member makes that member restart from the
+selected Boot set before admission reopens.
+
 `entry = ready predecessor quartet + accepted successor Boot set + exact preflight plan and custody`
 
 `exit = current tag and ready four-member boot set match successor, or exact journaled state for deterministic recovery`
@@ -1344,7 +1362,8 @@ sequenceDiagram
         Promoter->>HostAgent: `bootset::select`
         HostAgent->>containerd: `containerd_tag_update`
         Note over HostAgent,containerd: The one Boot-set tag mutation is the crash decision point
-        Supervisor->>Router: `routing::reconcile`
+        Note over HostAgent,Persistence: Retain unchanged Engine, Router, and Persistence only after exact<br/>successor-scoped retention proof and Admission renewal
+        NextSupervisor->>Router: `routing::reconcile`
         Note over Router,NextSupervisor: Atomically move stable Supervisor proxy targets to the ready successor<br/>and fence the predecessor mutation profile under the next route epoch
         HostAgent->>containerd: `containerd_task_stop`
         NextSupervisor->>Router: `routing::inspect`
@@ -1362,6 +1381,7 @@ sequenceDiagram
         Promoter->>HostAgent: `bootset::select`
         HostAgent->>containerd: `containerd_tag_update`
         Note over HostAgent,containerd: Commit successor reboot authority before canonical ownership transfer
+        Note over HostAgent,Supervisor: Retain unchanged Engine, Persistence, and Supervisor only after exact<br/>successor-scoped retention proof and Admission renewal
         HostAgent->>containerd: `containerd_task_stop`
         Note over HostAgent,Router: Stop the exact predecessor Router and revoke its protected control-listener<br/>capability before claim—this is task fencing, not route selection
         Supervisor->>NextRouter: `routing::claim`
@@ -1381,6 +1401,7 @@ sequenceDiagram
         Supervisor->>Promoter: `selection::authorize`
         Promoter->>HostAgent: `bootset::select`
         HostAgent->>containerd: `containerd_tag_update`
+        Note over HostAgent,Supervisor: Retain unchanged Engine, Router, and Supervisor only after exact<br/>successor-scoped retention proof and Admission renewal
         HostAgent->>containerd: `containerd_task_stop`
         HostAgent->>containerd: `containerd_task_start`
         Note over Persistence,NextPersistence: Start only the selected successor against authoritative data<br/>and complete any forward-compatible migration after the tag decision
@@ -1570,6 +1591,7 @@ source disappears, rebuilding is candidate work and a different digest is a diff
 - `Router successor claims only a subset -> remain fenced`; recover the selected Boot set or explicitly select compatible predecessor—never publish the partial set.
 - `same Engine + Persistence-only replacement -> retain exact Router and Supervisor`; preflight read-only, flush and stop predecessor writer, commit tag, then start only successor against authoritative data.
 - `same Engine + several changed boot-control Realizations -> reject one-step live handover`; construct sequential accepted Boot sets so only one changes at a time.
+- `unchanged boot member crosses a committed Boot-set tag update -> require exact retention proof and successor-scoped Admission renewal`; otherwise restart that selected member rather than silently adopting it.
 - `different selected Engine Realization -> stop predecessor Supervisor, Persistence, Router, then Engine and start successor Engine, Router, Persistence, then Supervisor`; a fresh Engine epoch fences stale Admissions.
 - `candidate Hold expires -> reap its candidate Chambers + remove candidates[name][R] + emit cleanup receipt`, unless another selector, candidate, or operation retains the exact durable launch data.
 - `source-composed ordinary runtime view unavailable -> rematerialize from exact durable launch data while its exact base graph remains obtainable; otherwise activation fails`.

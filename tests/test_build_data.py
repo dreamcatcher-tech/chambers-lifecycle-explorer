@@ -75,7 +75,7 @@ class BuildDataTests(unittest.TestCase):
 
     def test_document_counts_match_the_two_sources(self) -> None:
         chambers = self.documents["chambers"]["stats"]
-        self.assertEqual((13, 170, 50, 119, 51, 53), (
+        self.assertEqual((13, 172, 50, 121, 51, 53), (
             chambers["sequences"], chambers["calls"], chambers["functions"],
             chambers["i3Calls"], chambers["hostCalls"], chambers["dictionaryTerms"],
         ))
@@ -125,8 +125,8 @@ class BuildDataTests(unittest.TestCase):
         self.assertIn("containerd_import", installation_calls)
         self.assertIn("containerd_tag_update", installation_calls)
         self.assertNotIn("persistence::realization::read", host_calls)
-        self.assertEqual(2, core_calls.count("routing::authenticate"))
-        self.assertEqual(2, core_calls.count("routing::authorize_registration"))
+        self.assertEqual(3, core_calls.count("routing::authenticate"))
+        self.assertEqual(3, core_calls.count("routing::authorize_registration"))
         self.assertIn("persistence::routing::read", core_calls)
         self.assertIn("routing::reconcile", core_calls)
         self.assertNotIn("persistence::realization::read", reboot_calls)
@@ -214,6 +214,7 @@ class BuildDataTests(unittest.TestCase):
         self.assertIn("A crash before the image-record update leaves the complete predecessor selected", snapshot)
         self.assertIn("Builder remains outside every boot Chamber", snapshot)
         self.assertIn("Router and Supervisor are the mutual live-upgrade pair", snapshot)
+        self.assertIn("operation-bound retention receipt + successor-scoped Admission renewal", snapshot)
 
         sequences = {sequence["id"]: sequence for sequence in chambers["sequences"]}
         reboot = sequences["core-reboot"]
@@ -258,6 +259,15 @@ class BuildDataTests(unittest.TestCase):
             and any("task fencing, not route selection" in note["text"] for note in call["notes"])
         )
         self.assertLess(predecessor_stop_index, claim_index)
+
+        supervisor_branch = "Same Engine and only Supervisor changes"
+        successor_reconcile = next(
+            call for call in cutover["calls"]
+            if call["function"] == "routing::reconcile"
+            and call["from"] == "NextSupervisor"
+            and supervisor_branch in branch_of(call)
+        )
+        self.assertEqual("Router", successor_reconcile["to"])
 
         completed_branches = {
             branch
