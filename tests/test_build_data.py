@@ -31,6 +31,7 @@ class BuildDataTests(unittest.TestCase):
                 "host-activation",
                 "core-bootstrap",
                 "core-reboot",
+                "boot-crash-repair",
                 "candidate-formation",
                 "fenced-development",
                 "artifact-build",
@@ -38,6 +39,7 @@ class BuildDataTests(unittest.TestCase):
                 "candidate-verification",
                 "selection-rollback",
                 "prepared-execution",
+                "ordinary-routed-cutover",
                 "core-cutover",
                 "quiesce-wake",
             },
@@ -76,7 +78,7 @@ class BuildDataTests(unittest.TestCase):
 
     def test_document_counts_match_the_two_sources(self) -> None:
         chambers = self.documents["chambers"]["stats"]
-        self.assertEqual((14, 190, 54, 139, 51, 57), (
+        self.assertEqual((16, 198, 59, 137, 61, 57), (
             chambers["sequences"], chambers["calls"], chambers["functions"],
             chambers["i3Calls"], chambers["hostCalls"], chambers["dictionaryTerms"],
         ))
@@ -113,15 +115,16 @@ class BuildDataTests(unittest.TestCase):
         }
         self.assertEqual(
             {
-                "install_boot_seed", "wake_bootset", "deliver_final_reply", "containerd_import",
-                "containerd_resolve", "containerd_tag_update", "containerd_task_start",
-                "containerd_task_stop",
+                "install_boot_seed", "wake_bootset", "repair_boot_member", "deliver_final_reply",
+                "bootset_selector_seed", "bootset_selector_read", "bootset_selector_fallback",
+                "persistence_volume_attach", "persistence_volume_release", "containerd_import",
+                "containerd_resolve", "containerd_task_start", "containerd_task_stop",
             },
             chambers_host,
         )
         self.assertTrue(all(function["kind"] == "i3" for function in self.documents["cardflow"]["functions"]))
 
-    def test_chambers_display_starts_with_genesis_bootstrap_reboot_then_ordinary_activation(self) -> None:
+    def test_chambers_display_starts_with_genesis_bootstrap_reboot_repair_then_ordinary_activation(self) -> None:
         sequences = self.documents["chambers"]["sequences"]
         self.assertEqual(
             [
@@ -129,9 +132,10 @@ class BuildDataTests(unittest.TestCase):
                 ("host-activation", "Selected Boot set cold start"),
                 ("core-bootstrap", "Boot control bootstrap"),
                 ("core-reboot", "Reboot selected Boot set"),
+                ("boot-crash-repair", "Same-selection crash repair"),
                 ("activation-kernel", "Ordinary activation"),
             ],
-            [(sequence["id"], sequence["shortTitle"]) for sequence in sequences[:5]],
+            [(sequence["id"], sequence["shortTitle"]) for sequence in sequences[:6]],
         )
         self.assertEqual(list(range(1, len(sequences) + 1)), [sequence["ordinal"] for sequence in sequences])
 
@@ -142,34 +146,39 @@ class BuildDataTests(unittest.TestCase):
         reboot_calls = [call["function"] for call in by_id["core-reboot"]["calls"]]
         ordinary_calls = [call["function"] for call in by_id["activation-kernel"]["calls"]]
         self.assertIn("containerd_import", installation_calls)
-        self.assertIn("containerd_tag_update", installation_calls)
+        self.assertIn("bootset_selector_seed", installation_calls)
+        self.assertNotIn("containerd_tag_update", installation_calls)
+        self.assertEqual(1, host_calls.count("bootset_selector_read"))
+        self.assertEqual(4, host_calls.count("containerd_task_start"))
+        self.assertIn("persistence_volume_attach", host_calls)
         self.assertNotIn("persistence::realization::read", host_calls)
-        self.assertEqual(3, core_calls.count("routing::authenticate"))
-        self.assertEqual(3, core_calls.count("routing::authorize_registration"))
+        self.assertEqual(2, core_calls.count("routing::authenticate"))
+        self.assertEqual(2, core_calls.count("routing::authorize_registration"))
         self.assertIn("persistence::routing::read", core_calls)
         self.assertIn("routing::reconcile", core_calls)
+        self.assertEqual(1, reboot_calls.count("bootset_selector_read"))
         self.assertNotIn("persistence::realization::read", reboot_calls)
         self.assertIn("persistence::realization::read", ordinary_calls)
         self.assertIn("chamber::activate", ordinary_calls)
         self.assertIn("wake_bootset", host_calls)
         self.assertNotIn("engine::identity::attest", host_calls)
-        self.assertEqual(4, host_calls.count("containerd_task_start"))
 
         cold_starts = [call for call in by_id["host-activation"]["calls"] if call["function"] == "containerd_task_start"]
-        labels = {context["label"] for call in cold_starts for context in call["context"]}
         branches = {context["branch"] for call in cold_starts for context in call["context"]}
-        self.assertIn("No matching ready Engine task exists", labels)
-        self.assertIn("No matching ready Router task exists", labels)
-        self.assertIn("No matching ready Persistence task exists", labels)
-        self.assertIn("No matching ready Supervisor task exists", labels)
-        self.assertIn("Exact selected closures are retained", branches)
+        self.assertIn("Selected and authorized-fallback closures are exact and retained", branches)
+        notes = " ".join(note["text"] for call in cold_starts for note in call["notes"])
+        for marker in ("Fresh Engine", "Fresh Persistence", "Fresh Gateway", "Fresh Supervisor"):
+            self.assertIn(marker, notes)
 
     def test_host_agent_and_containerd_projection_preserve_authority_order(self) -> None:
         chambers = self.documents["chambers"]
+        boot_order = ["Engine", "Persistence", "Gateway", "Supervisor"]
         for sequence in chambers["sequences"]:
             participant_ids = [participant["id"] for participant in sequence["participants"]]
             if "HostAgent" in participant_ids:
                 self.assertEqual("HostAgent", participant_ids[0], sequence["id"])
+            present = [item for item in boot_order if item in participant_ids]
+            self.assertEqual(sorted(participant_ids.index(item) for item in present), [participant_ids.index(item) for item in present])
             for call in sequence["calls"]:
                 if call["to"] == "containerd":
                     self.assertEqual("HostAgent", call["from"], sequence["id"])
@@ -178,133 +187,133 @@ class BuildDataTests(unittest.TestCase):
             self.assertNotIn("Runtime", participant_ids)
             self.assertNotIn("Materializer", participant_ids)
             self.assertNotIn("procman", participant_ids)
+            self.assertNotIn("Router", participant_ids)
 
         host_activation = next(sequence for sequence in chambers["sequences"] if sequence["id"] == "host-activation")
         roles = {participant["id"]: participant["role"] for participant in host_activation["participants"]}
         self.assertEqual("host", roles["HostAgent"])
         self.assertEqual("host", roles["containerd"])
+        self.assertEqual("resource", roles["BootControl"])
+        self.assertEqual("resource", roles["Volume"])
+        self.assertEqual("resource", roles["Persistence"])
+        self.assertEqual("control", roles["Gateway"])
 
         functions = {function["id"]: function for function in chambers["functions"]}
         self.assertEqual("Host Agent", functions["chamber::activate"]["owner"])
-        self.assertEqual("Host Agent", functions["chamber::stop"]["owner"])
-        self.assertEqual("Host Agent", functions["bootset::select"]["owner"])
-        self.assertEqual("containerd and boot members", functions["containerd_task_start"]["owner"])
-        self.assertEqual("Router", functions["routing::reconcile"]["owner"])
+        self.assertEqual("Host Agent", functions["bootset::restart"]["owner"])
+        self.assertEqual("Persistence", functions["persistence::bootset::commit"]["owner"])
+        self.assertEqual("boot-control slice, containerd, and boot members", functions["containerd_task_start"]["owner"])
+        self.assertEqual("Gateway", functions["routing::reconcile"]["owner"])
 
     def test_protected_boot_and_reconstructable_runtime_semantics_survive_projection(self) -> None:
         chambers = self.documents["chambers"]
         snapshot = (ROOT / "source" / chambers["source"]["snapshotPath"]).read_text(encoding="utf-8")
+        flat = snapshot.replace("\n", " ")
         self.assertNotIn("Filesystem Service", snapshot)
         self.assertNotIn("filesystem::", snapshot)
-        self.assertIn("containerd boot namespace = product-durable Boot-set state", snapshot)
+        self.assertIn("containerd protected boot namespace = immutable Boot-set manifests", snapshot)
         self.assertIn("containerd ordinary runtime namespace = reconstructable", snapshot)
         self.assertIn("containerd state directory = volatile runtime state", snapshot)
-        self.assertIn("only containerd client and the only writer", snapshot)
+        self.assertIn("durable Ark volume -> boot-control slice + Persistence data", snapshot)
+        self.assertIn("Persistence is the only Chamber with the authoritative RW host-backed volume", flat)
+        self.assertIn("Host Agent normally reads only the `boot-control` slice at a cold boundary", flat)
 
-        persistence_roles = {
-            participant["role"]
-            for sequence in chambers["sequences"]
-            for participant in sequence["participants"]
-            if participant["id"] == "Persistence"
-        }
-        self.assertEqual({"resource"}, persistence_roles)
-        self.assertFalse(
-            any(
-                participant["id"] == "Boot"
-                for sequence in chambers["sequences"]
-                for participant in sequence["participants"]
-            )
-        )
+        roles: dict[str, set[str]] = {}
+        for sequence in chambers["sequences"]:
+            for participant in sequence["participants"]:
+                roles.setdefault(participant["id"], set()).add(participant["role"])
+        self.assertEqual({"resource"}, roles["Persistence"])
+        self.assertEqual({"resource"}, roles["BootControl"])
+        self.assertEqual({"resource"}, roles["Volume"])
+        self.assertEqual({"control"}, roles["Gateway"])
 
         calls = [call for sequence in chambers["sequences"] for call in sequence["calls"]]
         self.assertFalse(any(call["from"] == "containerd" for call in calls))
-        self.assertFalse(
-            any({call["from"], call["to"]} == {"containerd", "Persistence"} for call in calls)
-        )
+        self.assertFalse(any({call["from"], call["to"]} == {"containerd", "Persistence"} for call in calls))
         build = next(sequence for sequence in chambers["sequences"] if sequence["id"] == "artifact-build")
         self.assertNotIn("containerd", {participant["id"] for participant in build["participants"]})
         self.assertIn("persistence::build::record", [call["function"] for call in build["calls"]])
 
-    def test_engine_first_bootset_and_cutover_authority_survive_projection(self) -> None:
+    def test_engine_first_bootset_and_whole_stack_replacement_survive_projection(self) -> None:
         chambers = self.documents["chambers"]
         snapshot = (ROOT / "source" / chambers["source"]["snapshotPath"]).read_text(encoding="utf-8")
-        self.assertIn("dreamcatcher/bootset:current", snapshot)
-        self.assertIn("Selection uses one image-record mutation over the coherent quartet", snapshot)
-        self.assertIn("A crash before the image-record update leaves the complete predecessor selected", snapshot)
+        flat = snapshot.replace("\n", " ")
+        self.assertIn("boot-control/selected.json", snapshot)
+        self.assertIn("Engine, Persistence, Gateway, Supervisor", snapshot)
+        self.assertIn("Gateway combines Router, RBAC/authorization, bounded volatile buffering", flat)
+        self.assertIn("Any selected Boot-set member change", snapshot)
+        self.assertIn("one-attempt last-known-good fallback", snapshot)
         self.assertIn("Builder remains outside every boot Chamber", snapshot)
-        self.assertIn("Router and Supervisor are the mutual live-upgrade pair", snapshot)
-        self.assertIn("operation-bound retention receipt + successor-scoped Admission renewal", snapshot)
+        self.assertNotIn("dreamcatcher/bootset:current", snapshot)
+        self.assertNotIn("routing::claim", snapshot)
 
         sequences = {sequence["id"]: sequence for sequence in chambers["sequences"]}
-        reboot = sequences["core-reboot"]
-        reboot_functions = [call["function"] for call in reboot["calls"]]
+        reboot_functions = [call["function"] for call in sequences["core-reboot"]["calls"]]
         self.assertEqual(4, reboot_functions.count("containerd_task_start"))
+        self.assertEqual(1, reboot_functions.count("bootset_selector_read"))
         self.assertNotIn("containerd_import", reboot_functions)
-        self.assertNotIn("artifact::build", reboot_functions)
 
-        selection = sequences["selection-rollback"]
-        functions = [call["function"] for call in selection["calls"]]
-        self.assertLess(functions.index("bootset::stage"), functions.index("bootset::select"))
-        tag_update = next(call for call in selection["calls"] if call["function"] == "containerd_tag_update")
-        self.assertEqual(("HostAgent", "containerd"), (tag_update["from"], tag_update["to"]))
+        selection_functions = [call["function"] for call in sequences["selection-rollback"]["calls"]]
+        self.assertLess(selection_functions.index("bootset::stage"), selection_functions.index("persistence::bootset::commit"))
+        self.assertLess(selection_functions.index("persistence::bootset::commit"), selection_functions.index("bootset::restart"))
+        self.assertNotIn("containerd_tag_update", selection_functions)
 
-        cutover_functions = [call["function"] for call in sequences["core-cutover"]["calls"]]
-        self.assertLess(cutover_functions.index("containerd_tag_update"), cutover_functions.index("routing::inspect"))
-        self.assertEqual(12, cutover_functions.count("containerd_task_start"))
-        self.assertEqual(4, cutover_functions.count("containerd_tag_update"))
-        self.assertIn("routing::claim", cutover_functions)
-        self.assertIn("persistence::routing::prepare", cutover_functions)
+        replacement = [call["function"] for call in sequences["core-cutover"]["calls"]]
+        self.assertEqual(4, replacement.count("containerd_task_start"))
+        self.assertEqual(5, replacement.count("containerd_task_stop"))
+        for function in ("bootset_selector_read", "bootset_selector_fallback", "persistence_volume_attach", "persistence_volume_release"):
+            self.assertIn(function, replacement)
 
-    def test_mutual_router_supervisor_handover_context_survives_projection(self) -> None:
+        ordinary = [call["function"] for call in sequences["ordinary-routed-cutover"]["calls"]]
+        for function in ("routing::fence", "persistence::selection::commit", "routing::install", "routing::reopen"):
+            self.assertIn(function, ordinary)
+        self.assertNotIn("persistence::bootset::commit", ordinary)
+
+    def test_replacement_fallback_and_crash_context_survive_projection(self) -> None:
         chambers = self.documents["chambers"]
-        cutover = next(sequence for sequence in chambers["sequences"] if sequence["id"] == "core-cutover")
-        participants = {participant["id"]: participant["role"] for participant in cutover["participants"]}
-        self.assertEqual("control", participants["Router"])
-        self.assertEqual("control", participants["NextRouter"])
-        self.assertEqual("control", participants["Supervisor"])
+        sequences = {sequence["id"]: sequence for sequence in chambers["sequences"]}
+        replacement = sequences["core-cutover"]
+        participants = {participant["id"]: participant["role"] for participant in replacement["participants"]}
+        self.assertEqual("resource", participants["BootControl"])
+        self.assertEqual("resource", participants["Volume"])
         self.assertEqual("resource", participants["Persistence"])
+        self.assertEqual("control", participants["Gateway"])
 
         branch_of = lambda call: {context["branch"] for context in call["context"]}
-        claim_index, claim = next(
-            (index, call) for index, call in enumerate(cutover["calls"])
-            if call["function"] == "routing::claim"
-        )
-        router_branch = "Same Engine and only Router changes"
-        self.assertIn(router_branch, branch_of(claim))
-        predecessor_stop_index, predecessor_stop = next(
-            (index, call) for index, call in enumerate(cutover["calls"])
-            if call["function"] == "containerd_task_stop"
-            and router_branch in branch_of(call)
-            and any("task fencing, not route selection" in note["text"] for note in call["notes"])
-        )
-        self.assertLess(predecessor_stop_index, claim_index)
+        fallback = next(call for call in replacement["calls"] if call["function"] == "bootset_selector_fallback")
+        self.assertIn("Successor does not become ready", branch_of(fallback))
+        self.assertIn("Failure precedes admission/effects and exact fallback is eligible", branch_of(fallback))
+        self.assertTrue(any("one-attempt permit" in note["text"] for note in fallback["notes"]))
 
-        supervisor_branch = "Same Engine and only Supervisor changes"
-        successor_reconcile = next(
-            call for call in cutover["calls"]
-            if call["function"] == "routing::reconcile"
-            and call["from"] == "NextSupervisor"
-            and supervisor_branch in branch_of(call)
+        ordinary = sequences["ordinary-routed-cutover"]
+        success_install = next(call for call in ordinary["calls"] if call["function"] == "routing::install")
+        self.assertIn("Successor selection and exact readiness agree", branch_of(success_install))
+        failed_stop = next(
+            call for call in ordinary["calls"]
+            if call["function"] == "chamber::stop"
+            and "Ordinary compare-and-swap or successor readiness fails" in branch_of(call)
         )
-        self.assertEqual("Router", successor_reconcile["to"])
+        self.assertTrue(any("reap failed candidate" in note["text"] for note in failed_stop["notes"]))
 
-        completed_branches = {
-            branch
-            for call in cutover["calls"] if call["function"] == "persistence::routing::complete"
-            for branch in branch_of(call)
+        repair = sequences["boot-crash-repair"]
+        repair_branches = {
+            branch for call in repair["calls"] for branch in branch_of(call)
+            if branch.startswith("Exact selected") or branch.startswith("Engine crashed")
         }
         self.assertEqual(
             {
-                "Same Engine and only Supervisor changes",
-                "Same Engine and only Router changes",
-                "Same Engine and only Persistence changes",
-                "Successor changes the Bootstrap Engine Realization",
+                "Exact selected Supervisor crashed",
+                "Exact selected Persistence crashed",
+                "Exact selected Gateway crashed",
+                "Engine crashed, identity or volume fence is uncertain, or bounded repair failed",
             },
-            completed_branches,
+            repair_branches,
         )
+        self.assertNotIn("bootset_selector_read", [call["function"] for call in repair["calls"]])
 
-        forbidden = {"routing::reconcile", "routing::fence", "routing::install", "routing::reopen", "routing::claim"}
-        self.assertFalse(any(call["from"] == "HostAgent" and call["function"] in forbidden for call in cutover["calls"]))
+        forbidden = {"routing::reconcile", "routing::fence", "routing::install", "routing::reopen"}
+        all_calls = [call for sequence in chambers["sequences"] for call in sequence["calls"]]
+        self.assertFalse(any(call["from"] == "HostAgent" and call["function"] in forbidden for call in all_calls))
 
     def test_break_and_else_note_contexts_are_preserved(self) -> None:
         registry = {
@@ -413,7 +422,7 @@ class BuildDataTests(unittest.TestCase):
         self.assertIn("Covenant lock plus one normalized launch specification", chambers["realization"]["definition"])
         self.assertIn("boot-set-selection", chambers["boot-set"]["related"])
         self.assertIn("bootstrap-engine-covenant", chambers["boot-set"]["related"])
-        self.assertIn("router-covenant", chambers["boot-set"]["related"])
+        self.assertIn("gateway-covenant", chambers["boot-set"]["related"])
         self.assertIn("persistence-covenant", chambers["boot-set"]["related"])
         self.assertIn("supervisor-covenant", chambers["boot-set"]["related"])
 

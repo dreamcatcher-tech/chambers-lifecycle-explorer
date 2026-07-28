@@ -67,7 +67,8 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     documents = payload.get("documents", [])
     if [document.get("id") for document in documents] != ["chambers", "cardflow"]:
         fail("bundle must contain Chambers and Cardflow in that order")
-    if payload.get("stats") != {"documents": 2, "sequences": 23, "calls": 256, "functions": 87, "dictionaryTerms": 87}:
+    expected_stats = {"documents": 2, "sequences": 25, "calls": 264, "functions": 92, "dictionaryTerms": 87}
+    if payload.get("stats") != expected_stats:
         fail(f"unexpected combined stats: {payload.get('stats')}")
 
     manifest_by_id = {entry["id"]: entry for entry in manifest.get("documents", [])}
@@ -85,7 +86,8 @@ def validate_manifest_and_bundle(payload: dict) -> None:
             fail(f"{document['id']} exact source URL is wrong")
         if not document.get("sequences") or not document.get("functions") or not document.get("dictionary"):
             fail(f"{document['id']} has no generated sequence/function/dictionary content")
-        if any(call["function"] not in {fn["id"] for fn in document["functions"]} for sequence in document["sequences"] for call in sequence["calls"]):
+        function_ids = {fn["id"] for fn in document["functions"]}
+        if any(call["function"] not in function_ids for sequence in document["sequences"] for call in sequence["calls"]):
             fail(f"{document['id']} contains an unresolved call")
         dictionary_ids = {term["id"] for term in document["dictionary"]}
         if len(dictionary_ids) != len(document["dictionary"]):
@@ -100,20 +102,41 @@ def validate_manifest_and_bundle(payload: dict) -> None:
             fail(f"{document['id']} dictionary source-line binding failed")
 
     chambers, cardflow = documents
-    if chambers["stats"] != {"sequences": 14, "actors": 36, "calls": 190, "i3Calls": 139, "hostCalls": 51, "functions": 54, "usedFunctions": 54, "dictionaryTerms": 57}:
+    expected_chambers = {
+        "sequences": 16, "actors": 33, "calls": 198, "i3Calls": 137,
+        "hostCalls": 61, "functions": 59, "usedFunctions": 59, "dictionaryTerms": 57,
+    }
+    if chambers["stats"] != expected_chambers:
         fail(f"unexpected Chambers stats: {chambers['stats']}")
-    if cardflow["stats"] != {"sequences": 9, "actors": 19, "calls": 66, "i3Calls": 66, "hostCalls": 0, "functions": 33, "usedFunctions": 31, "dictionaryTerms": 30}:
+    expected_cardflow = {
+        "sequences": 9, "actors": 19, "calls": 66, "i3Calls": 66,
+        "hostCalls": 0, "functions": 33, "usedFunctions": 31, "dictionaryTerms": 30,
+    }
+    if cardflow["stats"] != expected_cardflow:
         fail(f"unexpected Cardflow stats: {cardflow['stats']}")
 
-    expected_startup = ["core-installation", "host-activation", "core-bootstrap", "core-reboot", "activation-kernel"]
-    if [sequence["id"] for sequence in chambers["sequences"][:5]] != expected_startup:
-        fail("Chambers must present first boot install, selected Boot-set cold start, boot control bootstrap, selected-Boot-set reboot, then ordinary activation")
+    expected_startup = [
+        "core-installation", "host-activation", "core-bootstrap", "core-reboot",
+        "boot-crash-repair", "activation-kernel",
+    ]
+    if [sequence["id"] for sequence in chambers["sequences"][:6]] != expected_startup:
+        fail("Chambers must present install, cold start, bootstrap, reboot, crash repair, then ordinary activation")
+
+    host_i3 = {
+        "chamber::activate", "chamber::inspect", "chamber::stop",
+        "bootset::stage", "bootset::inspect", "bootset::restart", "bootset::quiesce",
+    }
+    boot_order = ["Engine", "Persistence", "Gateway", "Supervisor"]
     for sequence in chambers["sequences"]:
         participants = [participant["id"] for participant in sequence["participants"]]
         if "HostAgent" in participants and participants[0] != "HostAgent":
             fail(f"{sequence['id']} does not keep Host Agent leftmost")
-        if any(item in participants for item in ("procman", "Materializer", "Runtime")):
-            fail(f"{sequence['id']} retains a removed Chambers host lane")
+        if any(item in participants for item in ("procman", "Materializer", "Runtime", "Router", "NextRouter")):
+            fail(f"{sequence['id']} retains a removed Chambers lane")
+        present = [item for item in boot_order if item in participants]
+        positions = [participants.index(item) for item in present]
+        if positions != sorted(positions):
+            fail(f"{sequence['id']} violates Engine/Persistence/Gateway/Supervisor dependency order")
         for call in sequence["calls"]:
             if call["to"] == "containerd" and (
                 call["from"] != "HostAgent" or not call["function"].startswith("containerd_")
@@ -121,98 +144,113 @@ def validate_manifest_and_bundle(payload: dict) -> None:
                 fail(f"{sequence['id']} bypasses the Host Agent containerd boundary")
             if call["from"] == "containerd":
                 fail(f"{sequence['id']} lets containerd initiate lifecycle work")
-            if call["function"] in {
-                "chamber::activate", "chamber::inspect", "chamber::stop",
-                "bootset::stage", "bootset::inspect", "bootset::select", "bootset::quiesce",
-            } and call["to"] != "HostAgent":
+            if call["function"] in host_i3 and call["to"] != "HostAgent":
                 fail(f"{sequence['id']} aims a Host Agent I3 function at {call['to']}")
 
     sequence_by_id = {sequence["id"]: sequence for sequence in chambers["sequences"]}
     host_activation = sequence_by_id["host-activation"]
     host_calls = [call["function"] for call in host_activation["calls"]]
     if "engine::identity::attest" in host_calls or host_calls.count("containerd_task_start") != 4:
-        fail("selected Boot-set cold start must have four ordered conditional starts and no identity-attest call")
-    activations = [call for call in host_activation["calls"] if call["function"] == "containerd_task_start"]
-    activation_labels = {context["label"] for call in activations for context in call["context"]}
-    expected_activation_labels = {
-        "No matching ready Engine task exists",
-        "No matching ready Router task exists",
-        "No matching ready Persistence task exists",
-        "No matching ready Supervisor task exists",
-    }
-    if not expected_activation_labels <= activation_labels:
-        fail("cold-start task starts must retain separate ordered no-matching boot-member branches")
+        fail("selected Boot-set cold start must have four fresh starts and no identity-attest call")
+    if host_calls.count("bootset_selector_read") != 1 or "persistence_volume_attach" not in host_calls:
+        fail("selected Boot-set cold start must read selected.json once and attach the exclusive Persistence volume")
+    host_participants = [participant["id"] for participant in host_activation["participants"]]
+    if [item for item in boot_order if item in host_participants] != boot_order:
+        fail("selected Boot-set cold start must declare Engine, Persistence, Gateway, Supervisor in order")
 
     all_calls = [call for sequence in chambers["sequences"] for call in sequence["calls"]]
-    if any(call["from"] == "containerd" for call in all_calls):
-        fail("containerd must not initiate lifecycle, Persistence, or I3 calls")
-    if any({call["from"], call["to"]} == {"containerd", "Persistence"} for call in all_calls):
-        fail("containerd and Persistence must remain separated by the Host Agent boundary")
     for call in all_calls:
         if call["to"] == "Engine":
             fail("Engine must not own a Dreamcatcher lifecycle function")
         if call["from"] == "Engine" and not (
-            call["to"] == "Router"
+            call["to"] == "Gateway"
             and call["function"] in {"routing::authenticate", "routing::authorize_registration"}
         ):
-            fail("Engine may invoke only the fixed Router authentication and registration hooks")
-        if call["function"].startswith("routing::") and call["to"] not in {"Router", "NextRouter"}:
-            fail("every routing function must target the selected or candidate Router Covenant")
+            fail("Engine may invoke only the fixed Gateway authentication and registration hooks")
+        if call["function"].startswith("routing::") and call["to"] != "Gateway":
+            fail("every routing function must target Gateway")
+        if call["function"].startswith("persistence::") and call["to"] != "Persistence":
+            fail("every persistence function must target Persistence")
         if call["from"] == "HostAgent" and call["function"] in {
-            "routing::reconcile", "routing::fence", "routing::install", "routing::reopen", "routing::claim",
+            "routing::reconcile", "routing::fence", "routing::install", "routing::reopen",
         }:
-            fail("Host Agent must not mutate Router state")
-    persistence_roles = {
-        participant["role"]
-        for sequence in chambers["sequences"]
-        for participant in sequence["participants"]
-        if participant["id"] == "Persistence"
-    }
-    if persistence_roles != {"resource"}:
-        fail(f"Persistence must remain a resource actor, got {persistence_roles}")
+            fail("Host Agent must not mutate Gateway state")
+
+    roles_by_id: dict[str, set[str]] = {}
+    for sequence in chambers["sequences"]:
+        for participant in sequence["participants"]:
+            roles_by_id.setdefault(participant["id"], set()).add(participant["role"])
+    for participant_id in ("Persistence", "BootControl", "Volume"):
+        if roles_by_id.get(participant_id) != {"resource"}:
+            fail(f"{participant_id} must remain a resource actor, got {roles_by_id.get(participant_id)}")
+    if roles_by_id.get("Gateway") != {"control"}:
+        fail(f"Gateway must remain a control actor, got {roles_by_id.get('Gateway')}")
 
     chambers_snapshot = (SOURCE / chambers["source"]["snapshotPath"]).read_text(encoding="utf-8")
     required_boot_markers = (
-        "dreamcatcher/bootset:current",
-        "Selection uses one image-record mutation over the coherent quartet",
-        "Bootstrap Engine Covenant",
-        "Router Covenant",
-        "Persistence Covenant",
-        "Supervisor Covenant",
-        "Router and Supervisor are the mutual live-upgrade pair",
-        "operation-bound retention receipt + successor-scoped Admission renewal",
-        "protected Router control listener",
-        "one mechanism-only Host Agent replacing separate Procman, Image Materializer, and direct-runsc adapter roles",
+        "boot-control/selected.json",
+        "Engine, Persistence, Gateway, Supervisor",
+        "Gateway combines Router, RBAC/authorization, bounded volatile buffering",
+        "Persistence is the only Chamber with the authoritative RW host-backed volume",
+        "Any selected Boot-set member change",
+        "Routed warm replacement is exclusively an ordinary-Chamber mechanism",
+        "one-attempt last-known-good fallback",
+        "Gateway crash is recoverable",
+        "Engine crash is the case that deliberately escalates",
         "Builder remains outside every boot Chamber",
     )
-    missing_boot_markers = [marker for marker in required_boot_markers if marker not in chambers_snapshot]
+    missing_boot_markers = [
+        marker for marker in required_boot_markers
+        if marker not in chambers_snapshot.replace("\n", " ")
+    ]
     if missing_boot_markers:
         fail(f"Chambers boot authority contract is incomplete: {missing_boot_markers}")
-    reboot = sequence_by_id["core-reboot"]
-    reboot_calls = [call["function"] for call in reboot["calls"]]
-    if reboot_calls.count("containerd_task_start") != 4 or "containerd_import" in reboot_calls:
-        fail("selected-Boot-set reboot must start four retained members in dependency order")
-    selection = sequence_by_id["selection-rollback"]
-    selection_calls = [call["function"] for call in selection["calls"]]
-    if selection_calls.index("bootset::stage") >= selection_calls.index("bootset::select"):
-        fail("Boot-set closure must be staged before Host Agent selection")
-    if "containerd_tag_update" not in selection_calls:
-        fail("Boot-set selection must expose the one Host Agent containerd tag update")
-    cutover_calls = [call["function"] for call in sequence_by_id["core-cutover"]["calls"]]
-    if cutover_calls.count("containerd_task_start") != 12 or cutover_calls.count("containerd_tag_update") != 4:
-        fail("live Boot-set cutover must preserve Supervisor-, Router-, Persistence-, and Engine-changing branches")
-    if "routing::claim" not in cutover_calls or "persistence::routing::prepare" not in cutover_calls:
-        fail("live Boot-set cutover must preserve durable handover preparation and Router claim")
-    supervisor_branch = "Same Engine and only Supervisor changes"
-    if not any(
-        call["function"] == "routing::reconcile"
-        and call["from"] == "NextSupervisor"
-        and supervisor_branch in {context["branch"] for context in call["context"]}
-        for call in sequence_by_id["core-cutover"]["calls"]
+
+    reboot_calls = [call["function"] for call in sequence_by_id["core-reboot"]["calls"]]
+    if reboot_calls.count("containerd_task_start") != 4 or reboot_calls.count("bootset_selector_read") != 1:
+        fail("selected-Boot-set reboot must read one selector and start four fresh members")
+
+    selection_calls = [call["function"] for call in sequence_by_id["selection-rollback"]["calls"]]
+    for required in ("bootset::stage", "persistence::bootset::commit", "bootset::restart"):
+        if required not in selection_calls:
+            fail(f"Boot-set selection is missing {required}")
+    if not (
+        selection_calls.index("bootset::stage")
+        < selection_calls.index("persistence::bootset::commit")
+        < selection_calls.index("bootset::restart")
     ):
-        fail("successor Supervisor must consume the prepared handover through the current Router")
-    if cutover_calls.index("containerd_tag_update") >= cutover_calls.index("routing::inspect"):
-        fail("live Boot-set cutover must prove successor routing only after the selection decision")
+        fail("Boot-set staging, atomic Persistence commit, and complete restart are out of order")
+    if "containerd_tag_update" in selection_calls or "bootset::select" in selection_calls:
+        fail("retired containerd-tag Boot-set selection remains")
+
+    ordinary_cutover = [call["function"] for call in sequence_by_id["ordinary-routed-cutover"]["calls"]]
+    for required in (
+        "persistence::routing::prepare", "routing::fence", "persistence::selection::commit",
+        "routing::install", "routing::reopen", "persistence::routing::complete",
+    ):
+        if required not in ordinary_cutover:
+            fail(f"ordinary routed cutover is missing {required}")
+    if "persistence::bootset::commit" in ordinary_cutover or "bootset::restart" in ordinary_cutover:
+        fail("ordinary routed cutover must not mutate or restart the Boot set")
+
+    replacement_calls = [call["function"] for call in sequence_by_id["core-cutover"]["calls"]]
+    if replacement_calls.count("containerd_task_start") != 4 or replacement_calls.count("containerd_task_stop") != 5:
+        fail("complete Boot-set replacement must stop predecessor/residue and start one fresh quartet")
+    for required in (
+        "persistence::bootset::commit", "bootset::restart", "bootset_selector_read",
+        "bootset_selector_fallback", "persistence_volume_release", "persistence_volume_attach",
+    ):
+        if required not in replacement_calls:
+            fail(f"complete Boot-set replacement is missing {required}")
+    if "routing::claim" in replacement_calls or "containerd_tag_update" in replacement_calls:
+        fail("retired live Boot-set handover remains in complete replacement")
+
+    repair_calls = [call["function"] for call in sequence_by_id["boot-crash-repair"]["calls"]]
+    if "bootset_selector_read" in repair_calls:
+        fail("same-selection crash repair must use the cached exact activation plan")
+    for required in ("repair_boot_member", "persistence_volume_release", "persistence_volume_attach"):
+        if required not in repair_calls:
+            fail(f"same-selection crash repair is missing {required}")
 
 
 def validate_html_and_assets(payload: dict) -> None:
@@ -334,7 +372,8 @@ def validate_source_refresh_contract() -> None:
             "python3 scripts/sync_source.py ../fundamentals",
             "Selected Boot set cold start",
             "First boot installation",
-            "dreamcatcher/bootset:current",
+            "boot-control/selected.json",
+            "Same-selection crash repair",
         ),
         RUNBOOK: (
             "Refresh an already registered authority",

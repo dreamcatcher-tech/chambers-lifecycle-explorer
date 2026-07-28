@@ -8,9 +8,9 @@ window.LIFECYCLE_ATLAS_DATA = {
   "defaultDocumentId": "chambers",
   "stats": {
     "documents": 2,
-    "sequences": 23,
-    "calls": 256,
-    "functions": 87,
+    "sequences": 25,
+    "calls": 264,
+    "functions": 92,
     "dictionaryTerms": 87
   },
   "documents": [
@@ -19,7 +19,7 @@ window.LIFECYCLE_ATLAS_DATA = {
       "name": "Chambers",
       "title": "Chambers lifecycle",
       "subtitle": "Exact Boot sets, Prepared Realizations, dynamic jobs, resident services, and recovery",
-      "description": "Explore how one protected Boot-set tag binds separate Engine, Router, Persistence, and Supervisor Covenants while tested immutable images remain dormant until dynamic-job or resident-service execution.",
+      "description": "Explore how one atomic Persistence-maintained selector binds Engine, Persistence, Gateway, and Supervisor while Gateway upgrades ordinary Chambers and Boot-set changes replace the complete stack.",
       "functionIntro": "Every I3 and conventional host-boundary function named by the Chambers lifecycle sequences.",
       "accent": "cyan",
       "statusLabel": "Current architecture",
@@ -27,22 +27,22 @@ window.LIFECYCLE_ATLAS_DATA = {
         "id": "chambers",
         "path": "docs/chambers-lifecycle-sequences.md",
         "snapshotPath": "chambers-lifecycle-sequences.md",
-        "sourceCommit": "4fc19f1cbb07a616c472156da68affec385e9c10",
-        "sourceTimestamp": "2026-07-28T02:56:51Z",
-        "documentSha256": "6b067d19e4401ac94948cbe59479cbe1ac19ae464e7500f6d23ebeb26a33e44d",
-        "documentBytes": 141113,
+        "sourceCommit": "96bc5f7f5d97641a0a33e8a98636d38dcfee8d51",
+        "sourceTimestamp": "2026-07-28T10:53:42Z",
+        "documentSha256": "7a26107a7abd018e2427f0083752e17eb9767d10fa026fc1b7f424f72c80679b",
+        "documentBytes": 146929,
         "repository": "dreamcatcher-tech/fundamentals",
-        "repositoryHead": "4fc19f1cbb07a616c472156da68affec385e9c10",
-        "url": "https://github.com/dreamcatcher-tech/fundamentals/blob/4fc19f1cbb07a616c472156da68affec385e9c10/docs/chambers-lifecycle-sequences.md"
+        "repositoryHead": "96bc5f7f5d97641a0a33e8a98636d38dcfee8d51",
+        "url": "https://github.com/dreamcatcher-tech/fundamentals/blob/96bc5f7f5d97641a0a33e8a98636d38dcfee8d51/docs/chambers-lifecycle-sequences.md"
       },
       "stats": {
-        "sequences": 14,
-        "actors": 36,
-        "calls": 190,
-        "i3Calls": 139,
-        "hostCalls": 51,
-        "functions": 54,
-        "usedFunctions": 54,
+        "sequences": 16,
+        "actors": 33,
+        "calls": 198,
+        "i3Calls": 137,
+        "hostCalls": 61,
+        "functions": 59,
+        "usedFunctions": 59,
         "dictionaryTerms": 57
       },
       "sequences": [
@@ -51,11 +51,11 @@ window.LIFECYCLE_ATLAS_DATA = {
           "title": "First boot installation",
           "shortTitle": "First boot installation",
           "kicker": "Step 1 · genesis",
-          "summary": "How an accepted one-use Boot Seed imports exact Engine, Router, Persistence, and Supervisor Covenant Realizations plus an optional separate Builder.",
+          "summary": "How a one-use Boot Seed imports exact Engine, Persistence, Gateway, and Supervisor Realizations, seeds selected.json, and cold-starts one fresh quartet.",
           "question": "What establishes the first trusted four-member boot root without building on the host or treating absence as authority?",
           "status": "core",
           "ordinal": 1,
-          "sourceLine": 845,
+          "sourceLine": 918,
           "participants": [
             {
               "id": "HostAgent",
@@ -65,46 +65,60 @@ window.LIFECYCLE_ATLAS_DATA = {
               "order": 0
             },
             {
+              "id": "BootControl",
+              "label": "Atomic boot-control slice",
+              "type": "participant",
+              "role": "resource",
+              "order": 1
+            },
+            {
+              "id": "Volume",
+              "label": "Durable Ark volume",
+              "type": "participant",
+              "role": "resource",
+              "order": 2
+            },
+            {
               "id": "containerd",
               "label": "containerd",
               "type": "participant",
               "role": "host",
-              "order": 1
+              "order": 3
             },
             {
               "id": "Engine",
               "label": "Engine",
               "type": "participant",
               "role": "engine",
-              "order": 2
-            },
-            {
-              "id": "Router",
-              "label": "Router",
-              "type": "participant",
-              "role": "control",
-              "order": 3
+              "order": 4
             },
             {
               "id": "Persistence",
               "label": "Persistence",
               "type": "participant",
               "role": "resource",
-              "order": 4
+              "order": 5
+            },
+            {
+              "id": "Gateway",
+              "label": "Gateway",
+              "type": "participant",
+              "role": "control",
+              "order": 6
             },
             {
               "id": "Supervisor",
               "label": "Supervisor",
               "type": "participant",
               "role": "control",
-              "order": 5
+              "order": 7
             },
             {
               "id": "Installer",
               "label": "External host installer",
               "type": "actor",
               "role": "caller",
-              "order": 6
+              "order": 8
             }
           ],
           "calls": [
@@ -124,12 +138,12 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "HostAgent",
                     "Installer"
                   ],
-                  "text": "Prove this Ark is unenrolled and consume one accepted, · one-use capability—file absence alone is insufficient",
-                  "sourceLine": 856,
+                  "text": "Prove this Ark is unenrolled and consume one accepted one-use capability— · file absence alone is insufficient",
+                  "sourceLine": 931,
                   "context": []
                 }
               ],
-              "sourceLine": 855
+              "sourceLine": 930
             },
             {
               "id": "core-installation-call-2",
@@ -142,10 +156,21 @@ window.LIFECYCLE_ATLAS_DATA = {
                 {
                   "id": "fragment-1",
                   "type": "loop",
-                  "label": "Exact Boot-set, four required members, and optional accepted Builder graphs",
-                  "branch": "Exact Boot-set, four required members, and optional accepted Builder graphs"
+                  "label": "Exact Boot set, four required members, authorized fallback if any, and optional Builder graphs",
+                  "branch": "Exact Boot set, four required members, authorized fallback if any, and optional Builder graphs"
                 }
               ],
+              "notes": [],
+              "sourceLine": 933
+            },
+            {
+              "id": "core-installation-call-3",
+              "index": 2,
+              "from": "HostAgent",
+              "to": "BootControl",
+              "function": "bootset_selector_seed",
+              "kind": "host",
+              "context": [],
               "notes": [
                 {
                   "id": "core-installation-note-2",
@@ -154,67 +179,61 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "HostAgent",
                     "containerd"
                   ],
-                  "text": "Verify every descriptor, fsync the protected boot namespace, · and pin the selected closures before making them usable",
-                  "sourceLine": 859,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "loop",
-                      "label": "Exact Boot-set, four required members, and optional accepted Builder graphs",
-                      "branch": "Exact Boot-set, four required members, and optional accepted Builder graphs"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 858
-            },
-            {
-              "id": "core-installation-call-3",
-              "index": 2,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_tag_update",
-              "kind": "host",
-              "context": [],
-              "notes": [
+                  "text": "Verify exact descriptors and pin every selected/fallback closure before selection",
+                  "sourceLine": 935,
+                  "context": []
+                },
                 {
                   "id": "core-installation-note-3",
                   "placement": "over",
                   "actors": [
-                    "HostAgent"
+                    "HostAgent",
+                    "BootControl"
                   ],
-                  "text": "Verify four accepted Covenant Realizations, ordered dependency edges, · host ABI, bootstrap contracts, predecessor, and initial Persistence seed",
-                  "sourceLine": 861,
+                  "text": "Atomically create the initial canonical selected.json and immutable manifests",
+                  "sourceLine": 937,
                   "context": []
-                },
+                }
+              ],
+              "sourceLine": 936
+            },
+            {
+              "id": "core-installation-call-4",
+              "index": 3,
+              "from": "HostAgent",
+              "to": "BootControl",
+              "function": "bootset_selector_read",
+              "kind": "host",
+              "context": [],
+              "notes": [
                 {
                   "id": "core-installation-note-4",
                   "placement": "over",
                   "actors": [
                     "HostAgent",
-                    "containerd"
+                    "BootControl"
                   ],
-                  "text": "Create dreamcatcher/bootset:current from no prior target · and read back the exact Boot-set digest",
-                  "sourceLine": 863,
+                  "text": "This is the one selector read for the cold activation — cache its exact plan",
+                  "sourceLine": 939,
                   "context": []
                 }
               ],
-              "sourceLine": 862
+              "sourceLine": 938
             },
             {
-              "id": "core-installation-call-4",
-              "index": 3,
+              "id": "core-installation-call-5",
+              "index": 4,
               "from": "HostAgent",
               "to": "containerd",
               "function": "containerd_resolve",
               "kind": "host",
               "context": [],
               "notes": [],
-              "sourceLine": 864
+              "sourceLine": 940
             },
             {
-              "id": "core-installation-call-5",
-              "index": 4,
+              "id": "core-installation-call-6",
+              "index": 5,
               "from": "HostAgent",
               "to": "containerd",
               "function": "containerd_task_start",
@@ -228,58 +247,23 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "HostAgent",
                     "Engine"
                   ],
-                  "text": "Start the prepared Engine Covenant first with intrinsic Worker Manager · plus function registration / dispatch / cleanup—no Ark routes yet",
-                  "sourceLine": 866,
+                  "text": "Start fresh Engine first with intrinsic transport only and a fresh Engine epoch",
+                  "sourceLine": 942,
                   "context": []
                 }
               ],
-              "sourceLine": 865
-            },
-            {
-              "id": "core-installation-call-6",
-              "index": 5,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_start",
-              "kind": "host",
-              "context": [],
-              "notes": [
-                {
-                  "id": "core-installation-note-6",
-                  "placement": "over",
-                  "actors": [
-                    "Engine",
-                    "Router"
-                  ],
-                  "text": "Start Router through the protected Router control listener—then register fixed auth, · registration, routing, fencing, and inspection functions in deny-all boot mode",
-                  "sourceLine": 868,
-                  "context": []
-                }
-              ],
-              "sourceLine": 867
+              "sourceLine": 941
             },
             {
               "id": "core-installation-call-7",
               "index": 6,
               "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_start",
+              "to": "Volume",
+              "function": "persistence_volume_attach",
               "kind": "host",
               "context": [],
-              "notes": [
-                {
-                  "id": "core-installation-note-7",
-                  "placement": "over",
-                  "actors": [
-                    "Router",
-                    "Persistence"
-                  ],
-                  "text": "Start Persistence through exact Router-gated Boot-set Admission— · recover durable selections, desired route snapshot, receipts, and volume lease",
-                  "sourceLine": 870,
-                  "context": []
-                }
-              ],
-              "sourceLine": 869
+              "notes": [],
+              "sourceLine": 943
             },
             {
               "id": "core-installation-call-8",
@@ -291,70 +275,128 @@ window.LIFECYCLE_ATLAS_DATA = {
               "context": [],
               "notes": [
                 {
-                  "id": "core-installation-note-8",
+                  "id": "core-installation-note-6",
                   "placement": "over",
                   "actors": [
-                    "Persistence",
-                    "Supervisor"
+                    "Engine",
+                    "Persistence"
                   ],
-                  "text": "Start Supervisor through exact Router-gated Boot-set Admission— · its candidate and selected mutation profiles remain distinct",
-                  "sourceLine": 872,
+                  "text": "Start Persistence second through its exact private bootstrap session — · it alone receives the authoritative RW volume",
+                  "sourceLine": 945,
                   "context": []
                 }
               ],
-              "sourceLine": 871
+              "sourceLine": 944
             },
             {
               "id": "core-installation-call-9",
               "index": 8,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_start",
+              "kind": "host",
+              "context": [],
+              "notes": [
+                {
+                  "id": "core-installation-note-7",
+                  "placement": "over",
+                  "actors": [
+                    "Persistence",
+                    "Gateway"
+                  ],
+                  "text": "Start Gateway third — combine Router, RBAC/authorization, bounded buffering, · and route projection in fail-closed boot mode",
+                  "sourceLine": 947,
+                  "context": []
+                }
+              ],
+              "sourceLine": 946
+            },
+            {
+              "id": "core-installation-call-10",
+              "index": 9,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_start",
+              "kind": "host",
+              "context": [],
+              "notes": [
+                {
+                  "id": "core-installation-note-8",
+                  "placement": "over",
+                  "actors": [
+                    "Gateway",
+                    "Supervisor"
+                  ],
+                  "text": "Start Supervisor fourth through exact Gateway-gated Boot-set Admission",
+                  "sourceLine": 949,
+                  "context": []
+                }
+              ],
+              "sourceLine": 948
+            },
+            {
+              "id": "core-installation-call-11",
+              "index": 10,
               "from": "Supervisor",
               "to": "Persistence",
               "function": "persistence::routing::read",
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 873
-            },
-            {
-              "id": "core-installation-call-10",
-              "index": 9,
-              "from": "Supervisor",
-              "to": "Router",
-              "function": "routing::reconcile",
-              "kind": "i3",
-              "context": [],
-              "notes": [],
-              "sourceLine": 874
-            },
-            {
-              "id": "core-installation-call-11",
-              "index": 10,
-              "from": "HostAgent",
-              "to": "Router",
-              "function": "routing::inspect",
-              "kind": "i3",
-              "context": [],
-              "notes": [],
-              "sourceLine": 875
+              "sourceLine": 950
             },
             {
               "id": "core-installation-call-12",
               "index": 11,
+              "from": "Supervisor",
+              "to": "Gateway",
+              "function": "routing::reconcile",
+              "kind": "i3",
+              "context": [],
+              "notes": [],
+              "sourceLine": 951
+            },
+            {
+              "id": "core-installation-call-13",
+              "index": 12,
+              "from": "HostAgent",
+              "to": "Gateway",
+              "function": "routing::inspect",
+              "kind": "i3",
+              "context": [],
+              "notes": [],
+              "sourceLine": 952
+            },
+            {
+              "id": "core-installation-call-14",
+              "index": 13,
               "from": "HostAgent",
               "to": "Supervisor",
               "function": "supervisor::wake::deliver",
               "kind": "i3",
               "context": [],
-              "notes": [],
-              "sourceLine": 876
+              "notes": [
+                {
+                  "id": "core-installation-note-9",
+                  "placement": "over",
+                  "actors": [
+                    "Gateway",
+                    "Installer"
+                  ],
+                  "text": "Open ordinary admission only after all four exact members, · volume fence, authorization projection, and route epoch agree",
+                  "sourceLine": 954,
+                  "context": []
+                }
+              ],
+              "sourceLine": 953
             }
           ],
           "stats": {
-            "actors": 7,
-            "calls": 12,
+            "actors": 9,
+            "calls": 14,
             "i3Calls": 4,
-            "hostCalls": 8,
-            "notes": 8,
+            "hostCalls": 10,
+            "notes": 9,
             "branches": 1
           }
         },
@@ -363,11 +405,11 @@ window.LIFECYCLE_ATLAS_DATA = {
           "title": "Selected Boot set cold start",
           "shortTitle": "Selected Boot set cold start",
           "kicker": "Step 2 · wake",
-          "summary": "How the Host Agent resolves one exact Boot-set tag and starts or reuses Engine, Router, Persistence, then Supervisor without build, recency, or fallback.",
-          "question": "How do four exact Covenant Realizations become callable in dependency order while I3 is initially absent?",
+          "summary": "How Procman reads one atomic selector exactly once and starts fresh Engine, Persistence, Gateway, then Supervisor Chambers.",
+          "question": "How does one exact Boot-set selection become a fresh callable quartet while I3 is initially absent?",
           "status": "core",
           "ordinal": 2,
-          "sourceLine": 901,
+          "sourceLine": 968,
           "participants": [
             {
               "id": "HostAgent",
@@ -377,46 +419,60 @@ window.LIFECYCLE_ATLAS_DATA = {
               "order": 0
             },
             {
+              "id": "BootControl",
+              "label": "Atomic boot-control slice",
+              "type": "participant",
+              "role": "resource",
+              "order": 1
+            },
+            {
+              "id": "Volume",
+              "label": "Durable Ark volume",
+              "type": "participant",
+              "role": "resource",
+              "order": 2
+            },
+            {
               "id": "containerd",
               "label": "containerd",
               "type": "participant",
               "role": "host",
-              "order": 1
+              "order": 3
             },
             {
               "id": "Engine",
               "label": "Engine",
               "type": "participant",
               "role": "engine",
-              "order": 2
-            },
-            {
-              "id": "Router",
-              "label": "Router",
-              "type": "participant",
-              "role": "control",
-              "order": 3
+              "order": 4
             },
             {
               "id": "Persistence",
               "label": "Persistence",
               "type": "participant",
               "role": "resource",
-              "order": 4
+              "order": 5
+            },
+            {
+              "id": "Gateway",
+              "label": "Gateway",
+              "type": "participant",
+              "role": "control",
+              "order": 6
             },
             {
               "id": "Supervisor",
               "label": "Supervisor",
               "type": "participant",
               "role": "control",
-              "order": 5
+              "order": 7
             },
             {
               "id": "Wake",
               "label": "Wake source",
               "type": "actor",
               "role": "caller",
-              "order": 6
+              "order": 8
             }
           ],
           "calls": [
@@ -435,19 +491,19 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "actors": [
                     "HostAgent"
                   ],
-                  "text": "Authenticate the lower wake, reconcile interrupted operations, · and inspect the selected Boot set plus all four live-task projections",
-                  "sourceLine": 912,
+                  "text": "Authenticate lower wake and reconcile the host activation journal — · no prior Boot-set task is adopted into a new activation",
+                  "sourceLine": 981,
                   "context": []
                 }
               ],
-              "sourceLine": 911
+              "sourceLine": 980
             },
             {
               "id": "host-activation-call-2",
               "index": 1,
               "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_resolve",
+              "to": "BootControl",
+              "function": "bootset_selector_read",
               "kind": "host",
               "context": [],
               "notes": [
@@ -456,81 +512,44 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "placement": "over",
                   "actors": [
                     "HostAgent",
-                    "containerd"
+                    "BootControl"
                   ],
-                  "text": "Resolve dreamcatcher/bootset:current once to an exact digest— · verify four Realizations, image closures, dependency order, host ABI, and acceptance binding",
-                  "sourceLine": 914,
+                  "text": "Read complete canonical bytes exactly once — validate generation, · selected manifest, exact fallback permit, and selector digest",
+                  "sourceLine": 983,
                   "context": []
-                },
-                {
-                  "id": "host-activation-note-3",
-                  "placement": "over",
-                  "actors": [
-                    "HostAgent",
-                    "Wake"
-                  ],
-                  "text": "Fail closed—cold boot never builds, pulls, uses recency, · or silently selects the predecessor",
-                  "sourceLine": 917,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Selected closures are missing or invalid",
-                      "branch": "Selected closures are missing or invalid"
-                    }
-                  ]
                 }
               ],
-              "sourceLine": 913
+              "sourceLine": 982
             },
             {
               "id": "host-activation-call-3",
               "index": 2,
               "from": "HostAgent",
               "to": "containerd",
-              "function": "containerd_task_start",
+              "function": "containerd_resolve",
               "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Selected closures are missing or invalid",
-                  "branch": "Exact selected closures are retained"
-                },
-                {
-                  "id": "fragment-2",
-                  "type": "opt",
-                  "label": "No matching ready Engine task exists",
-                  "branch": "No matching ready Engine task exists"
-                }
-              ],
+              "context": [],
               "notes": [
                 {
-                  "id": "host-activation-note-4",
+                  "id": "host-activation-note-11",
                   "placement": "over",
                   "actors": [
                     "HostAgent",
-                    "Engine"
+                    "Wake"
                   ],
-                  "text": "Start one fresh Engine Chamber with the fixed runsc handler, · host-custodied identity, stable listener, and fresh Engine epoch",
-                  "sourceLine": 921,
+                  "text": "Fail closed—never build, pull by recency, guess a predecessor, or use a bundled default",
+                  "sourceLine": 1015,
                   "context": [
                     {
                       "id": "fragment-1",
                       "type": "alt",
-                      "label": "Selected closures are missing or invalid",
-                      "branch": "Exact selected closures are retained"
-                    },
-                    {
-                      "id": "fragment-2",
-                      "type": "opt",
-                      "label": "No matching ready Engine task exists",
-                      "branch": "No matching ready Engine task exists"
+                      "label": "Selected and authorized-fallback closures are exact and retained",
+                      "branch": "Selector or retained closure is invalid"
                     }
                   ]
                 }
               ],
-              "sourceLine": 920
+              "sourceLine": 984
             },
             {
               "id": "host-activation-call-4",
@@ -543,110 +562,49 @@ window.LIFECYCLE_ATLAS_DATA = {
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Selected closures are missing or invalid",
-                  "branch": "Exact selected closures are retained"
-                },
-                {
-                  "id": "fragment-3",
-                  "type": "opt",
-                  "label": "No matching ready Router task exists",
-                  "branch": "No matching ready Router task exists"
+                  "label": "Selected and authorized-fallback closures are exact and retained",
+                  "branch": "Selected and authorized-fallback closures are exact and retained"
                 }
               ],
               "notes": [
                 {
-                  "id": "host-activation-note-5",
+                  "id": "host-activation-note-3",
                   "placement": "over",
                   "actors": [
                     "HostAgent",
                     "Engine"
                   ],
-                  "text": "Wait for the intrinsic Worker Manager, listener identity, · and exact Engine kernel contract",
-                  "sourceLine": 923,
+                  "text": "Fresh Engine Chamber and Engine epoch",
+                  "sourceLine": 987,
                   "context": [
                     {
                       "id": "fragment-1",
                       "type": "alt",
-                      "label": "Selected closures are missing or invalid",
-                      "branch": "Exact selected closures are retained"
-                    }
-                  ]
-                },
-                {
-                  "id": "host-activation-note-6",
-                  "placement": "over",
-                  "actors": [
-                    "Engine",
-                    "Router"
-                  ],
-                  "text": "Start one fresh Router Chamber through the protected control listener— · register the fixed hooks and canonical bootstrap functions in deny-all mode",
-                  "sourceLine": 926,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Selected closures are missing or invalid",
-                      "branch": "Exact selected closures are retained"
-                    },
-                    {
-                      "id": "fragment-3",
-                      "type": "opt",
-                      "label": "No matching ready Router task exists",
-                      "branch": "No matching ready Router task exists"
+                      "label": "Selected and authorized-fallback closures are exact and retained",
+                      "branch": "Selected and authorized-fallback closures are exact and retained"
                     }
                   ]
                 }
               ],
-              "sourceLine": 925
+              "sourceLine": 986
             },
             {
               "id": "host-activation-call-5",
               "index": 4,
               "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_start",
+              "to": "Volume",
+              "function": "persistence_volume_attach",
               "kind": "host",
               "context": [
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Selected closures are missing or invalid",
-                  "branch": "Exact selected closures are retained"
-                },
-                {
-                  "id": "fragment-4",
-                  "type": "opt",
-                  "label": "No matching ready Persistence task exists",
-                  "branch": "No matching ready Persistence task exists"
+                  "label": "Selected and authorized-fallback closures are exact and retained",
+                  "branch": "Selected and authorized-fallback closures are exact and retained"
                 }
               ],
-              "notes": [
-                {
-                  "id": "host-activation-note-7",
-                  "placement": "over",
-                  "actors": [
-                    "Router",
-                    "Persistence"
-                  ],
-                  "text": "Start one fresh Persistence Chamber through exact · Router-gated Boot-set Admission and recover the exclusive durable volume",
-                  "sourceLine": 930,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Selected closures are missing or invalid",
-                      "branch": "Exact selected closures are retained"
-                    },
-                    {
-                      "id": "fragment-4",
-                      "type": "opt",
-                      "label": "No matching ready Persistence task exists",
-                      "branch": "No matching ready Persistence task exists"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 929
+              "notes": [],
+              "sourceLine": 988
             },
             {
               "id": "host-activation-call-6",
@@ -659,47 +617,109 @@ window.LIFECYCLE_ATLAS_DATA = {
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Selected closures are missing or invalid",
-                  "branch": "Exact selected closures are retained"
-                },
-                {
-                  "id": "fragment-5",
-                  "type": "opt",
-                  "label": "No matching ready Supervisor task exists",
-                  "branch": "No matching ready Supervisor task exists"
+                  "label": "Selected and authorized-fallback closures are exact and retained",
+                  "branch": "Selected and authorized-fallback closures are exact and retained"
                 }
               ],
               "notes": [
                 {
-                  "id": "host-activation-note-8",
+                  "id": "host-activation-note-4",
                   "placement": "over",
                   "actors": [
-                    "Persistence",
-                    "Supervisor"
+                    "Engine",
+                    "Persistence"
                   ],
-                  "text": "Start one fresh Supervisor Chamber through exact · Router-gated Boot-set Admission after Persistence readiness",
-                  "sourceLine": 934,
+                  "text": "Fresh Persistence Chamber through private Boot-set admission — · recover journal and prove exclusive volume generation",
+                  "sourceLine": 990,
                   "context": [
                     {
                       "id": "fragment-1",
                       "type": "alt",
-                      "label": "Selected closures are missing or invalid",
-                      "branch": "Exact selected closures are retained"
-                    },
-                    {
-                      "id": "fragment-5",
-                      "type": "opt",
-                      "label": "No matching ready Supervisor task exists",
-                      "branch": "No matching ready Supervisor task exists"
+                      "label": "Selected and authorized-fallback closures are exact and retained",
+                      "branch": "Selected and authorized-fallback closures are exact and retained"
                     }
                   ]
                 }
               ],
-              "sourceLine": 933
+              "sourceLine": 989
             },
             {
               "id": "host-activation-call-7",
               "index": 6,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_start",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Selected and authorized-fallback closures are exact and retained",
+                  "branch": "Selected and authorized-fallback closures are exact and retained"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "host-activation-note-5",
+                  "placement": "over",
+                  "actors": [
+                    "Persistence",
+                    "Gateway"
+                  ],
+                  "text": "Fresh Gateway Chamber in fail-closed mode — reconstruct authorization inputs",
+                  "sourceLine": 992,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Selected and authorized-fallback closures are exact and retained",
+                      "branch": "Selected and authorized-fallback closures are exact and retained"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 991
+            },
+            {
+              "id": "host-activation-call-8",
+              "index": 7,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_start",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Selected and authorized-fallback closures are exact and retained",
+                  "branch": "Selected and authorized-fallback closures are exact and retained"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "host-activation-note-6",
+                  "placement": "over",
+                  "actors": [
+                    "Gateway",
+                    "Supervisor"
+                  ],
+                  "text": "Fresh Supervisor Chamber — no predecessor process remains active",
+                  "sourceLine": 994,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Selected and authorized-fallback closures are exact and retained",
+                      "branch": "Selected and authorized-fallback closures are exact and retained"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 993
+            },
+            {
+              "id": "host-activation-call-9",
+              "index": 8,
               "from": "Supervisor",
               "to": "Persistence",
               "function": "persistence::routing::read",
@@ -708,77 +728,52 @@ window.LIFECYCLE_ATLAS_DATA = {
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Selected closures are missing or invalid",
-                  "branch": "Exact selected closures are retained"
+                  "label": "Selected and authorized-fallback closures are exact and retained",
+                  "branch": "Selected and authorized-fallback closures are exact and retained"
                 }
               ],
               "notes": [],
-              "sourceLine": 936
+              "sourceLine": 995
             },
             {
-              "id": "host-activation-call-8",
-              "index": 7,
+              "id": "host-activation-call-10",
+              "index": 9,
               "from": "Supervisor",
-              "to": "Router",
+              "to": "Gateway",
               "function": "routing::reconcile",
               "kind": "i3",
               "context": [
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Selected closures are missing or invalid",
-                  "branch": "Exact selected closures are retained"
+                  "label": "Selected and authorized-fallback closures are exact and retained",
+                  "branch": "Selected and authorized-fallback closures are exact and retained"
                 }
               ],
               "notes": [],
-              "sourceLine": 937
+              "sourceLine": 996
             },
             {
-              "id": "host-activation-call-9",
-              "index": 8,
+              "id": "host-activation-call-11",
+              "index": 10,
               "from": "HostAgent",
-              "to": "Router",
+              "to": "Gateway",
               "function": "routing::inspect",
               "kind": "i3",
               "context": [
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Selected closures are missing or invalid",
-                  "branch": "Exact selected closures are retained"
+                  "label": "Selected and authorized-fallback closures are exact and retained",
+                  "branch": "Selected and authorized-fallback closures are exact and retained"
                 }
               ],
-              "notes": [
-                {
-                  "id": "host-activation-note-9",
-                  "placement": "over",
-                  "actors": [
-                    "HostAgent",
-                    "Wake"
-                  ],
-                  "text": "Return the operation-bound terminal wake failure",
-                  "sourceLine": 942,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Selected closures are missing or invalid",
-                      "branch": "Exact selected closures are retained"
-                    },
-                    {
-                      "id": "fragment-6",
-                      "type": "alt",
-                      "label": "Exact complete route epoch and four boot tasks are ready",
-                      "branch": "Boot control did not become ready"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 938
+              "notes": [],
+              "sourceLine": 997
             },
             {
-              "id": "host-activation-call-10",
-              "index": 9,
+              "id": "host-activation-call-12",
+              "index": 11,
               "from": "HostAgent",
               "to": "Supervisor",
               "function": "supervisor::wake::deliver",
@@ -787,27 +782,222 @@ window.LIFECYCLE_ATLAS_DATA = {
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Selected closures are missing or invalid",
-                  "branch": "Exact selected closures are retained"
+                  "label": "Selected and authorized-fallback closures are exact and retained",
+                  "branch": "Selected and authorized-fallback closures are exact and retained"
                 },
                 {
-                  "id": "fragment-6",
+                  "id": "fragment-2",
                   "type": "alt",
-                  "label": "Exact complete route epoch and four boot tasks are ready",
-                  "branch": "Exact complete route epoch and four boot tasks are ready"
+                  "label": "Exact quartet, volume fence, registration set, and route epoch are ready",
+                  "branch": "Exact quartet, volume fence, registration set, and route epoch are ready"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "host-activation-note-7",
+                  "placement": "over",
+                  "actors": [
+                    "Gateway",
+                    "Wake"
+                  ],
+                  "text": "Open ordinary admission and mark this activation effectful",
+                  "sourceLine": 1000,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Selected and authorized-fallback closures are exact and retained",
+                      "branch": "Selected and authorized-fallback closures are exact and retained"
+                    },
+                    {
+                      "id": "fragment-2",
+                      "type": "alt",
+                      "label": "Exact quartet, volume fence, registration set, and route epoch are ready",
+                      "branch": "Exact quartet, volume fence, registration set, and route epoch are ready"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 999
+            },
+            {
+              "id": "host-activation-call-13",
+              "index": 12,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_stop",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Selected and authorized-fallback closures are exact and retained",
+                  "branch": "Selected and authorized-fallback closures are exact and retained"
+                },
+                {
+                  "id": "fragment-2",
+                  "type": "alt",
+                  "label": "Exact quartet, volume fence, registration set, and route epoch are ready",
+                  "branch": "Boot control did not become ready"
+                },
+                {
+                  "id": "fragment-3",
+                  "type": "loop",
+                  "label": "Each started latest task in reverse dependency order",
+                  "branch": "Each started latest task in reverse dependency order"
                 }
               ],
               "notes": [],
-              "sourceLine": 940
+              "sourceLine": 1003
+            },
+            {
+              "id": "host-activation-call-14",
+              "index": 13,
+              "from": "HostAgent",
+              "to": "Volume",
+              "function": "persistence_volume_release",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Selected and authorized-fallback closures are exact and retained",
+                  "branch": "Selected and authorized-fallback closures are exact and retained"
+                },
+                {
+                  "id": "fragment-2",
+                  "type": "alt",
+                  "label": "Exact quartet, volume fence, registration set, and route epoch are ready",
+                  "branch": "Boot control did not become ready"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "host-activation-note-8",
+                  "placement": "over",
+                  "actors": [
+                    "HostAgent",
+                    "Wake"
+                  ],
+                  "text": "Prove all latest residue absent before any fallback — · never mix predecessor and successor members",
+                  "sourceLine": 1006,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Selected and authorized-fallback closures are exact and retained",
+                      "branch": "Selected and authorized-fallback closures are exact and retained"
+                    },
+                    {
+                      "id": "fragment-2",
+                      "type": "alt",
+                      "label": "Exact quartet, volume fence, registration set, and route epoch are ready",
+                      "branch": "Boot control did not become ready"
+                    }
+                  ]
+                },
+                {
+                  "id": "host-activation-note-10",
+                  "placement": "over",
+                  "actors": [
+                    "HostAgent",
+                    "Wake"
+                  ],
+                  "text": "Fail closed for explicit recovery",
+                  "sourceLine": 1011,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Selected and authorized-fallback closures are exact and retained",
+                      "branch": "Selected and authorized-fallback closures are exact and retained"
+                    },
+                    {
+                      "id": "fragment-2",
+                      "type": "alt",
+                      "label": "Exact quartet, volume fence, registration set, and route epoch are ready",
+                      "branch": "Boot control did not become ready"
+                    },
+                    {
+                      "id": "fragment-4",
+                      "type": "alt",
+                      "label": "Failure precedes admission/effects and exact fallback remains eligible",
+                      "branch": "Fallback is unsafe, incompatible, or consumed"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 1005
+            },
+            {
+              "id": "host-activation-call-15",
+              "index": 14,
+              "from": "HostAgent",
+              "to": "BootControl",
+              "function": "bootset_selector_fallback",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Selected and authorized-fallback closures are exact and retained",
+                  "branch": "Selected and authorized-fallback closures are exact and retained"
+                },
+                {
+                  "id": "fragment-2",
+                  "type": "alt",
+                  "label": "Exact quartet, volume fence, registration set, and route epoch are ready",
+                  "branch": "Boot control did not become ready"
+                },
+                {
+                  "id": "fragment-4",
+                  "type": "alt",
+                  "label": "Failure precedes admission/effects and exact fallback remains eligible",
+                  "branch": "Failure precedes admission/effects and exact fallback remains eligible"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "host-activation-note-9",
+                  "placement": "over",
+                  "actors": [
+                    "HostAgent",
+                    "BootControl"
+                  ],
+                  "text": "Consume one-attempt permit and install only exact authorized recovery bytes — · re-enter a complete fresh activation from the already validated fallback plan",
+                  "sourceLine": 1009,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Selected and authorized-fallback closures are exact and retained",
+                      "branch": "Selected and authorized-fallback closures are exact and retained"
+                    },
+                    {
+                      "id": "fragment-2",
+                      "type": "alt",
+                      "label": "Exact quartet, volume fence, registration set, and route epoch are ready",
+                      "branch": "Boot control did not become ready"
+                    },
+                    {
+                      "id": "fragment-4",
+                      "type": "alt",
+                      "label": "Failure precedes admission/effects and exact fallback remains eligible",
+                      "branch": "Failure precedes admission/effects and exact fallback remains eligible"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 1008
             }
           ],
           "stats": {
-            "actors": 7,
-            "calls": 10,
+            "actors": 9,
+            "calls": 15,
             "i3Calls": 4,
-            "hostCalls": 6,
-            "notes": 9,
-            "branches": 6
+            "hostCalls": 11,
+            "notes": 11,
+            "branches": 5
           }
         },
         {
@@ -815,11 +1005,11 @@ window.LIFECYCLE_ATLAS_DATA = {
           "title": "Boot control bootstrap",
           "shortTitle": "Boot control bootstrap",
           "kicker": "Step 3 · basic Ark",
-          "summary": "How Router registers protected bootstrap hooks, Persistence recovers durable state, and Supervisor reconstructs stable routes in the already-running Engine.",
-          "question": "How can a separate Router Covenant bootstrap without depending on the routes it is creating?",
+          "summary": "How Persistence connects privately before Gateway, then Gateway establishes Router, RBAC, buffering, and route projection for Supervisor.",
+          "question": "How does Gateway reconstruct from durable state without becoming a prerequisite for Persistence itself?",
           "status": "core",
           "ordinal": 3,
-          "sourceLine": 968,
+          "sourceLine": 1035,
           "participants": [
             {
               "id": "HostAgent",
@@ -836,17 +1026,17 @@ window.LIFECYCLE_ATLAS_DATA = {
               "order": 1
             },
             {
-              "id": "Router",
-              "label": "Router",
-              "type": "participant",
-              "role": "control",
-              "order": 2
-            },
-            {
               "id": "Persistence",
               "label": "Persistence",
               "type": "participant",
               "role": "resource",
+              "order": 2
+            },
+            {
+              "id": "Gateway",
+              "label": "Gateway",
+              "type": "participant",
+              "role": "control",
               "order": 3
             },
             {
@@ -862,7 +1052,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "id": "core-bootstrap-call-1",
               "index": 0,
               "from": "Engine",
-              "to": "Router",
+              "to": "Gateway",
               "function": "routing::authenticate",
               "kind": "i3",
               "context": [],
@@ -874,8 +1064,8 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "HostAgent",
                     "Engine"
                   ],
-                  "text": "Engine is already ready in its own Chamber with only the intrinsic · Worker Manager, function registry, dispatch, and connection cleanup",
-                  "sourceLine": 976,
+                  "text": "Engine is ready with intrinsic Worker Manager, registration, · dispatch, connection cleanup, and no Dreamcatcher routes",
+                  "sourceLine": 1043,
                   "context": []
                 },
                 {
@@ -883,88 +1073,41 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "placement": "over",
                   "actors": [
                     "Engine",
-                    "Router"
+                    "Persistence"
                   ],
-                  "text": "Router connects through the protected control listener, receives a candidate · direct prefix, and registers fixed auth, registration, routing, and inspection functions",
-                  "sourceLine": 977,
+                  "text": "Persistence connects first through a Procman-donated private Engine session — · exact identity, prefix, registration contract, volume fence, and Boot-set digest are fixed",
+                  "sourceLine": 1044,
+                  "context": []
+                },
+                {
+                  "id": "core-bootstrap-note-3",
+                  "placement": "over",
+                  "actors": [
+                    "Persistence"
+                  ],
+                  "text": "Recover boot selector history, ordinary selections, receipts, · authorization inputs, desired routes, and durable operations",
+                  "sourceLine": 1045,
+                  "context": []
+                },
+                {
+                  "id": "core-bootstrap-note-4",
+                  "placement": "over",
+                  "actors": [
+                    "Engine",
+                    "Gateway"
+                  ],
+                  "text": "Gateway connects through its protected bootstrap admission and registers · authentication, authorization, routing, fencing, buffering, and inspection functions",
+                  "sourceLine": 1046,
                   "context": []
                 }
               ],
-              "sourceLine": 978
+              "sourceLine": 1047
             },
             {
               "id": "core-bootstrap-call-2",
               "index": 1,
               "from": "Engine",
-              "to": "Router",
-              "function": "routing::authorize_registration",
-              "kind": "i3",
-              "context": [],
-              "notes": [
-                {
-                  "id": "core-bootstrap-note-3",
-                  "placement": "over",
-                  "actors": [
-                    "HostAgent",
-                    "Router"
-                  ],
-                  "text": "Admit Host Agent through an exact Router-gated boot profile— · only Router receives the protected control-listener capability",
-                  "sourceLine": 980,
-                  "context": []
-                }
-              ],
-              "sourceLine": 979
-            },
-            {
-              "id": "core-bootstrap-call-3",
-              "index": 2,
-              "from": "Engine",
-              "to": "Router",
-              "function": "routing::authenticate",
-              "kind": "i3",
-              "context": [],
-              "notes": [],
-              "sourceLine": 981
-            },
-            {
-              "id": "core-bootstrap-call-4",
-              "index": 3,
-              "from": "Engine",
-              "to": "Router",
-              "function": "routing::authorize_registration",
-              "kind": "i3",
-              "context": [],
-              "notes": [
-                {
-                  "id": "core-bootstrap-note-4",
-                  "placement": "over",
-                  "actors": [
-                    "Router",
-                    "Persistence"
-                  ],
-                  "text": "Admit exact selected Persistence identity and registration contract— · recover selections, receipts, route snapshot, and exclusive volume lease",
-                  "sourceLine": 983,
-                  "context": []
-                }
-              ],
-              "sourceLine": 982
-            },
-            {
-              "id": "core-bootstrap-call-5",
-              "index": 4,
-              "from": "Engine",
-              "to": "Router",
-              "function": "routing::authenticate",
-              "kind": "i3",
-              "context": [],
-              "notes": [],
-              "sourceLine": 984
-            },
-            {
-              "id": "core-bootstrap-call-6",
-              "index": 5,
-              "from": "Engine",
-              "to": "Router",
+              "to": "Gateway",
               "function": "routing::authorize_registration",
               "kind": "i3",
               "context": [],
@@ -973,33 +1116,33 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "id": "core-bootstrap-note-5",
                   "placement": "over",
                   "actors": [
-                    "Router",
-                    "Supervisor"
+                    "HostAgent",
+                    "Gateway"
                   ],
-                  "text": "Admit exact selected Supervisor identity and registration contract— · only the selected profile receives lifecycle-mutation authority",
-                  "sourceLine": 986,
+                  "text": "Admit Host Agent through one exact Gateway-gated boot profile — · only Persistence and Gateway have pre-Gateway bootstrap capabilities",
+                  "sourceLine": 1049,
                   "context": []
                 }
               ],
-              "sourceLine": 985
+              "sourceLine": 1048
             },
             {
-              "id": "core-bootstrap-call-7",
-              "index": 6,
-              "from": "Supervisor",
-              "to": "Persistence",
-              "function": "persistence::routing::read",
+              "id": "core-bootstrap-call-3",
+              "index": 2,
+              "from": "Engine",
+              "to": "Gateway",
+              "function": "routing::authenticate",
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 987
+              "sourceLine": 1050
             },
             {
-              "id": "core-bootstrap-call-8",
-              "index": 7,
-              "from": "Supervisor",
-              "to": "Router",
-              "function": "routing::reconcile",
+              "id": "core-bootstrap-call-4",
+              "index": 3,
+              "from": "Engine",
+              "to": "Gateway",
+              "function": "routing::authorize_registration",
               "kind": "i3",
               "context": [],
               "notes": [
@@ -1007,22 +1150,33 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "id": "core-bootstrap-note-6",
                   "placement": "over",
                   "actors": [
-                    "Router",
-                    "Engine"
+                    "Gateway",
+                    "Supervisor"
                   ],
-                  "text": "Router registers or replaces the complete resident-function and · dynamic-job-factory set under one fenced route epoch",
-                  "sourceLine": 989,
+                  "text": "Admit exact selected Supervisor identity and registration contract — · only selected Supervisor receives lifecycle-mutation authority",
+                  "sourceLine": 1052,
                   "context": []
                 }
               ],
-              "sourceLine": 988
+              "sourceLine": 1051
             },
             {
-              "id": "core-bootstrap-call-9",
-              "index": 8,
-              "from": "HostAgent",
-              "to": "Router",
-              "function": "routing::inspect",
+              "id": "core-bootstrap-call-5",
+              "index": 4,
+              "from": "Supervisor",
+              "to": "Persistence",
+              "function": "persistence::routing::read",
+              "kind": "i3",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1053
+            },
+            {
+              "id": "core-bootstrap-call-6",
+              "index": 5,
+              "from": "Supervisor",
+              "to": "Gateway",
+              "function": "routing::reconcile",
               "kind": "i3",
               "context": [],
               "notes": [
@@ -1030,23 +1184,46 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "id": "core-bootstrap-note-7",
                   "placement": "over",
                   "actors": [
-                    "HostAgent",
-                    "Router"
+                    "Gateway",
+                    "Engine"
                   ],
-                  "text": "Readiness requires exact worker ownership, complete registration · contract, matching Engine and route epochs, and exclusive Persistence lease",
-                  "sourceLine": 991,
+                  "text": "Register the complete ordinary resident-function and dynamic-job-factory set · under one fenced route epoch — optionally expose stable authorized Persistence aliases",
+                  "sourceLine": 1055,
                   "context": []
                 }
               ],
-              "sourceLine": 990
+              "sourceLine": 1054
+            },
+            {
+              "id": "core-bootstrap-call-7",
+              "index": 6,
+              "from": "HostAgent",
+              "to": "Gateway",
+              "function": "routing::inspect",
+              "kind": "i3",
+              "context": [],
+              "notes": [
+                {
+                  "id": "core-bootstrap-note-8",
+                  "placement": "over",
+                  "actors": [
+                    "HostAgent",
+                    "Gateway"
+                  ],
+                  "text": "Readiness requires exact owners, complete registration contract, · matching Engine/route epochs, and exclusive Persistence volume fence",
+                  "sourceLine": 1057,
+                  "context": []
+                }
+              ],
+              "sourceLine": 1056
             }
           ],
           "stats": {
             "actors": 5,
-            "calls": 9,
-            "i3Calls": 9,
+            "calls": 7,
+            "i3Calls": 7,
             "hostCalls": 0,
-            "notes": 7,
+            "notes": 8,
             "branches": 0
           }
         },
@@ -1055,11 +1232,11 @@ window.LIFECYCLE_ATLAS_DATA = {
           "title": "Host reboot into the selected Boot set",
           "shortTitle": "Reboot selected Boot set",
           "kicker": "Step 4 · reboot proof",
-          "summary": "How the Host Agent reuses the same one-tag cold kernel to create four fresh boot Chambers after host restart.",
-          "question": "How does reboot prove one coherent selected quartet rather than mix independently tagged services?",
+          "summary": "How host reboot repeats the one-read cold kernel and creates four fresh selected Chambers without task reuse.",
+          "question": "How does reboot prove one coherent selected quartet and preserve a bounded fallback path?",
           "status": "core",
           "ordinal": 4,
-          "sourceLine": 1020,
+          "sourceLine": 1075,
           "participants": [
             {
               "id": "HostAgent",
@@ -1069,46 +1246,60 @@ window.LIFECYCLE_ATLAS_DATA = {
               "order": 0
             },
             {
+              "id": "BootControl",
+              "label": "Atomic boot-control slice",
+              "type": "participant",
+              "role": "resource",
+              "order": 1
+            },
+            {
+              "id": "Volume",
+              "label": "Durable Ark volume",
+              "type": "participant",
+              "role": "resource",
+              "order": 2
+            },
+            {
               "id": "containerd",
               "label": "containerd",
               "type": "participant",
               "role": "host",
-              "order": 1
+              "order": 3
             },
             {
               "id": "Engine",
               "label": "Engine",
               "type": "participant",
               "role": "engine",
-              "order": 2
-            },
-            {
-              "id": "Router",
-              "label": "Router",
-              "type": "participant",
-              "role": "control",
-              "order": 3
+              "order": 4
             },
             {
               "id": "Persistence",
               "label": "Persistence",
               "type": "participant",
               "role": "resource",
-              "order": 4
+              "order": 5
+            },
+            {
+              "id": "Gateway",
+              "label": "Gateway",
+              "type": "participant",
+              "role": "control",
+              "order": 6
             },
             {
               "id": "Supervisor",
               "label": "Supervisor",
               "type": "participant",
               "role": "control",
-              "order": 5
+              "order": 7
             },
             {
               "id": "Host",
               "label": "Lower host wake",
               "type": "actor",
               "role": "caller",
-              "order": 6
+              "order": 8
             }
           ],
           "calls": [
@@ -1121,14 +1312,14 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "host",
               "context": [],
               "notes": [],
-              "sourceLine": 1030
+              "sourceLine": 1087
             },
             {
               "id": "core-reboot-call-2",
               "index": 1,
               "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_resolve",
+              "to": "BootControl",
+              "function": "bootset_selector_read",
               "kind": "host",
               "context": [],
               "notes": [
@@ -1137,69 +1328,25 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "placement": "over",
                   "actors": [
                     "HostAgent",
-                    "containerd"
+                    "BootControl"
                   ],
-                  "text": "Bind this boot operation to one authoritative read of · dreamcatcher/bootset:current and verify all four exact pinned closures",
-                  "sourceLine": 1032,
+                  "text": "Bind the complete activation to this one canonical selector read",
+                  "sourceLine": 1089,
                   "context": []
-                },
-                {
-                  "id": "core-reboot-note-6",
-                  "placement": "over",
-                  "actors": [
-                    "HostAgent",
-                    "Host"
-                  ],
-                  "text": "Terminalize the boot failure and require explicit repair— · never infer rollback from version order or a surviving task",
-                  "sourceLine": 1047,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Selected Boot set and four Covenant Realizations are complete and accepted",
-                      "branch": "Selected content, acceptance, dependency, or host ABI does not match"
-                    }
-                  ]
                 }
               ],
-              "sourceLine": 1031
+              "sourceLine": 1088
             },
             {
               "id": "core-reboot-call-3",
               "index": 2,
               "from": "HostAgent",
               "to": "containerd",
-              "function": "containerd_task_start",
+              "function": "containerd_resolve",
               "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Selected Boot set and four Covenant Realizations are complete and accepted",
-                  "branch": "Selected Boot set and four Covenant Realizations are complete and accepted"
-                }
-              ],
-              "notes": [
-                {
-                  "id": "core-reboot-note-2",
-                  "placement": "over",
-                  "actors": [
-                    "HostAgent",
-                    "Engine"
-                  ],
-                  "text": "Create the fresh Engine Chamber first and prove its intrinsic · Worker Manager, listener identity, and Engine epoch",
-                  "sourceLine": 1035,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Selected Boot set and four Covenant Realizations are complete and accepted",
-                      "branch": "Selected Boot set and four Covenant Realizations are complete and accepted"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 1034
+              "context": [],
+              "notes": [],
+              "sourceLine": 1090
             },
             {
               "id": "core-reboot-call-4",
@@ -1212,68 +1359,49 @@ window.LIFECYCLE_ATLAS_DATA = {
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Selected Boot set and four Covenant Realizations are complete and accepted",
-                  "branch": "Selected Boot set and four Covenant Realizations are complete and accepted"
+                  "label": "Selected Boot set and fallback contract are complete and accepted",
+                  "branch": "Selected Boot set and fallback contract are complete and accepted"
                 }
               ],
               "notes": [
                 {
-                  "id": "core-reboot-note-3",
+                  "id": "core-reboot-note-2",
                   "placement": "over",
                   "actors": [
-                    "Engine",
-                    "Router"
+                    "HostAgent",
+                    "Engine"
                   ],
-                  "text": "Create the Router Chamber second through the protected control listener · and register fixed deny-by-default hooks",
-                  "sourceLine": 1037,
+                  "text": "Create Engine first with a fresh epoch",
+                  "sourceLine": 1093,
                   "context": [
                     {
                       "id": "fragment-1",
                       "type": "alt",
-                      "label": "Selected Boot set and four Covenant Realizations are complete and accepted",
-                      "branch": "Selected Boot set and four Covenant Realizations are complete and accepted"
+                      "label": "Selected Boot set and fallback contract are complete and accepted",
+                      "branch": "Selected Boot set and fallback contract are complete and accepted"
                     }
                   ]
                 }
               ],
-              "sourceLine": 1036
+              "sourceLine": 1092
             },
             {
               "id": "core-reboot-call-5",
               "index": 4,
               "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_start",
+              "to": "Volume",
+              "function": "persistence_volume_attach",
               "kind": "host",
               "context": [
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Selected Boot set and four Covenant Realizations are complete and accepted",
-                  "branch": "Selected Boot set and four Covenant Realizations are complete and accepted"
+                  "label": "Selected Boot set and fallback contract are complete and accepted",
+                  "branch": "Selected Boot set and fallback contract are complete and accepted"
                 }
               ],
-              "notes": [
-                {
-                  "id": "core-reboot-note-4",
-                  "placement": "over",
-                  "actors": [
-                    "Router",
-                    "Persistence"
-                  ],
-                  "text": "Create Persistence third through Router-gated Boot-set Admission · and recover authoritative durable state",
-                  "sourceLine": 1039,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Selected Boot set and four Covenant Realizations are complete and accepted",
-                      "branch": "Selected Boot set and four Covenant Realizations are complete and accepted"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 1038
+              "notes": [],
+              "sourceLine": 1094
             },
             {
               "id": "core-reboot-call-6",
@@ -1286,8 +1414,82 @@ window.LIFECYCLE_ATLAS_DATA = {
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Selected Boot set and four Covenant Realizations are complete and accepted",
-                  "branch": "Selected Boot set and four Covenant Realizations are complete and accepted"
+                  "label": "Selected Boot set and fallback contract are complete and accepted",
+                  "branch": "Selected Boot set and fallback contract are complete and accepted"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "core-reboot-note-3",
+                  "placement": "over",
+                  "actors": [
+                    "Engine",
+                    "Persistence"
+                  ],
+                  "text": "Create Persistence second with the sole authoritative RW mount",
+                  "sourceLine": 1096,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Selected Boot set and fallback contract are complete and accepted",
+                      "branch": "Selected Boot set and fallback contract are complete and accepted"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 1095
+            },
+            {
+              "id": "core-reboot-call-7",
+              "index": 6,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_start",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Selected Boot set and fallback contract are complete and accepted",
+                  "branch": "Selected Boot set and fallback contract are complete and accepted"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "core-reboot-note-4",
+                  "placement": "over",
+                  "actors": [
+                    "Persistence",
+                    "Gateway"
+                  ],
+                  "text": "Create Gateway third in fail-closed mode",
+                  "sourceLine": 1098,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Selected Boot set and fallback contract are complete and accepted",
+                      "branch": "Selected Boot set and fallback contract are complete and accepted"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 1097
+            },
+            {
+              "id": "core-reboot-call-8",
+              "index": 7,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_start",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Selected Boot set and fallback contract are complete and accepted",
+                  "branch": "Selected Boot set and fallback contract are complete and accepted"
                 }
               ],
               "notes": [
@@ -1295,26 +1497,26 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "id": "core-reboot-note-5",
                   "placement": "over",
                   "actors": [
-                    "Persistence",
+                    "Gateway",
                     "Supervisor"
                   ],
-                  "text": "Create Supervisor fourth through Router-gated Boot-set Admission · and reconstruct the desired route projection",
-                  "sourceLine": 1041,
+                  "text": "Create Supervisor fourth and reconstruct desired projection",
+                  "sourceLine": 1100,
                   "context": [
                     {
                       "id": "fragment-1",
                       "type": "alt",
-                      "label": "Selected Boot set and four Covenant Realizations are complete and accepted",
-                      "branch": "Selected Boot set and four Covenant Realizations are complete and accepted"
+                      "label": "Selected Boot set and fallback contract are complete and accepted",
+                      "branch": "Selected Boot set and fallback contract are complete and accepted"
                     }
                   ]
                 }
               ],
-              "sourceLine": 1040
+              "sourceLine": 1099
             },
             {
-              "id": "core-reboot-call-7",
-              "index": 6,
+              "id": "core-reboot-call-9",
+              "index": 8,
               "from": "Supervisor",
               "to": "Persistence",
               "function": "persistence::routing::read",
@@ -1323,52 +1525,52 @@ window.LIFECYCLE_ATLAS_DATA = {
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Selected Boot set and four Covenant Realizations are complete and accepted",
-                  "branch": "Selected Boot set and four Covenant Realizations are complete and accepted"
+                  "label": "Selected Boot set and fallback contract are complete and accepted",
+                  "branch": "Selected Boot set and fallback contract are complete and accepted"
                 }
               ],
               "notes": [],
-              "sourceLine": 1042
+              "sourceLine": 1101
             },
             {
-              "id": "core-reboot-call-8",
-              "index": 7,
+              "id": "core-reboot-call-10",
+              "index": 9,
               "from": "Supervisor",
-              "to": "Router",
+              "to": "Gateway",
               "function": "routing::reconcile",
               "kind": "i3",
               "context": [
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Selected Boot set and four Covenant Realizations are complete and accepted",
-                  "branch": "Selected Boot set and four Covenant Realizations are complete and accepted"
+                  "label": "Selected Boot set and fallback contract are complete and accepted",
+                  "branch": "Selected Boot set and fallback contract are complete and accepted"
                 }
               ],
               "notes": [],
-              "sourceLine": 1043
+              "sourceLine": 1102
             },
             {
-              "id": "core-reboot-call-9",
-              "index": 8,
+              "id": "core-reboot-call-11",
+              "index": 10,
               "from": "HostAgent",
-              "to": "Router",
+              "to": "Gateway",
               "function": "routing::inspect",
               "kind": "i3",
               "context": [
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Selected Boot set and four Covenant Realizations are complete and accepted",
-                  "branch": "Selected Boot set and four Covenant Realizations are complete and accepted"
+                  "label": "Selected Boot set and fallback contract are complete and accepted",
+                  "branch": "Selected Boot set and fallback contract are complete and accepted"
                 }
               ],
               "notes": [],
-              "sourceLine": 1044
+              "sourceLine": 1103
             },
             {
-              "id": "core-reboot-call-10",
-              "index": 9,
+              "id": "core-reboot-call-12",
+              "index": 11,
               "from": "HostAgent",
               "to": "Supervisor",
               "function": "supervisor::wake::deliver",
@@ -1377,33 +1579,680 @@ window.LIFECYCLE_ATLAS_DATA = {
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Selected Boot set and four Covenant Realizations are complete and accepted",
-                  "branch": "Selected Boot set and four Covenant Realizations are complete and accepted"
+                  "label": "Selected Boot set and fallback contract are complete and accepted",
+                  "branch": "Selected Boot set and fallback contract are complete and accepted"
                 }
               ],
               "notes": [],
-              "sourceLine": 1045
+              "sourceLine": 1104
+            },
+            {
+              "id": "core-reboot-call-13",
+              "index": 12,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_stop",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Selected Boot set and fallback contract are complete and accepted",
+                  "branch": "Selected activation does not become ready"
+                },
+                {
+                  "id": "fragment-2",
+                  "type": "loop",
+                  "label": "Each started task in reverse dependency order",
+                  "branch": "Each started task in reverse dependency order"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1107
+            },
+            {
+              "id": "core-reboot-call-14",
+              "index": 13,
+              "from": "HostAgent",
+              "to": "Volume",
+              "function": "persistence_volume_release",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Selected Boot set and fallback contract are complete and accepted",
+                  "branch": "Selected activation does not become ready"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "core-reboot-note-7",
+                  "placement": "over",
+                  "actors": [
+                    "HostAgent",
+                    "Host"
+                  ],
+                  "text": "Terminalize boot failure for explicit repair",
+                  "sourceLine": 1114,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Selected Boot set and fallback contract are complete and accepted",
+                      "branch": "Selected activation does not become ready"
+                    },
+                    {
+                      "id": "fragment-3",
+                      "type": "alt",
+                      "label": "Failure precedes admission/effects and exact fallback is eligible",
+                      "branch": "Selection, compatibility, closure, acceptance, or host ABI is invalid"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 1109
+            },
+            {
+              "id": "core-reboot-call-15",
+              "index": 14,
+              "from": "HostAgent",
+              "to": "BootControl",
+              "function": "bootset_selector_fallback",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Selected Boot set and fallback contract are complete and accepted",
+                  "branch": "Selected activation does not become ready"
+                },
+                {
+                  "id": "fragment-3",
+                  "type": "alt",
+                  "label": "Failure precedes admission/effects and exact fallback is eligible",
+                  "branch": "Failure precedes admission/effects and exact fallback is eligible"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "core-reboot-note-6",
+                  "placement": "over",
+                  "actors": [
+                    "HostAgent",
+                    "Host"
+                  ],
+                  "text": "Install the exact last-known-good recovery selector once, · then repeat the complete fresh activation — never partially reuse members",
+                  "sourceLine": 1112,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Selected Boot set and fallback contract are complete and accepted",
+                      "branch": "Selected activation does not become ready"
+                    },
+                    {
+                      "id": "fragment-3",
+                      "type": "alt",
+                      "label": "Failure precedes admission/effects and exact fallback is eligible",
+                      "branch": "Failure precedes admission/effects and exact fallback is eligible"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 1111
             }
           ],
           "stats": {
-            "actors": 7,
-            "calls": 10,
+            "actors": 9,
+            "calls": 15,
             "i3Calls": 4,
-            "hostCalls": 6,
-            "notes": 6,
-            "branches": 1
+            "hostCalls": 11,
+            "notes": 7,
+            "branches": 4
+          }
+        },
+        {
+          "id": "boot-crash-repair",
+          "title": "Same-selection Boot-set crash repair",
+          "shortTitle": "Same-selection crash repair",
+          "kicker": "Step 5 · crash repair",
+          "summary": "How exact Persistence, Gateway, or Supervisor crashes repair from the cached plan while Engine or uncertain failure escalates to full activation.",
+          "question": "Which boot-member crashes can restart locally without changing selection, and which require the whole stack?",
+          "status": "core",
+          "ordinal": 5,
+          "sourceLine": 1128,
+          "participants": [
+            {
+              "id": "HostAgent",
+              "label": "Host Agent",
+              "type": "participant",
+              "role": "host",
+              "order": 0
+            },
+            {
+              "id": "Volume",
+              "label": "Durable Ark volume",
+              "type": "participant",
+              "role": "resource",
+              "order": 1
+            },
+            {
+              "id": "containerd",
+              "label": "containerd",
+              "type": "participant",
+              "role": "host",
+              "order": 2
+            },
+            {
+              "id": "Engine",
+              "label": "Engine",
+              "type": "participant",
+              "role": "engine",
+              "order": 3
+            },
+            {
+              "id": "Persistence",
+              "label": "Persistence",
+              "type": "participant",
+              "role": "resource",
+              "order": 4
+            },
+            {
+              "id": "Gateway",
+              "label": "Gateway",
+              "type": "participant",
+              "role": "control",
+              "order": 5
+            },
+            {
+              "id": "Supervisor",
+              "label": "Supervisor",
+              "type": "participant",
+              "role": "control",
+              "order": 6
+            },
+            {
+              "id": "Monitor",
+              "label": "Lower process supervision",
+              "type": "actor",
+              "role": "caller",
+              "order": 7
+            }
+          ],
+          "calls": [
+            {
+              "id": "boot-crash-repair-call-1",
+              "index": 0,
+              "from": "Monitor",
+              "to": "HostAgent",
+              "function": "repair_boot_member",
+              "kind": "host",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1139
+            },
+            {
+              "id": "boot-crash-repair-call-2",
+              "index": 1,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_stop",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Supervisor crashed"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1141
+            },
+            {
+              "id": "boot-crash-repair-call-3",
+              "index": 2,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_start",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Supervisor crashed"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "boot-crash-repair-note-1",
+                  "placement": "over",
+                  "actors": [
+                    "Gateway",
+                    "Supervisor"
+                  ],
+                  "text": "Start the same selected Supervisor Realization with a fresh Chamber ID",
+                  "sourceLine": 1143,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Exact selected Supervisor crashed",
+                      "branch": "Exact selected Supervisor crashed"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 1142
+            },
+            {
+              "id": "boot-crash-repair-call-4",
+              "index": 3,
+              "from": "Supervisor",
+              "to": "Persistence",
+              "function": "persistence::routing::read",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Supervisor crashed"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1144
+            },
+            {
+              "id": "boot-crash-repair-call-5",
+              "index": 4,
+              "from": "Supervisor",
+              "to": "Gateway",
+              "function": "routing::reconcile",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Supervisor crashed"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1145
+            },
+            {
+              "id": "boot-crash-repair-call-6",
+              "index": 5,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_stop",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Persistence crashed"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "boot-crash-repair-note-2",
+                  "placement": "over",
+                  "actors": [
+                    "Gateway"
+                  ],
+                  "text": "Keep unrelated ordinary routes from the last proved snapshot — · Persistence-dependent calls fail retryably until recovery",
+                  "sourceLine": 1147,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Exact selected Supervisor crashed",
+                      "branch": "Exact selected Persistence crashed"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 1148
+            },
+            {
+              "id": "boot-crash-repair-call-7",
+              "index": 6,
+              "from": "HostAgent",
+              "to": "Volume",
+              "function": "persistence_volume_release",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Persistence crashed"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1149
+            },
+            {
+              "id": "boot-crash-repair-call-8",
+              "index": 7,
+              "from": "HostAgent",
+              "to": "Volume",
+              "function": "persistence_volume_attach",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Persistence crashed"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1150
+            },
+            {
+              "id": "boot-crash-repair-call-9",
+              "index": 8,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_start",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Persistence crashed"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "boot-crash-repair-note-3",
+                  "placement": "over",
+                  "actors": [
+                    "Engine",
+                    "Persistence"
+                  ],
+                  "text": "Restart the same selected Persistence Realization, · recover journal, and prove the exclusive volume fence",
+                  "sourceLine": 1152,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Exact selected Supervisor crashed",
+                      "branch": "Exact selected Persistence crashed"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 1151
+            },
+            {
+              "id": "boot-crash-repair-call-10",
+              "index": 9,
+              "from": "Supervisor",
+              "to": "Persistence",
+              "function": "persistence::routing::read",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Persistence crashed"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1153
+            },
+            {
+              "id": "boot-crash-repair-call-11",
+              "index": 10,
+              "from": "Supervisor",
+              "to": "Gateway",
+              "function": "routing::reconcile",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Persistence crashed"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1154
+            },
+            {
+              "id": "boot-crash-repair-call-12",
+              "index": 11,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_stop",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Gateway crashed"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "boot-crash-repair-note-4",
+                  "placement": "over",
+                  "actors": [
+                    "Gateway"
+                  ],
+                  "text": "Fail closed — callers retry because bounded Gateway buffers are volatile",
+                  "sourceLine": 1156,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Exact selected Supervisor crashed",
+                      "branch": "Exact selected Gateway crashed"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 1157
+            },
+            {
+              "id": "boot-crash-repair-call-13",
+              "index": 12,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_start",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Gateway crashed"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1158
+            },
+            {
+              "id": "boot-crash-repair-call-14",
+              "index": 13,
+              "from": "Engine",
+              "to": "Gateway",
+              "function": "routing::authenticate",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Gateway crashed"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1159
+            },
+            {
+              "id": "boot-crash-repair-call-15",
+              "index": 14,
+              "from": "Engine",
+              "to": "Gateway",
+              "function": "routing::authorize_registration",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Gateway crashed"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1160
+            },
+            {
+              "id": "boot-crash-repair-call-16",
+              "index": 15,
+              "from": "Supervisor",
+              "to": "Persistence",
+              "function": "persistence::routing::read",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Gateway crashed"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1161
+            },
+            {
+              "id": "boot-crash-repair-call-17",
+              "index": 16,
+              "from": "Supervisor",
+              "to": "Gateway",
+              "function": "routing::reconcile",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Gateway crashed"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1162
+            },
+            {
+              "id": "boot-crash-repair-call-18",
+              "index": 17,
+              "from": "HostAgent",
+              "to": "Gateway",
+              "function": "routing::inspect",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Exact selected Gateway crashed"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1163
+            },
+            {
+              "id": "boot-crash-repair-call-19",
+              "index": 18,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_stop",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Engine crashed, identity or volume fence is uncertain, or bounded repair failed"
+                },
+                {
+                  "id": "fragment-2",
+                  "type": "loop",
+                  "label": "Each surviving ordinary or boot task in reverse dependency order",
+                  "branch": "Each surviving ordinary or boot task in reverse dependency order"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1166
+            },
+            {
+              "id": "boot-crash-repair-call-20",
+              "index": 19,
+              "from": "HostAgent",
+              "to": "Volume",
+              "function": "persistence_volume_release",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Exact selected Supervisor crashed",
+                  "branch": "Engine crashed, identity or volume fence is uncertain, or bounded repair failed"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "boot-crash-repair-note-5",
+                  "placement": "over",
+                  "actors": [
+                    "HostAgent",
+                    "Supervisor"
+                  ],
+                  "text": "After proving all residue absent, perform one complete selected cold activation",
+                  "sourceLine": 1169,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Exact selected Supervisor crashed",
+                      "branch": "Engine crashed, identity or volume fence is uncertain, or bounded repair failed"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 1168
+            }
+          ],
+          "stats": {
+            "actors": 8,
+            "calls": 20,
+            "i3Calls": 9,
+            "hostCalls": 11,
+            "notes": 5,
+            "branches": 5
           }
         },
         {
           "id": "activation-kernel",
           "title": "Ordinary Chamber activation kernel",
           "shortTitle": "Ordinary activation",
-          "kicker": "Step 5 · boot ready",
+          "kicker": "Step 6 · boot ready",
           "summary": "How chamber::activate turns one exact Realization and lease into an admitted ordinary Chamber while host mechanics stay encapsulated.",
           "question": "What exact authority crosses the three-function Host Agent boundary before readiness?",
           "status": "core",
-          "ordinal": 5,
-          "sourceLine": 1068,
+          "ordinal": 6,
+          "sourceLine": 1188,
           "participants": [
             {
               "id": "HostAgent",
@@ -1420,17 +2269,17 @@ window.LIFECYCLE_ATLAS_DATA = {
               "order": 1
             },
             {
-              "id": "Router",
-              "label": "Router",
-              "type": "participant",
-              "role": "control",
-              "order": 2
-            },
-            {
               "id": "Persistence",
               "label": "Persistence",
               "type": "participant",
               "role": "resource",
+              "order": 2
+            },
+            {
+              "id": "Gateway",
+              "label": "Gateway",
+              "type": "participant",
+              "role": "control",
               "order": 3
             },
             {
@@ -1473,11 +2322,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Persistence"
                   ],
                   "text": "Read the exact accepted Realization, normalized launch spec, · receipts, provider descriptors, and bounded immutable-resource capabilities",
-                  "sourceLine": 1079,
+                  "sourceLine": 1199,
                   "context": []
                 }
               ],
-              "sourceLine": 1078
+              "sourceLine": 1198
             },
             {
               "id": "activation-kernel-call-2",
@@ -1495,7 +2344,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "HostAgent"
                   ],
                   "text": "Commit the exact Chamber intent, fresh Chamber ID, lease, PeerId, · registration contract, listener, epoch, profile, and expiry before effects",
-                  "sourceLine": 1081,
+                  "sourceLine": 1201,
                   "context": []
                 },
                 {
@@ -1506,7 +2355,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Chamber"
                   ],
                   "text": "Encapsulated host kernel: verify or obtain exact OCI content, · compose the fixed OCI spec, and ask containerd to start it through the runsc shim",
-                  "sourceLine": 1082,
+                  "sourceLine": 1202,
                   "context": []
                 },
                 {
@@ -1517,7 +2366,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Chamber"
                   ],
                   "text": "Inject the fresh private identity through a protected capability · and pass the pinned selected Engine identity",
-                  "sourceLine": 1083,
+                  "sourceLine": 1203,
                   "context": []
                 },
                 {
@@ -1526,8 +2375,8 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "actors": [
                     "Engine"
                   ],
-                  "text": "Publish nothing and preserve unrelated router state",
-                  "sourceLine": 1090,
+                  "text": "Publish nothing and preserve unrelated gateway state",
+                  "sourceLine": 1210,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -1545,7 +2394,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Chamber"
                   ],
                   "text": "Stop/reap any partial task through containerd, revoke Admission, · and emit one attributable terminal failure receipt",
-                  "sourceLine": 1091,
+                  "sourceLine": 1211,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -1556,13 +2405,13 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1080
+              "sourceLine": 1200
             },
             {
               "id": "activation-kernel-call-3",
               "index": 2,
               "from": "HostAgent",
-              "to": "Router",
+              "to": "Gateway",
               "function": "routing::inspect",
               "kind": "i3",
               "context": [
@@ -1582,7 +2431,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Engine"
                   ],
                   "text": "TCP plus Noise proves both PeerIds before the Worker Manager stream opens",
-                  "sourceLine": 1084,
+                  "sourceLine": 1204,
                   "context": []
                 },
                 {
@@ -1592,7 +2441,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Engine"
                   ],
                   "text": "Atomically publish only the server-prefixed exact set · under privileged-direct or ordinary-RBAC middleware as declared",
-                  "sourceLine": 1086,
+                  "sourceLine": 1206,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -1607,10 +2456,10 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "placement": "over",
                   "actors": [
                     "HostAgent",
-                    "Router"
+                    "Gateway"
                   ],
                   "text": "Mark ready and emit the Run receipt only after exact route evidence",
-                  "sourceLine": 1088,
+                  "sourceLine": 1208,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -1628,11 +2477,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Vault"
                   ],
                   "text": "Ordinary-RBAC calls retain Vault mediation— · privileged-direct bypasses only ordinary application middleware",
-                  "sourceLine": 1093,
+                  "sourceLine": 1213,
                   "context": []
                 }
               ],
-              "sourceLine": 1087
+              "sourceLine": 1207
             }
           ],
           "stats": {
@@ -1648,12 +2497,12 @@ window.LIFECYCLE_ATLAS_DATA = {
           "id": "fenced-development",
           "title": "Fenced development",
           "shortTitle": "Fenced development",
-          "kicker": "Step 6 · development",
+          "kicker": "Step 7 · development",
           "summary": "How a mutable workspace is edited, sealed, and closed without exposing a host path.",
           "question": "How does development produce immutable input without promoting a running Chamber?",
           "status": "current",
-          "ordinal": 6,
-          "sourceLine": 1129,
+          "ordinal": 7,
+          "sourceLine": 1249,
           "participants": [
             {
               "id": "HostAgent",
@@ -1701,7 +2550,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 1137
+              "sourceLine": 1257
             },
             {
               "id": "fenced-development-call-2",
@@ -1720,11 +2569,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Persistence"
                   ],
                   "text": "Bind the writer fence, exact base, owner, expiry, · attachment capability, and cleanup duty before activation",
-                  "sourceLine": 1139,
+                  "sourceLine": 1259,
                   "context": []
                 }
               ],
-              "sourceLine": 1138
+              "sourceLine": 1258
             },
             {
               "id": "fenced-development-call-3",
@@ -1743,11 +2592,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Developer"
                   ],
                   "text": "Activate the exact development Realization and staged attachment · without exposing a raw host path",
-                  "sourceLine": 1141,
+                  "sourceLine": 1261,
                   "context": []
                 }
               ],
-              "sourceLine": 1140
+              "sourceLine": 1260
             },
             {
               "id": "fenced-development-call-4",
@@ -1758,7 +2607,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 1142
+              "sourceLine": 1262
             },
             {
               "id": "fenced-development-call-5",
@@ -1776,7 +2625,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1145
+              "sourceLine": 1265
             },
             {
               "id": "fenced-development-call-6",
@@ -1794,7 +2643,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1147
+              "sourceLine": 1267
             },
             {
               "id": "fenced-development-call-7",
@@ -1826,7 +2675,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Persistence"
                   ],
                   "text": "Persist source/resource state only, · never containerd content or a running root filesystem",
-                  "sourceLine": 1151,
+                  "sourceLine": 1271,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -1837,7 +2686,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1149
+              "sourceLine": 1269
             },
             {
               "id": "fenced-development-call-8",
@@ -1855,7 +2704,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1153
+              "sourceLine": 1273
             },
             {
               "id": "fenced-development-call-9",
@@ -1873,7 +2722,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1154
+              "sourceLine": 1274
             }
           ],
           "stats": {
@@ -1889,12 +2738,12 @@ window.LIFECYCLE_ATLAS_DATA = {
           "id": "candidate-formation",
           "title": "Form a candidate Realization",
           "shortTitle": "Form a candidate",
-          "kicker": "Step 7 · realization",
+          "kicker": "Step 8 · realization",
           "summary": "How a locator or lock becomes an exact dormant candidate without changing current or starting a Chamber.",
           "question": "How are resolution, build, acceptance, durable launch data, and later preparation kept separate?",
           "status": "current",
-          "ordinal": 7,
-          "sourceLine": 1174,
+          "ordinal": 8,
+          "sourceLine": 1294,
           "participants": [
             {
               "id": "Persistence",
@@ -1949,11 +2798,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Supervisor"
                   ],
                   "text": "Validate authority, parentage, candidate capacity, quota, and deadline",
-                  "sourceLine": 1183,
+                  "sourceLine": 1303,
                   "context": []
                 }
               ],
-              "sourceLine": 1182
+              "sourceLine": 1302
             },
             {
               "id": "candidate-formation-call-2",
@@ -1978,7 +2827,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Persistence"
                   ],
                   "text": "Acquire any scoped Vault lease and invoke the selected provider adapter",
-                  "sourceLine": 1186,
+                  "sourceLine": 1306,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -1995,7 +2844,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Supervisor"
                   ],
                   "text": "Form the exact Covenant lock once",
-                  "sourceLine": 1187,
+                  "sourceLine": 1307,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -2006,7 +2855,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1185
+              "sourceLine": 1305
             },
             {
               "id": "candidate-formation-call-3",
@@ -2024,7 +2873,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1189
+              "sourceLine": 1309
             },
             {
               "id": "candidate-formation-call-4",
@@ -2050,7 +2899,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Persistence"
                   ],
                   "text": "Builder is an already admitted separate Chamber— · output remains in bounded staging while identities and receipts persist",
-                  "sourceLine": 1198,
+                  "sourceLine": 1318,
                   "context": [
                     {
                       "id": "fragment-2",
@@ -2061,7 +2910,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1197
+              "sourceLine": 1317
             },
             {
               "id": "candidate-formation-call-5",
@@ -2079,7 +2928,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1199
+              "sourceLine": 1319
             },
             {
               "id": "candidate-formation-call-6",
@@ -2097,7 +2946,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Supervisor"
                   ],
                   "text": "Bind exact base digest, platform, resources, workers, · projection, launcher, runtime, and security configuration",
-                  "sourceLine": 1193,
+                  "sourceLine": 1313,
                   "context": [
                     {
                       "id": "fragment-2",
@@ -2114,7 +2963,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Supervisor"
                   ],
                   "text": "Bind the exact OCI descriptor, provider/rebuild provenance, · artifact acceptance, and runtime configuration",
-                  "sourceLine": 1195,
+                  "sourceLine": 1315,
                   "context": [
                     {
                       "id": "fragment-2",
@@ -2131,7 +2980,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Supervisor"
                   ],
                   "text": "Form and digest the complete immutable Realization",
-                  "sourceLine": 1202,
+                  "sourceLine": 1322,
                   "context": []
                 },
                 {
@@ -2141,11 +2990,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Persistence"
                   ],
                   "text": "Hold exact launch data, resources, receipts, provider descriptors, · expiry, and cleanup authority—not ordinary OCI blobs",
-                  "sourceLine": 1204,
+                  "sourceLine": 1324,
                   "context": []
                 }
               ],
-              "sourceLine": 1203
+              "sourceLine": 1323
             }
           ],
           "stats": {
@@ -2161,12 +3010,12 @@ window.LIFECYCLE_ATLAS_DATA = {
           "id": "artifact-build",
           "title": "Build an artifact",
           "shortTitle": "Build an artifact",
-          "kicker": "Step 8 · optional",
+          "kicker": "Step 9 · optional",
           "summary": "How exact inputs produce an OCI digest and receipt while output bytes stay disposable and Builders never receive the containerd socket.",
           "question": "Where does building end, what remains durable, and how can later activation import the exact output?",
           "status": "later",
-          "ordinal": 8,
-          "sourceLine": 1230,
+          "ordinal": 9,
+          "sourceLine": 1350,
           "participants": [
             {
               "id": "HostAgent",
@@ -2215,11 +3064,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Persistence"
                   ],
                   "text": "Read the exact accepted Builder Realization and bounded build lease",
-                  "sourceLine": 1238,
+                  "sourceLine": 1358,
                   "context": []
                 }
               ],
-              "sourceLine": 1237
+              "sourceLine": 1357
             },
             {
               "id": "artifact-build-call-2",
@@ -2238,11 +3087,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Builder"
                   ],
                   "text": "Start Builder in its own gVisor Chamber with no runtime socket, · boot filesystem, boot tag, or selection capability",
-                  "sourceLine": 1240,
+                  "sourceLine": 1360,
                   "context": []
                 }
               ],
-              "sourceLine": 1239
+              "sourceLine": 1359
             },
             {
               "id": "artifact-build-call-3",
@@ -2253,7 +3102,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 1241
+              "sourceLine": 1361
             },
             {
               "id": "artifact-build-call-4",
@@ -2271,11 +3120,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Builder"
                   ],
                   "text": "Execute the selected frontend from exact inputs and write one OCI layout · to bounded output staging",
-                  "sourceLine": 1243,
+                  "sourceLine": 1363,
                   "context": []
                 }
               ],
-              "sourceLine": 1242
+              "sourceLine": 1362
             },
             {
               "id": "artifact-build-call-5",
@@ -2294,11 +3143,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Persistence"
                   ],
                   "text": "Persist build definition, inputs, output digest, receipt, · provider/rebuild policy, and capability expiry—not OCI bytes",
-                  "sourceLine": 1245,
+                  "sourceLine": 1365,
                   "context": []
                 }
               ],
-              "sourceLine": 1244
+              "sourceLine": 1364
             },
             {
               "id": "artifact-build-call-6",
@@ -2309,7 +3158,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 1246
+              "sourceLine": 1366
             }
           ],
           "stats": {
@@ -2325,12 +3174,12 @@ window.LIFECYCLE_ATLAS_DATA = {
           "id": "candidate-verification",
           "title": "Prepare and retain a tested Realization",
           "shortTitle": "Prepare tested image",
-          "kicker": "Step 9 · preparation",
+          "kicker": "Step 10 · preparation",
           "summary": "How exact image bytes run in a verification Chamber, pass profile-bound tests, stop, and remain retained as a dormant Prepared Realization.",
           "question": "How does the tested immutable image survive while the verification Chamber and its writable snapshot disappear?",
           "status": "current",
-          "ordinal": 9,
-          "sourceLine": 1275,
+          "ordinal": 10,
+          "sourceLine": 1395,
           "participants": [
             {
               "id": "HostAgent",
@@ -2347,17 +3196,17 @@ window.LIFECYCLE_ATLAS_DATA = {
               "order": 1
             },
             {
-              "id": "Router",
-              "label": "Router",
-              "type": "participant",
-              "role": "control",
-              "order": 2
-            },
-            {
               "id": "Persistence",
               "label": "Persistence",
               "type": "participant",
               "role": "resource",
+              "order": 2
+            },
+            {
+              "id": "Gateway",
+              "label": "Gateway",
+              "type": "participant",
+              "role": "control",
               "order": 3
             },
             {
@@ -2413,7 +3262,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 1288
+              "sourceLine": 1408
             },
             {
               "id": "candidate-verification-call-2",
@@ -2424,7 +3273,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 1289
+              "sourceLine": 1409
             },
             {
               "id": "candidate-verification-call-3",
@@ -2443,11 +3292,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Supervisor"
                   ],
                   "text": "Require one exact artifact-backed candidate, Hold, · execution profile, OCI descriptor, and bounded graph capability",
-                  "sourceLine": 1291,
+                  "sourceLine": 1411,
                   "context": []
                 }
               ],
-              "sourceLine": 1290
+              "sourceLine": 1410
             },
             {
               "id": "candidate-verification-call-4",
@@ -2466,22 +3315,22 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Candidate"
                   ],
                   "text": "Start the exact image under a fresh verification lease— · rematerialize exactly or fail closed",
-                  "sourceLine": 1293,
+                  "sourceLine": 1413,
                   "context": []
                 }
               ],
-              "sourceLine": 1292
+              "sourceLine": 1412
             },
             {
               "id": "candidate-verification-call-5",
               "index": 4,
               "from": "HostAgent",
-              "to": "Router",
+              "to": "Gateway",
               "function": "routing::inspect",
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 1294
+              "sourceLine": 1414
             },
             {
               "id": "candidate-verification-call-6",
@@ -2507,7 +3356,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Fixtures"
                   ],
                   "text": "Activate each exact fixture under its own lease",
-                  "sourceLine": 1298,
+                  "sourceLine": 1418,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -2518,13 +3367,13 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1297
+              "sourceLine": 1417
             },
             {
               "id": "candidate-verification-call-7",
               "index": 6,
               "from": "HostAgent",
-              "to": "Router",
+              "to": "Gateway",
               "function": "routing::inspect",
               "kind": "i3",
               "context": [
@@ -2536,7 +3385,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1299
+              "sourceLine": 1419
             },
             {
               "id": "candidate-verification-call-8",
@@ -2547,7 +3396,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 1302
+              "sourceLine": 1422
             },
             {
               "id": "candidate-verification-call-9",
@@ -2558,7 +3407,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 1303
+              "sourceLine": 1423
             },
             {
               "id": "candidate-verification-call-10",
@@ -2576,7 +3425,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1305
+              "sourceLine": 1425
             },
             {
               "id": "candidate-verification-call-11",
@@ -2594,11 +3443,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Verifier"
                   ],
                   "text": "Emit MET, NOT_MET, or UNKNOWN bound to the exact image, · execution profile, Chamber, plan, and environment",
-                  "sourceLine": 1307,
+                  "sourceLine": 1427,
                   "context": []
                 }
               ],
-              "sourceLine": 1308
+              "sourceLine": 1428
             },
             {
               "id": "candidate-verification-call-12",
@@ -2609,7 +3458,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 1310
+              "sourceLine": 1430
             },
             {
               "id": "candidate-verification-call-13",
@@ -2627,7 +3476,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1312
+              "sourceLine": 1432
             },
             {
               "id": "candidate-verification-call-14",
@@ -2646,7 +3495,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Candidate"
                   ],
                   "text": "Prove the verification Chamber is absent and bind its terminal Run receipt— · never commit or reuse its writable snapshot",
-                  "sourceLine": 1315,
+                  "sourceLine": 1435,
                   "context": []
                 },
                 {
@@ -2657,7 +3506,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Supervisor"
                   ],
                   "text": "Leave the bounded candidate unprepared and unselected, · then retry or expire under its existing Hold",
-                  "sourceLine": 1325,
+                  "sourceLine": 1445,
                   "context": [
                     {
                       "id": "fragment-4",
@@ -2668,7 +3517,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1314
+              "sourceLine": 1434
             },
             {
               "id": "candidate-verification-call-15",
@@ -2694,7 +3543,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "ArtifactStore"
                   ],
                   "text": "Retain and read back the same immutable OCI graph by digest · in an authoritative provider, with no running task stored",
-                  "sourceLine": 1319,
+                  "sourceLine": 1439,
                   "context": [
                     {
                       "id": "fragment-4",
@@ -2705,7 +3554,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1318
+              "sourceLine": 1438
             },
             {
               "id": "candidate-verification-call-16",
@@ -2730,7 +3579,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Persistence"
                   ],
                   "text": "Bind Realization, execution profile, verification, shutdown, · retention, provider, and acceptance receipts without moving current",
-                  "sourceLine": 1321,
+                  "sourceLine": 1441,
                   "context": [
                     {
                       "id": "fragment-4",
@@ -2741,7 +3590,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1320
+              "sourceLine": 1440
             },
             {
               "id": "candidate-verification-call-17",
@@ -2759,7 +3608,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1323
+              "sourceLine": 1443
             }
           ],
           "stats": {
@@ -2775,12 +3624,12 @@ window.LIFECYCLE_ATLAS_DATA = {
           "id": "selection-rollback",
           "title": "Select, upgrade, or roll back",
           "shortTitle": "Select, upgrade, or roll back",
-          "kicker": "Step 10 · selection",
-          "summary": "How ordinary Persistence selection and lower Host Agent Boot-set selection remain distinct fenced operations over immutable targets.",
-          "question": "Which selector moves, and why does Boot-set selection require no Engine route group?",
+          "kicker": "Step 11 · selection",
+          "summary": "How ordinary Current CAS and Persistence's atomic Boot-set JSON commit remain distinct fenced operations.",
+          "question": "Which selector moves, and why does any Boot-set member change cause a complete fresh activation?",
           "status": "current",
-          "ordinal": 10,
-          "sourceLine": 1351,
+          "ordinal": 11,
+          "sourceLine": 1471,
           "participants": [
             {
               "id": "HostAgent",
@@ -2797,46 +3646,39 @@ window.LIFECYCLE_ATLAS_DATA = {
               "order": 1
             },
             {
-              "id": "Engine",
-              "label": "Engine",
-              "type": "participant",
-              "role": "engine",
-              "order": 2
-            },
-            {
-              "id": "Router",
-              "label": "Router",
-              "type": "participant",
-              "role": "control",
-              "order": 3
-            },
-            {
               "id": "Persistence",
               "label": "Persistence",
               "type": "participant",
               "role": "resource",
-              "order": 4
+              "order": 2
+            },
+            {
+              "id": "Gateway",
+              "label": "Gateway",
+              "type": "participant",
+              "role": "control",
+              "order": 3
             },
             {
               "id": "Supervisor",
               "label": "Supervisor",
               "type": "participant",
               "role": "control",
-              "order": 5
+              "order": 4
             },
             {
               "id": "Verifier",
               "label": "Verifier",
               "type": "participant",
               "role": "assurance",
-              "order": 6
+              "order": 5
             },
             {
               "id": "Promoter",
               "label": "Promoter",
               "type": "participant",
               "role": "assurance",
-              "order": 7
+              "order": 6
             }
           ],
           "calls": [
@@ -2849,7 +3691,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 1362
+              "sourceLine": 1481
             },
             {
               "id": "selection-rollback-call-2",
@@ -2862,8 +3704,8 @@ window.LIFECYCLE_ATLAS_DATA = {
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Target is an Engine-first Boot set",
-                  "branch": "Target is an Engine-first Boot set"
+                  "label": "Target is a complete Boot set",
+                  "branch": "Target is a complete Boot set"
                 }
               ],
               "notes": [
@@ -2874,19 +3716,19 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "HostAgent",
                     "containerd"
                   ],
-                  "text": "Verify and pin the exact Boot-set artifact plus four ordered · Realizations, image graphs, predecessor, host ABI, acceptance, and bootstrap contracts",
-                  "sourceLine": 1365,
+                  "text": "Verify and pin exact Boot-set artifact, four ordered Realizations, · selected/fallback OCI closures, ABI, volume/schema, Admissions, and acceptance",
+                  "sourceLine": 1484,
                   "context": [
                     {
                       "id": "fragment-1",
                       "type": "alt",
-                      "label": "Target is an Engine-first Boot set",
-                      "branch": "Target is an Engine-first Boot set"
+                      "label": "Target is a complete Boot set",
+                      "branch": "Target is a complete Boot set"
                     }
                   ]
                 }
               ],
-              "sourceLine": 1364
+              "sourceLine": 1483
             },
             {
               "id": "selection-rollback-call-3",
@@ -2899,12 +3741,31 @@ window.LIFECYCLE_ATLAS_DATA = {
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Target is an Engine-first Boot set",
-                  "branch": "Target is an Engine-first Boot set"
+                  "label": "Target is a complete Boot set",
+                  "branch": "Target is a complete Boot set"
                 }
               ],
-              "notes": [],
-              "sourceLine": 1366
+              "notes": [
+                {
+                  "id": "selection-rollback-note-2",
+                  "placement": "over",
+                  "actors": [
+                    "Supervisor",
+                    "Verifier"
+                  ],
+                  "text": "Prefer a complete isolated replacement-host cold boot, crash/reboot test, · and fresh operational proof with no production writer lease or effect authority",
+                  "sourceLine": 1485,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Target is a complete Boot set",
+                      "branch": "Target is a complete Boot set"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 1486
             },
             {
               "id": "selection-rollback-call-4",
@@ -2917,89 +3778,107 @@ window.LIFECYCLE_ATLAS_DATA = {
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Target is an Engine-first Boot set",
-                  "branch": "Target is an Engine-first Boot set"
+                  "label": "Target is a complete Boot set",
+                  "branch": "Target is a complete Boot set"
                 }
               ],
               "notes": [],
-              "sourceLine": 1367
+              "sourceLine": 1487
             },
             {
               "id": "selection-rollback-call-5",
               "index": 4,
               "from": "Promoter",
-              "to": "HostAgent",
-              "function": "bootset::select",
+              "to": "Persistence",
+              "function": "persistence::bootset::commit",
               "kind": "i3",
               "context": [
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Target is an Engine-first Boot set",
-                  "branch": "Target is an Engine-first Boot set"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1368
-            },
-            {
-              "id": "selection-rollback-call-6",
-              "index": 5,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_tag_update",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Target is an Engine-first Boot set",
-                  "branch": "Target is an Engine-first Boot set"
+                  "label": "Target is a complete Boot set",
+                  "branch": "Target is a complete Boot set"
                 }
               ],
               "notes": [
                 {
-                  "id": "selection-rollback-note-2",
-                  "placement": "over",
-                  "actors": [
-                    "HostAgent",
-                    "containerd"
-                  ],
-                  "text": "Under the expected-current fence, move only · dreamcatcher/bootset:current and verify exact target readback",
-                  "sourceLine": 1370,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Target is an Engine-first Boot set",
-                      "branch": "Target is an Engine-first Boot set"
-                    }
-                  ]
-                },
-                {
                   "id": "selection-rollback-note-3",
                   "placement": "over",
                   "actors": [
-                    "HostAgent",
-                    "Router"
+                    "Persistence"
                   ],
-                  "text": "Boot-set selection is below Covenant-owned routing— · there are no independently mutable component tags or Engine route-group selector",
-                  "sourceLine": 1371,
+                  "text": "Atomically replace selected.json under expected generation — · the running quartet remains unchanged",
+                  "sourceLine": 1489,
                   "context": [
                     {
                       "id": "fragment-1",
                       "type": "alt",
-                      "label": "Target is an Engine-first Boot set",
-                      "branch": "Target is an Engine-first Boot set"
+                      "label": "Target is a complete Boot set",
+                      "branch": "Target is a complete Boot set"
                     }
                   ]
                 }
               ],
-              "sourceLine": 1369
+              "sourceLine": 1488
+            },
+            {
+              "id": "selection-rollback-call-6",
+              "index": 5,
+              "from": "Supervisor",
+              "to": "HostAgent",
+              "function": "bootset::restart",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Target is a complete Boot set",
+                  "branch": "Target is a complete Boot set"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "selection-rollback-note-4",
+                  "placement": "over",
+                  "actors": [
+                    "HostAgent",
+                    "Supervisor"
+                  ],
+                  "text": "Stop the complete process tree, then cold-read once and create · fresh Engine, Persistence, Gateway, and Supervisor Chambers",
+                  "sourceLine": 1491,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Target is a complete Boot set",
+                      "branch": "Target is a complete Boot set"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 1490
             },
             {
               "id": "selection-rollback-call-7",
               "index": 6,
+              "from": "Supervisor",
+              "to": "Gateway",
+              "function": "routing::fence",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Target is a complete Boot set",
+                  "branch": "Target is an ordinary named Realization"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1493
+            },
+            {
+              "id": "selection-rollback-call-8",
+              "index": 7,
               "from": "Supervisor",
               "to": "Promoter",
               "function": "selection::authorize",
@@ -3008,16 +3887,16 @@ window.LIFECYCLE_ATLAS_DATA = {
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Target is an Engine-first Boot set",
+                  "label": "Target is a complete Boot set",
                   "branch": "Target is an ordinary named Realization"
                 }
               ],
               "notes": [],
-              "sourceLine": 1373
+              "sourceLine": 1494
             },
             {
-              "id": "selection-rollback-call-8",
-              "index": 7,
+              "id": "selection-rollback-call-9",
+              "index": 8,
               "from": "Promoter",
               "to": "Persistence",
               "function": "persistence::selection::commit",
@@ -3026,43 +3905,25 @@ window.LIFECYCLE_ATLAS_DATA = {
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Target is an Engine-first Boot set",
+                  "label": "Target is a complete Boot set",
                   "branch": "Target is an ordinary named Realization"
                 }
               ],
               "notes": [],
-              "sourceLine": 1374
-            },
-            {
-              "id": "selection-rollback-call-9",
-              "index": 8,
-              "from": "Persistence",
-              "to": "Router",
-              "function": "routing::fence",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Target is an Engine-first Boot set",
-                  "branch": "Target is an ordinary named Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1375
+              "sourceLine": 1495
             },
             {
               "id": "selection-rollback-call-10",
               "index": 9,
-              "from": "Persistence",
-              "to": "Router",
+              "from": "Supervisor",
+              "to": "Gateway",
               "function": "routing::reopen",
               "kind": "i3",
               "context": [
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Target is an Engine-first Boot set",
+                  "label": "Target is a complete Boot set",
                   "branch": "Target is an ordinary named Realization"
                 },
                 {
@@ -3074,18 +3935,18 @@ window.LIFECYCLE_ATLAS_DATA = {
               ],
               "notes": [
                 {
-                  "id": "selection-rollback-note-4",
+                  "id": "selection-rollback-note-5",
                   "placement": "over",
                   "actors": [
                     "Persistence"
                   ],
-                  "text": "Leave current unchanged and consume no reusable authority",
-                  "sourceLine": 1377,
+                  "text": "Leave Current unchanged and consume no reusable authority",
+                  "sourceLine": 1497,
                   "context": [
                     {
                       "id": "fragment-1",
                       "type": "alt",
-                      "label": "Target is an Engine-first Boot set",
+                      "label": "Target is a complete Boot set",
                       "branch": "Target is an ordinary named Realization"
                     },
                     {
@@ -3097,20 +3958,20 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1378
+              "sourceLine": 1498
             },
             {
               "id": "selection-rollback-call-11",
               "index": 10,
-              "from": "Persistence",
-              "to": "Router",
+              "from": "Supervisor",
+              "to": "Gateway",
               "function": "routing::install",
               "kind": "i3",
               "context": [
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Target is an Engine-first Boot set",
+                  "label": "Target is a complete Boot set",
                   "branch": "Target is an ordinary named Realization"
                 },
                 {
@@ -3122,42 +3983,18 @@ window.LIFECYCLE_ATLAS_DATA = {
               ],
               "notes": [
                 {
-                  "id": "selection-rollback-note-5",
+                  "id": "selection-rollback-note-6",
                   "placement": "over",
                   "actors": [
                     "Persistence"
                   ],
-                  "text": "Transfer the Hold into selected image custody, · append history, and set current[name] to the Prepared Realization",
-                  "sourceLine": 1380,
+                  "text": "Transfer Hold into selected image custody, · append history, and set current[name] to the Prepared Realization",
+                  "sourceLine": 1500,
                   "context": [
                     {
                       "id": "fragment-1",
                       "type": "alt",
-                      "label": "Target is an Engine-first Boot set",
-                      "branch": "Target is an ordinary named Realization"
-                    },
-                    {
-                      "id": "fragment-2",
-                      "type": "alt",
-                      "label": "Expected revision, Prepared record, Hold, evidence, or permit is stale",
-                      "branch": "Exact compare-and-swap succeeds"
-                    }
-                  ]
-                },
-                {
-                  "id": "selection-rollback-note-6",
-                  "placement": "over",
-                  "actors": [
-                    "Persistence",
-                    "Router"
-                  ],
-                  "text": "Install only the execution-profile projection— · dynamic-job factory or ready resident-service functions",
-                  "sourceLine": 1382,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Target is an Engine-first Boot set",
+                      "label": "Target is a complete Boot set",
                       "branch": "Target is an ordinary named Realization"
                     },
                     {
@@ -3169,15 +4006,63 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1381
+              "sourceLine": 1501
+            },
+            {
+              "id": "selection-rollback-call-12",
+              "index": 11,
+              "from": "Supervisor",
+              "to": "Gateway",
+              "function": "routing::reopen",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Target is a complete Boot set",
+                  "branch": "Target is an ordinary named Realization"
+                },
+                {
+                  "id": "fragment-2",
+                  "type": "alt",
+                  "label": "Expected revision, Prepared record, Hold, evidence, or permit is stale",
+                  "branch": "Exact compare-and-swap succeeds"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "selection-rollback-note-7",
+                  "placement": "over",
+                  "actors": [
+                    "Gateway"
+                  ],
+                  "text": "Install only the ordinary execution-profile projection— · dynamic-job factory or proved-ready resident-service functions",
+                  "sourceLine": 1503,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Target is a complete Boot set",
+                      "branch": "Target is an ordinary named Realization"
+                    },
+                    {
+                      "id": "fragment-2",
+                      "type": "alt",
+                      "label": "Expected revision, Prepared record, Hold, evidence, or permit is stale",
+                      "branch": "Exact compare-and-swap succeeds"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 1502
             }
           ],
           "stats": {
-            "actors": 8,
-            "calls": 11,
-            "i3Calls": 10,
-            "hostCalls": 1,
-            "notes": 6,
+            "actors": 7,
+            "calls": 12,
+            "i3Calls": 12,
+            "hostCalls": 0,
+            "notes": 7,
             "branches": 4
           }
         },
@@ -3185,12 +4070,12 @@ window.LIFECYCLE_ATLAS_DATA = {
           "id": "prepared-execution",
           "title": "Execute a dynamic job or resident service",
           "shortTitle": "Job or resident service",
-          "kicker": "Step 11 · execution profile",
+          "kicker": "Step 12 · execution profile",
           "summary": "How one selected Prepared Realization either starts a fresh finite job Chamber on demand or stays ready behind stable service functions.",
           "question": "Which execution profile returns to zero after each job, and which makes live function availability a reconciled promise?",
           "status": "current",
-          "ordinal": 11,
-          "sourceLine": 1414,
+          "ordinal": 12,
+          "sourceLine": 1527,
           "participants": [
             {
               "id": "HostAgent",
@@ -3200,17 +4085,17 @@ window.LIFECYCLE_ATLAS_DATA = {
               "order": 0
             },
             {
-              "id": "Router",
-              "label": "Router",
-              "type": "participant",
-              "role": "control",
-              "order": 1
-            },
-            {
               "id": "Persistence",
               "label": "Persistence",
               "type": "participant",
               "role": "resource",
+              "order": 1
+            },
+            {
+              "id": "Gateway",
+              "label": "Gateway",
+              "type": "participant",
+              "role": "control",
               "order": 2
             },
             {
@@ -3252,7 +4137,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1424
+              "sourceLine": 1537
             },
             {
               "id": "prepared-execution-call-2",
@@ -3270,7 +4155,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1425
+              "sourceLine": 1538
             },
             {
               "id": "prepared-execution-call-3",
@@ -3296,7 +4181,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Supervisor"
                   ],
                   "text": "Snapshot one selected Prepared Realization, retained provider descriptor, · declared job entrypoint, request idempotency key, lease, and deadline",
-                  "sourceLine": 1427,
+                  "sourceLine": 1540,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -3307,7 +4192,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1426
+              "sourceLine": 1539
             },
             {
               "id": "prepared-execution-call-4",
@@ -3325,13 +4210,13 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1428
+              "sourceLine": 1541
             },
             {
               "id": "prepared-execution-call-5",
               "index": 4,
               "from": "HostAgent",
-              "to": "Router",
+              "to": "Gateway",
               "function": "routing::inspect",
               "kind": "i3",
               "context": [
@@ -3347,11 +4232,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "id": "prepared-execution-note-2",
                   "placement": "over",
                   "actors": [
-                    "Router",
+                    "Gateway",
                     "Workload"
                   ],
                   "text": "Admit only the exact fresh Chamber prefix and declared registration contract— · there is no stable idle application function",
-                  "sourceLine": 1430,
+                  "sourceLine": 1543,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -3362,7 +4247,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1429
+              "sourceLine": 1542
             },
             {
               "id": "prepared-execution-call-6",
@@ -3380,7 +4265,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1431
+              "sourceLine": 1544
             },
             {
               "id": "prepared-execution-call-7",
@@ -3398,7 +4283,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1432
+              "sourceLine": 1545
             },
             {
               "id": "prepared-execution-call-8",
@@ -3424,7 +4309,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Requester"
                   ],
                   "text": "Return terminal result and Run evidence only after the job Chamber · is absent or one attributable cleanup operation remains",
-                  "sourceLine": 1434,
+                  "sourceLine": 1547,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -3435,7 +4320,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1433
+              "sourceLine": 1546
             },
             {
               "id": "prepared-execution-call-9",
@@ -3453,7 +4338,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1436
+              "sourceLine": 1549
             },
             {
               "id": "prepared-execution-call-10",
@@ -3471,7 +4356,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1437
+              "sourceLine": 1550
             },
             {
               "id": "prepared-execution-call-11",
@@ -3489,7 +4374,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1438
+              "sourceLine": 1551
             },
             {
               "id": "prepared-execution-call-12",
@@ -3513,13 +4398,13 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1440
+              "sourceLine": 1553
             },
             {
               "id": "prepared-execution-call-13",
               "index": 12,
               "from": "HostAgent",
-              "to": "Router",
+              "to": "Gateway",
               "function": "routing::inspect",
               "kind": "i3",
               "context": [
@@ -3537,13 +4422,13 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1441
+              "sourceLine": 1554
             },
             {
               "id": "prepared-execution-call-14",
               "index": 13,
               "from": "Supervisor",
-              "to": "Router",
+              "to": "Gateway",
               "function": "routing::install",
               "kind": "i3",
               "context": [
@@ -3555,13 +4440,13 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1443
+              "sourceLine": 1556
             },
             {
               "id": "prepared-execution-call-15",
               "index": 14,
               "from": "Supervisor",
-              "to": "Router",
+              "to": "Gateway",
               "function": "routing::reopen",
               "kind": "i3",
               "context": [
@@ -3577,11 +4462,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "id": "prepared-execution-note-4",
                   "placement": "over",
                   "actors": [
-                    "Router",
+                    "Gateway",
                     "Requester"
                   ],
                   "text": "Stable declared functions remain open only while the selected exact Chamber, · registration owner set, route epoch, and availability policy agree",
-                  "sourceLine": 1445,
+                  "sourceLine": 1558,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -3592,7 +4477,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1444
+              "sourceLine": 1557
             }
           ],
           "stats": {
@@ -3605,15 +4490,15 @@ window.LIFECYCLE_ATLAS_DATA = {
           }
         },
         {
-          "id": "core-cutover",
-          "title": "Live Boot-set cutover",
-          "shortTitle": "Live Boot-set cutover",
-          "kicker": "Step 12 · control handoff",
-          "summary": "How Router and Supervisor hand one another over, Persistence remains the durable witness, and Engine-changing Boot sets use a bounded ordered replacement.",
-          "question": "How can Router, Persistence, or Supervisor change independently, and what changes when Engine also moves?",
+          "id": "ordinary-routed-cutover",
+          "title": "Ordinary resident-service routed cutover",
+          "shortTitle": "Ordinary routed cutover",
+          "kicker": "Step 13 · routed handoff",
+          "summary": "How Gateway fences and boundedly buffers ordinary calls while a tested resident-service successor becomes Current and the predecessor drains.",
+          "question": "What can Gateway hand over warmly without turning its RAM buffer into a second durable queue?",
           "status": "current",
-          "ordinal": 12,
-          "sourceLine": 1483,
+          "ordinal": 13,
+          "sourceLine": 1584,
           "participants": [
             {
               "id": "HostAgent",
@@ -3623,81 +4508,428 @@ window.LIFECYCLE_ATLAS_DATA = {
               "order": 0
             },
             {
-              "id": "containerd",
-              "label": "containerd",
+              "id": "Persistence",
+              "label": "Persistence",
               "type": "participant",
-              "role": "host",
+              "role": "resource",
               "order": 1
             },
             {
-              "id": "Engine",
-              "label": "Current Engine",
+              "id": "Gateway",
+              "label": "Gateway",
               "type": "participant",
-              "role": "engine",
+              "role": "control",
               "order": 2
             },
             {
-              "id": "NextEngine",
-              "label": "Candidate Engine",
+              "id": "Supervisor",
+              "label": "Supervisor",
               "type": "participant",
-              "role": "engine",
+              "role": "control",
               "order": 3
             },
             {
-              "id": "Router",
-              "label": "Current Router",
+              "id": "Current",
+              "label": "Current ordinary Chamber",
               "type": "participant",
-              "role": "control",
+              "role": "chamber",
               "order": 4
             },
             {
-              "id": "NextRouter",
-              "label": "Candidate Router",
+              "id": "Successor",
+              "label": "Successor ordinary Chamber",
               "type": "participant",
-              "role": "control",
+              "role": "chamber",
               "order": 5
-            },
-            {
-              "id": "Persistence",
-              "label": "Current Persistence",
-              "type": "participant",
-              "role": "resource",
-              "order": 6
-            },
-            {
-              "id": "NextPersistence",
-              "label": "Candidate Persistence",
-              "type": "participant",
-              "role": "resource",
-              "order": 7
-            },
-            {
-              "id": "Supervisor",
-              "label": "Current Supervisor",
-              "type": "participant",
-              "role": "control",
-              "order": 8
-            },
-            {
-              "id": "NextSupervisor",
-              "label": "Candidate Supervisor",
-              "type": "participant",
-              "role": "control",
-              "order": 9
             },
             {
               "id": "Verifier",
               "label": "Verifier",
               "type": "participant",
               "role": "assurance",
-              "order": 10
+              "order": 6
             },
             {
               "id": "Promoter",
               "label": "Promoter",
               "type": "participant",
               "role": "assurance",
-              "order": 11
+              "order": 7
+            },
+            {
+              "id": "Requester",
+              "label": "Requester",
+              "type": "actor",
+              "role": "caller",
+              "order": 8
+            }
+          ],
+          "calls": [
+            {
+              "id": "ordinary-routed-cutover-call-1",
+              "index": 0,
+              "from": "Supervisor",
+              "to": "Persistence",
+              "function": "persistence::selection::read",
+              "kind": "i3",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1596
+            },
+            {
+              "id": "ordinary-routed-cutover-call-2",
+              "index": 1,
+              "from": "Supervisor",
+              "to": "Persistence",
+              "function": "persistence::realization::read",
+              "kind": "i3",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1597
+            },
+            {
+              "id": "ordinary-routed-cutover-call-3",
+              "index": 2,
+              "from": "Supervisor",
+              "to": "HostAgent",
+              "function": "chamber::activate",
+              "kind": "i3",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1598
+            },
+            {
+              "id": "ordinary-routed-cutover-call-4",
+              "index": 3,
+              "from": "HostAgent",
+              "to": "Gateway",
+              "function": "routing::inspect",
+              "kind": "i3",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1599
+            },
+            {
+              "id": "ordinary-routed-cutover-call-5",
+              "index": 4,
+              "from": "Verifier",
+              "to": "Successor",
+              "function": "verification::invoke",
+              "kind": "i3",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1600
+            },
+            {
+              "id": "ordinary-routed-cutover-call-6",
+              "index": 5,
+              "from": "Supervisor",
+              "to": "Persistence",
+              "function": "persistence::routing::prepare",
+              "kind": "i3",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1601
+            },
+            {
+              "id": "ordinary-routed-cutover-call-7",
+              "index": 6,
+              "from": "Supervisor",
+              "to": "Gateway",
+              "function": "routing::fence",
+              "kind": "i3",
+              "context": [],
+              "notes": [
+                {
+                  "id": "ordinary-routed-cutover-note-1",
+                  "placement": "over",
+                  "actors": [
+                    "Gateway",
+                    "Requester"
+                  ],
+                  "text": "Hold or reject only a bounded volatile call set — · caller idempotency and retry remain required",
+                  "sourceLine": 1603,
+                  "context": []
+                }
+              ],
+              "sourceLine": 1602
+            },
+            {
+              "id": "ordinary-routed-cutover-call-8",
+              "index": 7,
+              "from": "Supervisor",
+              "to": "Promoter",
+              "function": "selection::authorize",
+              "kind": "i3",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1604
+            },
+            {
+              "id": "ordinary-routed-cutover-call-9",
+              "index": 8,
+              "from": "Promoter",
+              "to": "Persistence",
+              "function": "persistence::selection::commit",
+              "kind": "i3",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1605
+            },
+            {
+              "id": "ordinary-routed-cutover-call-10",
+              "index": 9,
+              "from": "Supervisor",
+              "to": "Gateway",
+              "function": "routing::reopen",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Ordinary compare-and-swap or successor readiness fails",
+                  "branch": "Ordinary compare-and-swap or successor readiness fails"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1607
+            },
+            {
+              "id": "ordinary-routed-cutover-call-11",
+              "index": 10,
+              "from": "Supervisor",
+              "to": "HostAgent",
+              "function": "chamber::stop",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Ordinary compare-and-swap or successor readiness fails",
+                  "branch": "Ordinary compare-and-swap or successor readiness fails"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "ordinary-routed-cutover-note-2",
+                  "placement": "over",
+                  "actors": [
+                    "Current",
+                    "Successor"
+                  ],
+                  "text": "Keep predecessor selected and reap failed candidate",
+                  "sourceLine": 1609,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Ordinary compare-and-swap or successor readiness fails",
+                      "branch": "Ordinary compare-and-swap or successor readiness fails"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 1608
+            },
+            {
+              "id": "ordinary-routed-cutover-call-12",
+              "index": 11,
+              "from": "Supervisor",
+              "to": "Gateway",
+              "function": "routing::install",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Ordinary compare-and-swap or successor readiness fails",
+                  "branch": "Successor selection and exact readiness agree"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1611
+            },
+            {
+              "id": "ordinary-routed-cutover-call-13",
+              "index": 12,
+              "from": "Supervisor",
+              "to": "Gateway",
+              "function": "routing::inspect",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Ordinary compare-and-swap or successor readiness fails",
+                  "branch": "Successor selection and exact readiness agree"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1612
+            },
+            {
+              "id": "ordinary-routed-cutover-call-14",
+              "index": 13,
+              "from": "Supervisor",
+              "to": "Gateway",
+              "function": "routing::reopen",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Ordinary compare-and-swap or successor readiness fails",
+                  "branch": "Successor selection and exact readiness agree"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1613
+            },
+            {
+              "id": "ordinary-routed-cutover-call-15",
+              "index": 14,
+              "from": "Supervisor",
+              "to": "Persistence",
+              "function": "persistence::routing::complete",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Ordinary compare-and-swap or successor readiness fails",
+                  "branch": "Successor selection and exact readiness agree"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1614
+            },
+            {
+              "id": "ordinary-routed-cutover-call-16",
+              "index": 15,
+              "from": "Supervisor",
+              "to": "HostAgent",
+              "function": "chamber::stop",
+              "kind": "i3",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Ordinary compare-and-swap or successor readiness fails",
+                  "branch": "Successor selection and exact readiness agree"
+                }
+              ],
+              "notes": [
+                {
+                  "id": "ordinary-routed-cutover-note-3",
+                  "placement": "over",
+                  "actors": [
+                    "Current",
+                    "Successor"
+                  ],
+                  "text": "Drain and reap predecessor only after stable successor ownership is proved",
+                  "sourceLine": 1616,
+                  "context": [
+                    {
+                      "id": "fragment-1",
+                      "type": "alt",
+                      "label": "Ordinary compare-and-swap or successor readiness fails",
+                      "branch": "Successor selection and exact readiness agree"
+                    }
+                  ]
+                }
+              ],
+              "sourceLine": 1615
+            }
+          ],
+          "stats": {
+            "actors": 9,
+            "calls": 16,
+            "i3Calls": 16,
+            "hostCalls": 0,
+            "notes": 3,
+            "branches": 2
+          }
+        },
+        {
+          "id": "core-cutover",
+          "title": "Complete Boot-set replacement and bounded fallback",
+          "shortTitle": "Complete Boot-set replacement",
+          "kicker": "Step 14 · cold replacement",
+          "summary": "How any boot-member change commits one atomic selector, replaces the complete stack, and may consume one pre-authorized last-known-good recovery generation.",
+          "question": "How does whole-stack replacement avoid mixed generations while retaining one bounded, compatibility-qualified fallback?",
+          "status": "current",
+          "ordinal": 14,
+          "sourceLine": 1642,
+          "participants": [
+            {
+              "id": "HostAgent",
+              "label": "Host Agent",
+              "type": "participant",
+              "role": "host",
+              "order": 0
+            },
+            {
+              "id": "BootControl",
+              "label": "Atomic boot-control slice",
+              "type": "participant",
+              "role": "resource",
+              "order": 1
+            },
+            {
+              "id": "Volume",
+              "label": "Durable Ark volume",
+              "type": "participant",
+              "role": "resource",
+              "order": 2
+            },
+            {
+              "id": "containerd",
+              "label": "containerd",
+              "type": "participant",
+              "role": "host",
+              "order": 3
+            },
+            {
+              "id": "Engine",
+              "label": "Engine",
+              "type": "participant",
+              "role": "engine",
+              "order": 4
+            },
+            {
+              "id": "Persistence",
+              "label": "Persistence",
+              "type": "participant",
+              "role": "resource",
+              "order": 5
+            },
+            {
+              "id": "Gateway",
+              "label": "Gateway",
+              "type": "participant",
+              "role": "control",
+              "order": 6
+            },
+            {
+              "id": "Supervisor",
+              "label": "Supervisor",
+              "type": "participant",
+              "role": "control",
+              "order": 7
+            },
+            {
+              "id": "Verifier",
+              "label": "Verifier",
+              "type": "participant",
+              "role": "assurance",
+              "order": 8
+            },
+            {
+              "id": "Promoter",
+              "label": "Promoter",
+              "type": "participant",
+              "role": "assurance",
+              "order": 9
             }
           ],
           "calls": [
@@ -3705,235 +4937,159 @@ window.LIFECYCLE_ATLAS_DATA = {
               "id": "core-cutover-call-1",
               "index": 0,
               "from": "Supervisor",
-              "to": "Persistence",
-              "function": "persistence::routing::prepare",
-              "kind": "i3",
-              "context": [],
-              "notes": [],
-              "sourceLine": 1498
-            },
-            {
-              "id": "core-cutover-call-2",
-              "index": 1,
-              "from": "Supervisor",
               "to": "HostAgent",
               "function": "bootset::stage",
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 1499
+              "sourceLine": 1655
             },
             {
-              "id": "core-cutover-call-3",
-              "index": 2,
+              "id": "core-cutover-call-2",
+              "index": 1,
               "from": "HostAgent",
               "to": "containerd",
               "function": "containerd_resolve",
               "kind": "host",
               "context": [],
-              "notes": [],
-              "sourceLine": 1500
-            },
-            {
-              "id": "core-cutover-call-4",
-              "index": 3,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_start",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Supervisor changes"
-                }
-              ],
               "notes": [
                 {
                   "id": "core-cutover-note-1",
                   "placement": "over",
                   "actors": [
-                    "Router",
-                    "NextSupervisor"
+                    "HostAgent",
+                    "Verifier"
                   ],
-                  "text": "Start candidate Supervisor with the same Router and Persistence, · but a non-mutating candidate profile and direct candidate prefix",
-                  "sourceLine": 1504,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Same Engine and only Supervisor changes"
-                    }
-                  ]
+                  "text": "Bind exact isolated cold-boot, crash/reboot, ABI, schema, registration, · and no-production-authority evidence to the complete successor digest",
+                  "sourceLine": 1657,
+                  "context": []
                 }
               ],
-              "sourceLine": 1503
+              "sourceLine": 1656
+            },
+            {
+              "id": "core-cutover-call-3",
+              "index": 2,
+              "from": "Supervisor",
+              "to": "Promoter",
+              "function": "selection::authorize",
+              "kind": "i3",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1658
+            },
+            {
+              "id": "core-cutover-call-4",
+              "index": 3,
+              "from": "Promoter",
+              "to": "HostAgent",
+              "function": "bootset::inspect",
+              "kind": "i3",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1659
             },
             {
               "id": "core-cutover-call-5",
               "index": 4,
-              "from": "Verifier",
-              "to": "NextSupervisor",
-              "function": "verification::invoke",
+              "from": "Promoter",
+              "to": "Persistence",
+              "function": "persistence::bootset::commit",
               "kind": "i3",
-              "context": [
+              "context": [],
+              "notes": [
                 {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Supervisor changes"
+                  "id": "core-cutover-note-2",
+                  "placement": "over",
+                  "actors": [
+                    "Persistence",
+                    "BootControl"
+                  ],
+                  "text": "Persist immutable manifests and atomically replace selected.json — · retain exact accepted predecessor as one compatibility-qualified fallback",
+                  "sourceLine": 1661,
+                  "context": []
                 }
               ],
-              "notes": [],
-              "sourceLine": 1505
+              "sourceLine": 1660
             },
             {
               "id": "core-cutover-call-6",
               "index": 5,
               "from": "Supervisor",
-              "to": "Router",
+              "to": "Gateway",
               "function": "routing::fence",
               "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Supervisor changes"
-                }
-              ],
+              "context": [],
               "notes": [],
-              "sourceLine": 1506
+              "sourceLine": 1662
             },
             {
               "id": "core-cutover-call-7",
               "index": 6,
               "from": "Supervisor",
-              "to": "Promoter",
-              "function": "selection::authorize",
+              "to": "Persistence",
+              "function": "persistence::resources::flush",
               "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Supervisor changes"
-                }
-              ],
+              "context": [],
               "notes": [],
-              "sourceLine": 1507
+              "sourceLine": 1663
             },
             {
               "id": "core-cutover-call-8",
               "index": 7,
-              "from": "Promoter",
+              "from": "Supervisor",
               "to": "HostAgent",
-              "function": "bootset::select",
+              "function": "bootset::restart",
               "kind": "i3",
-              "context": [
+              "context": [],
+              "notes": [
                 {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Supervisor changes"
+                  "id": "core-cutover-note-3",
+                  "placement": "over",
+                  "actors": [
+                    "Supervisor",
+                    "HostAgent"
+                  ],
+                  "text": "Hand off final reply duty — no old member may supervise the transition",
+                  "sourceLine": 1665,
+                  "context": []
                 }
               ],
-              "notes": [],
-              "sourceLine": 1508
+              "sourceLine": 1664
             },
             {
               "id": "core-cutover-call-9",
               "index": 8,
               "from": "HostAgent",
               "to": "containerd",
-              "function": "containerd_tag_update",
+              "function": "containerd_task_stop",
               "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Supervisor changes"
-                }
-              ],
+              "context": [],
               "notes": [
-                {
-                  "id": "core-cutover-note-2",
-                  "placement": "over",
-                  "actors": [
-                    "HostAgent",
-                    "containerd"
-                  ],
-                  "text": "The one Boot-set tag mutation is the crash decision point",
-                  "sourceLine": 1510,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Same Engine and only Supervisor changes"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 1509
-            },
-            {
-              "id": "core-cutover-call-10",
-              "index": 9,
-              "from": "NextSupervisor",
-              "to": "Router",
-              "function": "routing::reconcile",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Supervisor changes"
-                }
-              ],
-              "notes": [
-                {
-                  "id": "core-cutover-note-3",
-                  "placement": "over",
-                  "actors": [
-                    "HostAgent",
-                    "Persistence"
-                  ],
-                  "text": "Retain unchanged Engine, Router, and Persistence only after exact · successor-scoped retention proof and Admission renewal",
-                  "sourceLine": 1511,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Same Engine and only Supervisor changes"
-                    }
-                  ]
-                },
                 {
                   "id": "core-cutover-note-4",
                   "placement": "over",
                   "actors": [
-                    "Router",
-                    "NextSupervisor"
+                    "HostAgent",
+                    "Supervisor"
                   ],
-                  "text": "Atomically move stable Supervisor proxy targets to the ready successor · and fence the predecessor mutation profile under the next route epoch",
-                  "sourceLine": 1513,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Same Engine and only Supervisor changes"
-                    }
-                  ]
+                  "text": "Stop ordinary Chambers, then Supervisor, Gateway, Persistence, Engine",
+                  "sourceLine": 1666,
+                  "context": []
                 }
               ],
-              "sourceLine": 1512
+              "sourceLine": 1667
+            },
+            {
+              "id": "core-cutover-call-10",
+              "index": 9,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_stop",
+              "kind": "host",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1668
             },
             {
               "id": "core-cutover-call-11",
@@ -3942,321 +5098,203 @@ window.LIFECYCLE_ATLAS_DATA = {
               "to": "containerd",
               "function": "containerd_task_stop",
               "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Supervisor changes"
-                }
-              ],
+              "context": [],
               "notes": [],
-              "sourceLine": 1514
+              "sourceLine": 1669
             },
             {
               "id": "core-cutover-call-12",
               "index": 11,
-              "from": "NextSupervisor",
-              "to": "Router",
-              "function": "routing::inspect",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Supervisor changes"
-                }
-              ],
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_stop",
+              "kind": "host",
+              "context": [],
               "notes": [],
-              "sourceLine": 1515
+              "sourceLine": 1670
             },
             {
               "id": "core-cutover-call-13",
               "index": 12,
-              "from": "NextSupervisor",
-              "to": "Router",
-              "function": "routing::reopen",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Supervisor changes"
-                }
-              ],
+              "from": "HostAgent",
+              "to": "Volume",
+              "function": "persistence_volume_release",
+              "kind": "host",
+              "context": [],
               "notes": [],
-              "sourceLine": 1516
+              "sourceLine": 1671
             },
             {
               "id": "core-cutover-call-14",
               "index": 13,
-              "from": "NextSupervisor",
-              "to": "Persistence",
-              "function": "persistence::routing::complete",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Supervisor changes"
-                }
-              ],
+              "from": "HostAgent",
+              "to": "BootControl",
+              "function": "bootset_selector_read",
+              "kind": "host",
+              "context": [],
               "notes": [],
-              "sourceLine": 1517
+              "sourceLine": 1673
             },
             {
               "id": "core-cutover-call-15",
               "index": 14,
               "from": "HostAgent",
               "to": "containerd",
+              "function": "containerd_resolve",
+              "kind": "host",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1674
+            },
+            {
+              "id": "core-cutover-call-16",
+              "index": 15,
+              "from": "HostAgent",
+              "to": "containerd",
               "function": "containerd_task_start",
               "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Router changes"
-                }
-              ],
+              "context": [],
               "notes": [
                 {
                   "id": "core-cutover-note-5",
                   "placement": "over",
                   "actors": [
-                    "Engine",
-                    "NextRouter"
+                    "HostAgent",
+                    "Engine"
                   ],
-                  "text": "Start candidate Router through the protected control listener under a direct · candidate prefix—current Supervisor supplies the durable desired-route snapshot",
-                  "sourceLine": 1521,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Same Engine and only Router changes"
-                    }
-                  ]
+                  "text": "Start fresh selected Engine and create a new epoch",
+                  "sourceLine": 1676,
+                  "context": []
                 }
               ],
-              "sourceLine": 1520
-            },
-            {
-              "id": "core-cutover-call-16",
-              "index": 15,
-              "from": "Supervisor",
-              "to": "Persistence",
-              "function": "persistence::routing::read",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Router changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1522
+              "sourceLine": 1675
             },
             {
               "id": "core-cutover-call-17",
               "index": 16,
-              "from": "Supervisor",
-              "to": "NextRouter",
-              "function": "routing::reconcile",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Router changes"
-                }
-              ],
+              "from": "HostAgent",
+              "to": "Volume",
+              "function": "persistence_volume_attach",
+              "kind": "host",
+              "context": [],
               "notes": [],
-              "sourceLine": 1523
+              "sourceLine": 1677
             },
             {
               "id": "core-cutover-call-18",
               "index": 17,
-              "from": "Verifier",
-              "to": "NextRouter",
-              "function": "verification::invoke",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Router changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1524
-            },
-            {
-              "id": "core-cutover-call-19",
-              "index": 18,
-              "from": "Supervisor",
-              "to": "Router",
-              "function": "routing::fence",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Router changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1525
-            },
-            {
-              "id": "core-cutover-call-20",
-              "index": 19,
-              "from": "Supervisor",
-              "to": "Promoter",
-              "function": "selection::authorize",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Router changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1526
-            },
-            {
-              "id": "core-cutover-call-21",
-              "index": 20,
-              "from": "Promoter",
-              "to": "HostAgent",
-              "function": "bootset::select",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Router changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1527
-            },
-            {
-              "id": "core-cutover-call-22",
-              "index": 21,
               "from": "HostAgent",
               "to": "containerd",
-              "function": "containerd_tag_update",
+              "function": "containerd_task_start",
               "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Router changes"
-                }
-              ],
+              "context": [],
               "notes": [
                 {
                   "id": "core-cutover-note-6",
                   "placement": "over",
                   "actors": [
-                    "HostAgent",
-                    "containerd"
+                    "Engine",
+                    "Persistence"
                   ],
-                  "text": "Commit successor reboot authority before canonical ownership transfer",
-                  "sourceLine": 1529,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Same Engine and only Router changes"
-                    }
-                  ]
+                  "text": "Start fresh selected Persistence through private admission and recover volume",
+                  "sourceLine": 1679,
+                  "context": []
                 }
               ],
-              "sourceLine": 1528
+              "sourceLine": 1678
             },
             {
-              "id": "core-cutover-call-23",
-              "index": 22,
+              "id": "core-cutover-call-19",
+              "index": 18,
               "from": "HostAgent",
               "to": "containerd",
-              "function": "containerd_task_stop",
+              "function": "containerd_task_start",
               "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Router changes"
-                }
-              ],
+              "context": [],
               "notes": [
                 {
                   "id": "core-cutover-note-7",
                   "placement": "over",
                   "actors": [
-                    "HostAgent",
-                    "Supervisor"
+                    "Persistence",
+                    "Gateway"
                   ],
-                  "text": "Retain unchanged Engine, Persistence, and Supervisor only after exact · successor-scoped retention proof and Admission renewal",
-                  "sourceLine": 1530,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Same Engine and only Router changes"
-                    }
-                  ]
-                },
+                  "text": "Start fresh selected Gateway fail closed",
+                  "sourceLine": 1681,
+                  "context": []
+                }
+              ],
+              "sourceLine": 1680
+            },
+            {
+              "id": "core-cutover-call-20",
+              "index": 19,
+              "from": "HostAgent",
+              "to": "containerd",
+              "function": "containerd_task_start",
+              "kind": "host",
+              "context": [],
+              "notes": [
                 {
                   "id": "core-cutover-note-8",
                   "placement": "over",
                   "actors": [
-                    "HostAgent",
-                    "Router"
+                    "Gateway",
+                    "Supervisor"
                   ],
-                  "text": "Stop the exact predecessor Router and revoke its protected control-listener · capability before claim—this is task fencing, not route selection",
-                  "sourceLine": 1532,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Same Engine and only Router changes"
-                    }
-                  ]
+                  "text": "Start fresh selected Supervisor and reconstruct projection",
+                  "sourceLine": 1683,
+                  "context": []
                 }
               ],
-              "sourceLine": 1531
+              "sourceLine": 1682
+            },
+            {
+              "id": "core-cutover-call-21",
+              "index": 20,
+              "from": "Supervisor",
+              "to": "Persistence",
+              "function": "persistence::routing::read",
+              "kind": "i3",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1684
+            },
+            {
+              "id": "core-cutover-call-22",
+              "index": 21,
+              "from": "Supervisor",
+              "to": "Gateway",
+              "function": "routing::reconcile",
+              "kind": "i3",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1685
+            },
+            {
+              "id": "core-cutover-call-23",
+              "index": 22,
+              "from": "HostAgent",
+              "to": "Gateway",
+              "function": "routing::inspect",
+              "kind": "i3",
+              "context": [],
+              "notes": [],
+              "sourceLine": 1686
             },
             {
               "id": "core-cutover-call-24",
               "index": 23,
-              "from": "Supervisor",
-              "to": "NextRouter",
-              "function": "routing::claim",
+              "from": "HostAgent",
+              "to": "Supervisor",
+              "function": "supervisor::wake::deliver",
               "kind": "i3",
               "context": [
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Router changes"
+                  "label": "Complete successor is ready before ordinary admission",
+                  "branch": "Complete successor is ready before ordinary admission"
                 }
               ],
               "notes": [
@@ -4264,109 +5302,60 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "id": "core-cutover-note-9",
                   "placement": "over",
                   "actors": [
-                    "Router",
-                    "NextRouter"
+                    "Gateway",
+                    "Promoter"
                   ],
-                  "text": "Claim fixed hooks, Router control IDs, and every stable alias one ID at a time— · public admission remains fenced because this set transfer is not atomic",
-                  "sourceLine": 1534,
+                  "text": "Open ordinary admission — predecessor remains retained but is not selected",
+                  "sourceLine": 1690,
                   "context": [
                     {
                       "id": "fragment-1",
                       "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Same Engine and only Router changes"
+                      "label": "Complete successor is ready before ordinary admission",
+                      "branch": "Complete successor is ready before ordinary admission"
                     }
                   ]
                 }
               ],
-              "sourceLine": 1533
+              "sourceLine": 1689
             },
             {
               "id": "core-cutover-call-25",
               "index": 24,
-              "from": "Supervisor",
-              "to": "NextRouter",
-              "function": "routing::inspect",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Router changes"
-                }
-              ],
-              "notes": [
-                {
-                  "id": "core-cutover-note-10",
-                  "placement": "over",
-                  "actors": [
-                    "Engine",
-                    "NextRouter"
-                  ],
-                  "text": "Any delayed predecessor disconnect cleanup is ownership-checked · and cannot remove successor-owned function IDs",
-                  "sourceLine": 1536,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Same Engine and only Router changes"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 1535
-            },
-            {
-              "id": "core-cutover-call-26",
-              "index": 25,
-              "from": "Supervisor",
-              "to": "NextRouter",
-              "function": "routing::reopen",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Router changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1537
-            },
-            {
-              "id": "core-cutover-call-27",
-              "index": 26,
-              "from": "Supervisor",
-              "to": "Persistence",
-              "function": "persistence::routing::complete",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Router changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1538
-            },
-            {
-              "id": "core-cutover-call-28",
-              "index": 27,
               "from": "HostAgent",
               "to": "containerd",
-              "function": "containerd_task_start",
+              "function": "containerd_task_stop",
               "kind": "host",
               "context": [
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Persistence changes"
+                  "label": "Complete successor is ready before ordinary admission",
+                  "branch": "Successor does not become ready"
+                },
+                {
+                  "id": "fragment-2",
+                  "type": "loop",
+                  "label": "Each started successor task in reverse dependency order",
+                  "branch": "Each started successor task in reverse dependency order"
+                }
+              ],
+              "notes": [],
+              "sourceLine": 1693
+            },
+            {
+              "id": "core-cutover-call-26",
+              "index": 25,
+              "from": "HostAgent",
+              "to": "Volume",
+              "function": "persistence_volume_release",
+              "kind": "host",
+              "context": [
+                {
+                  "id": "fragment-1",
+                  "type": "alt",
+                  "label": "Complete successor is ready before ordinary admission",
+                  "branch": "Successor does not become ready"
                 }
               ],
               "notes": [
@@ -4374,846 +5363,85 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "id": "core-cutover-note-11",
                   "placement": "over",
                   "actors": [
-                    "Persistence",
-                    "NextPersistence"
+                    "HostAgent",
+                    "Promoter"
                   ],
-                  "text": "Preflight candidate Persistence against cloned or read-only data— · never overlap two authoritative writers to the durable volume",
-                  "sourceLine": 1542,
+                  "text": "Fail closed for explicit restore or newly authorized selection",
+                  "sourceLine": 1700,
                   "context": [
                     {
                       "id": "fragment-1",
                       "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Same Engine and only Persistence changes"
+                      "label": "Complete successor is ready before ordinary admission",
+                      "branch": "Successor does not become ready"
+                    },
+                    {
+                      "id": "fragment-3",
+                      "type": "alt",
+                      "label": "Failure precedes admission/effects and exact fallback is eligible",
+                      "branch": "Failure is effectful, incompatible, unqualified, or fallback already consumed"
                     }
                   ]
                 }
               ],
-              "sourceLine": 1541
+              "sourceLine": 1695
             },
             {
-              "id": "core-cutover-call-29",
-              "index": 28,
-              "from": "Verifier",
-              "to": "NextPersistence",
-              "function": "verification::invoke",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Persistence changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1543
-            },
-            {
-              "id": "core-cutover-call-30",
-              "index": 29,
+              "id": "core-cutover-call-27",
+              "index": 26,
               "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_stop",
+              "to": "BootControl",
+              "function": "bootset_selector_fallback",
               "kind": "host",
               "context": [
                 {
                   "id": "fragment-1",
                   "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Persistence changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1544
-            },
-            {
-              "id": "core-cutover-call-31",
-              "index": 30,
-              "from": "Supervisor",
-              "to": "Router",
-              "function": "routing::fence",
-              "kind": "i3",
-              "context": [
+                  "label": "Complete successor is ready before ordinary admission",
+                  "branch": "Successor does not become ready"
+                },
                 {
-                  "id": "fragment-1",
+                  "id": "fragment-3",
                   "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Persistence changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1545
-            },
-            {
-              "id": "core-cutover-call-32",
-              "index": 31,
-              "from": "Supervisor",
-              "to": "Persistence",
-              "function": "persistence::resources::flush",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Persistence changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1546
-            },
-            {
-              "id": "core-cutover-call-33",
-              "index": 32,
-              "from": "Supervisor",
-              "to": "Promoter",
-              "function": "selection::authorize",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Persistence changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1547
-            },
-            {
-              "id": "core-cutover-call-34",
-              "index": 33,
-              "from": "Promoter",
-              "to": "HostAgent",
-              "function": "bootset::select",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Persistence changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1548
-            },
-            {
-              "id": "core-cutover-call-35",
-              "index": 34,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_tag_update",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Persistence changes"
+                  "label": "Failure precedes admission/effects and exact fallback is eligible",
+                  "branch": "Failure precedes admission/effects and exact fallback is eligible"
                 }
               ],
               "notes": [
                 {
-                  "id": "core-cutover-note-12",
+                  "id": "core-cutover-note-10",
                   "placement": "over",
                   "actors": [
                     "HostAgent",
-                    "Supervisor"
+                    "BootControl"
                   ],
-                  "text": "Retain unchanged Engine, Router, and Supervisor only after exact · successor-scoped retention proof and Admission renewal",
-                  "sourceLine": 1550,
+                  "text": "Consume the one-attempt permit and atomically install exact · last-known-good recovery selector bytes, then repeat a complete fresh activation",
+                  "sourceLine": 1698,
                   "context": [
                     {
                       "id": "fragment-1",
                       "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Same Engine and only Persistence changes"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 1549
-            },
-            {
-              "id": "core-cutover-call-36",
-              "index": 35,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_stop",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Persistence changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1551
-            },
-            {
-              "id": "core-cutover-call-37",
-              "index": 36,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_start",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Persistence changes"
-                }
-              ],
-              "notes": [
-                {
-                  "id": "core-cutover-note-13",
-                  "placement": "over",
-                  "actors": [
-                    "Persistence",
-                    "NextPersistence"
-                  ],
-                  "text": "Start only the selected successor against authoritative data · and complete any forward-compatible migration after the tag decision",
-                  "sourceLine": 1553,
-                  "context": [
+                      "label": "Complete successor is ready before ordinary admission",
+                      "branch": "Successor does not become ready"
+                    },
                     {
-                      "id": "fragment-1",
+                      "id": "fragment-3",
                       "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Same Engine and only Persistence changes"
+                      "label": "Failure precedes admission/effects and exact fallback is eligible",
+                      "branch": "Failure precedes admission/effects and exact fallback is eligible"
                     }
                   ]
                 }
               ],
-              "sourceLine": 1552
-            },
-            {
-              "id": "core-cutover-call-38",
-              "index": 37,
-              "from": "Supervisor",
-              "to": "NextPersistence",
-              "function": "persistence::routing::read",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Persistence changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1554
-            },
-            {
-              "id": "core-cutover-call-39",
-              "index": 38,
-              "from": "Supervisor",
-              "to": "Router",
-              "function": "routing::reconcile",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Persistence changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1555
-            },
-            {
-              "id": "core-cutover-call-40",
-              "index": 39,
-              "from": "Supervisor",
-              "to": "Router",
-              "function": "routing::reopen",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Persistence changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1556
-            },
-            {
-              "id": "core-cutover-call-41",
-              "index": 40,
-              "from": "Supervisor",
-              "to": "NextPersistence",
-              "function": "persistence::routing::complete",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Same Engine and only Persistence changes"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1557
-            },
-            {
-              "id": "core-cutover-call-42",
-              "index": 41,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_start",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1560
-            },
-            {
-              "id": "core-cutover-call-43",
-              "index": 42,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_start",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1561
-            },
-            {
-              "id": "core-cutover-call-44",
-              "index": 43,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_start",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1562
-            },
-            {
-              "id": "core-cutover-call-45",
-              "index": 44,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_start",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [
-                {
-                  "id": "core-cutover-note-14",
-                  "placement": "over",
-                  "actors": [
-                    "NextEngine",
-                    "NextSupervisor"
-                  ],
-                  "text": "Preflight the complete successor quartet under an isolated · listener, candidate Engine epoch, and cloned or read-only Persistence data",
-                  "sourceLine": 1564,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Successor changes the Bootstrap Engine Realization"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 1563
-            },
-            {
-              "id": "core-cutover-call-46",
-              "index": 45,
-              "from": "Verifier",
-              "to": "NextSupervisor",
-              "function": "verification::invoke",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1565
-            },
-            {
-              "id": "core-cutover-call-47",
-              "index": 46,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_stop",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1566
-            },
-            {
-              "id": "core-cutover-call-48",
-              "index": 47,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_stop",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1567
-            },
-            {
-              "id": "core-cutover-call-49",
-              "index": 48,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_stop",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1568
-            },
-            {
-              "id": "core-cutover-call-50",
-              "index": 49,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_stop",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1569
-            },
-            {
-              "id": "core-cutover-call-51",
-              "index": 50,
-              "from": "Supervisor",
-              "to": "Router",
-              "function": "routing::fence",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1570
-            },
-            {
-              "id": "core-cutover-call-52",
-              "index": 51,
-              "from": "Supervisor",
-              "to": "Persistence",
-              "function": "persistence::resources::flush",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1571
-            },
-            {
-              "id": "core-cutover-call-53",
-              "index": 52,
-              "from": "Supervisor",
-              "to": "Promoter",
-              "function": "selection::authorize",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1572
-            },
-            {
-              "id": "core-cutover-call-54",
-              "index": 53,
-              "from": "Promoter",
-              "to": "HostAgent",
-              "function": "bootset::select",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1573
-            },
-            {
-              "id": "core-cutover-call-55",
-              "index": 54,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_tag_update",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [
-                {
-                  "id": "core-cutover-note-15",
-                  "placement": "over",
-                  "actors": [
-                    "HostAgent",
-                    "containerd"
-                  ],
-                  "text": "The one Boot-set tag mutation is the crash decision point",
-                  "sourceLine": 1575,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Successor changes the Bootstrap Engine Realization"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 1574
-            },
-            {
-              "id": "core-cutover-call-56",
-              "index": 55,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_stop",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1576
-            },
-            {
-              "id": "core-cutover-call-57",
-              "index": 56,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_stop",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1577
-            },
-            {
-              "id": "core-cutover-call-58",
-              "index": 57,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_stop",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1578
-            },
-            {
-              "id": "core-cutover-call-59",
-              "index": 58,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_stop",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [
-                {
-                  "id": "core-cutover-note-16",
-                  "placement": "over",
-                  "actors": [
-                    "HostAgent",
-                    "Engine"
-                  ],
-                  "text": "Stop predecessor Supervisor, Persistence, Router, then Engine— · release the stable listener and fence its Engine epoch",
-                  "sourceLine": 1580,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Successor changes the Bootstrap Engine Realization"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 1579
-            },
-            {
-              "id": "core-cutover-call-60",
-              "index": 59,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_start",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1581
-            },
-            {
-              "id": "core-cutover-call-61",
-              "index": 60,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_start",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1582
-            },
-            {
-              "id": "core-cutover-call-62",
-              "index": 61,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_start",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1583
-            },
-            {
-              "id": "core-cutover-call-63",
-              "index": 62,
-              "from": "HostAgent",
-              "to": "containerd",
-              "function": "containerd_task_start",
-              "kind": "host",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [
-                {
-                  "id": "core-cutover-note-17",
-                  "placement": "over",
-                  "actors": [
-                    "NextEngine",
-                    "NextSupervisor"
-                  ],
-                  "text": "Start successor Engine, Router, Persistence, then Supervisor · against authoritative data with a fresh Engine epoch",
-                  "sourceLine": 1585,
-                  "context": [
-                    {
-                      "id": "fragment-1",
-                      "type": "alt",
-                      "label": "Same Engine and only Supervisor changes",
-                      "branch": "Successor changes the Bootstrap Engine Realization"
-                    }
-                  ]
-                }
-              ],
-              "sourceLine": 1584
-            },
-            {
-              "id": "core-cutover-call-64",
-              "index": 63,
-              "from": "NextSupervisor",
-              "to": "NextPersistence",
-              "function": "persistence::routing::read",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1586
-            },
-            {
-              "id": "core-cutover-call-65",
-              "index": 64,
-              "from": "NextSupervisor",
-              "to": "NextRouter",
-              "function": "routing::reconcile",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1587
-            },
-            {
-              "id": "core-cutover-call-66",
-              "index": 65,
-              "from": "HostAgent",
-              "to": "NextRouter",
-              "function": "routing::inspect",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1588
-            },
-            {
-              "id": "core-cutover-call-67",
-              "index": 66,
-              "from": "NextSupervisor",
-              "to": "NextPersistence",
-              "function": "persistence::routing::complete",
-              "kind": "i3",
-              "context": [
-                {
-                  "id": "fragment-1",
-                  "type": "alt",
-                  "label": "Same Engine and only Supervisor changes",
-                  "branch": "Successor changes the Bootstrap Engine Realization"
-                }
-              ],
-              "notes": [],
-              "sourceLine": 1589
+              "sourceLine": 1697
             }
           ],
           "stats": {
-            "actors": 12,
-            "calls": 67,
-            "i3Calls": 38,
-            "hostCalls": 29,
-            "notes": 17,
+            "actors": 10,
+            "calls": 27,
+            "i3Calls": 11,
+            "hostCalls": 16,
+            "notes": 11,
             "branches": 4
           }
         },
@@ -5221,12 +5449,12 @@ window.LIFECYCLE_ATLAS_DATA = {
           "id": "quiesce-wake",
           "title": "Quiesce and wake",
           "shortTitle": "Quiesce and wake",
-          "kicker": "Step 13 · idle edge",
-          "summary": "How ordinary Chambers and the four boot Chambers stop in dependency order while both selectors and durable custody survive.",
+          "kicker": "Step 15 · idle edge",
+          "summary": "How ordinary and boot Chambers stop in dependency order while selectors, Persistence data, and retained OCI custody survive.",
           "question": "What survives quiescence, and what recreates the selected four-member Boot set later?",
           "status": "current",
-          "ordinal": 13,
-          "sourceLine": 1624,
+          "ordinal": 15,
+          "sourceLine": 1718,
           "participants": [
             {
               "id": "HostAgent",
@@ -5236,17 +5464,17 @@ window.LIFECYCLE_ATLAS_DATA = {
               "order": 0
             },
             {
+              "id": "Volume",
+              "label": "Durable Ark volume",
+              "type": "participant",
+              "role": "resource",
+              "order": 1
+            },
+            {
               "id": "Engine",
               "label": "Engine",
               "type": "participant",
               "role": "engine",
-              "order": 1
-            },
-            {
-              "id": "Router",
-              "label": "Router",
-              "type": "participant",
-              "role": "control",
               "order": 2
             },
             {
@@ -5257,25 +5485,32 @@ window.LIFECYCLE_ATLAS_DATA = {
               "order": 3
             },
             {
+              "id": "Gateway",
+              "label": "Gateway",
+              "type": "participant",
+              "role": "control",
+              "order": 4
+            },
+            {
               "id": "Supervisor",
               "label": "Supervisor",
               "type": "participant",
               "role": "control",
-              "order": 4
+              "order": 5
             },
             {
               "id": "Members",
               "label": "Ordinary Chambers",
               "type": "participant",
               "role": "chamber",
-              "order": 5
+              "order": 6
             },
             {
               "id": "Requester",
               "label": "Requester",
               "type": "actor",
               "role": "caller",
-              "order": 6
+              "order": 7
             }
           ],
           "calls": [
@@ -5288,18 +5523,18 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 1634
+              "sourceLine": 1729
             },
             {
               "id": "quiesce-wake-call-2",
               "index": 1,
               "from": "Supervisor",
-              "to": "Router",
+              "to": "Gateway",
               "function": "routing::fence",
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 1635
+              "sourceLine": 1730
             },
             {
               "id": "quiesce-wake-call-3",
@@ -5314,15 +5549,15 @@ window.LIFECYCLE_ATLAS_DATA = {
                   "id": "quiesce-wake-note-1",
                   "placement": "over",
                   "actors": [
-                    "Router",
-                    "Persistence"
+                    "Persistence",
+                    "Gateway"
                   ],
                   "text": "Close new admission and derive the exact dependency-ordered · ordinary-Chamber stop plan from durable desired state and live observations",
-                  "sourceLine": 1637,
+                  "sourceLine": 1732,
                   "context": []
                 }
               ],
-              "sourceLine": 1636
+              "sourceLine": 1731
             },
             {
               "id": "quiesce-wake-call-4",
@@ -5348,7 +5583,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Members"
                   ],
                   "text": "Stop and reap each exact ordinary Chamber",
-                  "sourceLine": 1641,
+                  "sourceLine": 1735,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -5359,7 +5594,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1640
+              "sourceLine": 1734
             },
             {
               "id": "quiesce-wake-call-5",
@@ -5378,11 +5613,11 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Persistence"
                   ],
                   "text": "Flush only the resource set named by the committed stop operation",
-                  "sourceLine": 1645,
+                  "sourceLine": 1738,
                   "context": []
                 }
               ],
-              "sourceLine": 1644
+              "sourceLine": 1737
             },
             {
               "id": "quiesce-wake-call-6",
@@ -5400,8 +5635,8 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Supervisor",
                     "HostAgent"
                   ],
-                  "text": "Hand off the lower final-reply capability before stopping Supervisor itself",
-                  "sourceLine": 1646,
+                  "text": "Hand off lower final-reply capability before stopping Supervisor",
+                  "sourceLine": 1739,
                   "context": []
                 },
                 {
@@ -5411,31 +5646,54 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "HostAgent",
                     "Engine"
                   ],
-                  "text": "Stop and reap Supervisor, Persistence, Router, then Engine Chambers— · retain the unchanged Boot-set tag and all pinned image closures",
-                  "sourceLine": 1648,
+                  "text": "Stop and reap Supervisor, Gateway, Persistence, then Engine —",
+                  "sourceLine": 1741,
                   "context": []
                 }
               ],
-              "sourceLine": 1647
+              "sourceLine": 1740
             },
             {
               "id": "quiesce-wake-call-7",
               "index": 6,
+              "from": "HostAgent",
+              "to": "Volume",
+              "function": "persistence_volume_release",
+              "kind": "host",
+              "context": [],
+              "notes": [
+                {
+                  "id": "quiesce-wake-note-6",
+                  "placement": "over",
+                  "actors": [
+                    "HostAgent",
+                    "Volume"
+                  ],
+                  "text": "Retain selected.json, immutable manifests, accepted fallback, · and all pinned selected/fallback OCI closures",
+                  "sourceLine": 1743,
+                  "context": []
+                }
+              ],
+              "sourceLine": 1742
+            },
+            {
+              "id": "quiesce-wake-call-8",
+              "index": 7,
               "from": "HostAgent",
               "to": "Requester",
               "function": "deliver_final_reply",
               "kind": "host",
               "context": [],
               "notes": [],
-              "sourceLine": 1649
+              "sourceLine": 1744
             }
           ],
           "stats": {
-            "actors": 7,
-            "calls": 7,
+            "actors": 8,
+            "calls": 8,
             "i3Calls": 6,
-            "hostCalls": 1,
-            "notes": 5,
+            "hostCalls": 2,
+            "notes": 6,
             "branches": 1
           }
         },
@@ -5447,8 +5705,8 @@ window.LIFECYCLE_ATLAS_DATA = {
           "summary": "How independent builders, attestations, and inspectors strengthen artifact evidence.",
           "question": "What does multi-Ark convergence prove, and what still needs policy judgment?",
           "status": "later",
-          "ordinal": 14,
-          "sourceLine": 1670,
+          "ordinal": 16,
+          "sourceLine": 1762,
           "participants": [
             {
               "id": "BuilderA",
@@ -5510,7 +5768,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 1680
+              "sourceLine": 1772
             },
             {
               "id": "attested-builds-call-2",
@@ -5521,7 +5779,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "kind": "i3",
               "context": [],
               "notes": [],
-              "sourceLine": 1681
+              "sourceLine": 1773
             },
             {
               "id": "attested-builds-call-3",
@@ -5546,7 +5804,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "BuilderA"
                   ],
                   "text": "Build inside the measured confidential environment · into bounded disposable output staging",
-                  "sourceLine": 1684,
+                  "sourceLine": 1776,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -5557,7 +5815,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1685
+              "sourceLine": 1777
             },
             {
               "id": "attested-builds-call-4",
@@ -5575,7 +5833,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1686
+              "sourceLine": 1778
             },
             {
               "id": "attested-builds-call-5",
@@ -5600,7 +5858,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "BuilderB"
                   ],
                   "text": "Build inside the measured confidential environment · into bounded disposable output staging",
-                  "sourceLine": 1688,
+                  "sourceLine": 1780,
                   "context": [
                     {
                       "id": "fragment-1",
@@ -5611,7 +5869,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1689
+              "sourceLine": 1781
             },
             {
               "id": "attested-builds-call-6",
@@ -5629,7 +5887,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                 }
               ],
               "notes": [],
-              "sourceLine": 1690
+              "sourceLine": 1782
             },
             {
               "id": "attested-builds-call-7",
@@ -5655,7 +5913,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Persistence"
                   ],
                   "text": "Durable records hold input identities, output digests, receipts, · provider/rebuild policy, and expiring output capabilities—not OCI graphs",
-                  "sourceLine": 1693,
+                  "sourceLine": 1785,
                   "context": []
                 },
                 {
@@ -5666,7 +5924,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Inspectors"
                   ],
                   "text": "Inspectors consume exact one-use output or declared-provider · capabilities bound to the reported OCI digest",
-                  "sourceLine": 1696,
+                  "sourceLine": 1788,
                   "context": [
                     {
                       "id": "fragment-2",
@@ -5677,7 +5935,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1695
+              "sourceLine": 1787
             },
             {
               "id": "attested-builds-call-8",
@@ -5695,7 +5953,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Acceptor"
                   ],
                   "text": "Accept the exact artifact descriptor and evidence receipts",
-                  "sourceLine": 1701,
+                  "sourceLine": 1793,
                   "context": [
                     {
                       "id": "fragment-3",
@@ -5712,7 +5970,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                     "Acceptor"
                   ],
                   "text": "Select one exact descriptor under explicit policy or accept none, · never merge or silently relabel outputs",
-                  "sourceLine": 1703,
+                  "sourceLine": 1795,
                   "context": [
                     {
                       "id": "fragment-3",
@@ -5723,7 +5981,7 @@ window.LIFECYCLE_ATLAS_DATA = {
                   ]
                 }
               ],
-              "sourceLine": 1699
+              "sourceLine": 1791
             }
           ],
           "stats": {
@@ -5743,8 +6001,8 @@ window.LIFECYCLE_ATLAS_DATA = {
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
-          "contract": "Activate one exact Realization under one exact lease. Commit intent, verify bounded launch authority, materialize through containerd, start with the runsc runtime handler, bind Admission, and return only after exact readiness or terminal failure.",
-          "sourceLine": 303,
+          "contract": "Activate one exact ordinary Realization under one exact lease. Commit intent, verify bounded launch authority, materialize through containerd, start with the runsc runtime handler, bind Admission, and return only after exact readiness or terminal failure.",
+          "sourceLine": 320,
           "usages": [
             {
               "diagramId": "activation-kernel",
@@ -5801,6 +6059,14 @@ window.LIFECYCLE_ATLAS_DATA = {
               "step": 12,
               "from": "Supervisor",
               "to": "HostAgent"
+            },
+            {
+              "diagramId": "ordinary-routed-cutover",
+              "diagramTitle": "Ordinary routed cutover",
+              "callId": "ordinary-routed-cutover-call-3",
+              "step": 3,
+              "from": "Supervisor",
+              "to": "HostAgent"
             }
           ]
         },
@@ -5811,7 +6077,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Return a capability-scoped read-only view of one exact Chamber, task, lease, Admission, operation, and receipt evidence.",
-          "sourceLine": 304,
+          "sourceLine": 321,
           "usages": [
             {
               "diagramId": "candidate-verification",
@@ -5853,8 +6119,8 @@ window.LIFECYCLE_ATLAS_DATA = {
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
-          "contract": "Stop and reap one exact Chamber under an expected subject fence after durable stop intent; never accept an arbitrary runtime identifier.",
-          "sourceLine": 305,
+          "contract": "Stop and reap one exact ordinary Chamber under an expected subject fence after durable stop intent; never accept an arbitrary runtime identifier.",
+          "sourceLine": 322,
           "usages": [
             {
               "diagramId": "fenced-development",
@@ -5897,6 +6163,22 @@ window.LIFECYCLE_ATLAS_DATA = {
               "to": "HostAgent"
             },
             {
+              "diagramId": "ordinary-routed-cutover",
+              "diagramTitle": "Ordinary routed cutover",
+              "callId": "ordinary-routed-cutover-call-11",
+              "step": 11,
+              "from": "Supervisor",
+              "to": "HostAgent"
+            },
+            {
+              "diagramId": "ordinary-routed-cutover",
+              "diagramTitle": "Ordinary routed cutover",
+              "callId": "ordinary-routed-cutover-call-16",
+              "step": 16,
+              "from": "Supervisor",
+              "to": "HostAgent"
+            },
+            {
               "diagramId": "quiesce-wake",
               "diagramTitle": "Quiesce and wake",
               "callId": "quiesce-wake-call-4",
@@ -5912,8 +6194,8 @@ window.LIFECYCLE_ATLAS_DATA = {
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
-          "contract": "Verify and pin one accepted Boot-set artifact, all four required Covenant Realizations and OCI closures, predecessor, host ABI, bootstrap contracts, candidate subject, and evidence binding without moving dreamcatcher/bootset:current.",
-          "sourceLine": 306,
+          "contract": "Verify and pin one accepted Boot-set artifact, all four required Realizations and OCI closures, authorized last-known-good closure, host ABI, bootstrap contracts, candidate subject, and evidence binding without moving selected.json.",
+          "sourceLine": 323,
           "usages": [
             {
               "diagramId": "selection-rollback",
@@ -5925,9 +6207,9 @@ window.LIFECYCLE_ATLAS_DATA = {
             },
             {
               "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-2",
-              "step": 2,
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-1",
+              "step": 1,
               "from": "Supervisor",
               "to": "HostAgent"
             }
@@ -5939,8 +6221,8 @@ window.LIFECYCLE_ATLAS_DATA = {
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
-          "contract": "Return the exact current target, staged Boot sets, pinned closures, four boot tasks and epochs, and open-operation evidence without mutation.",
-          "sourceLine": 307,
+          "contract": "Return the selector digest cached at the current cold boundary, active quartet, staged Boot sets, pinned closures, volume fence, task epochs, fallback eligibility, and open-operation evidence without rereading or mutating the selector.",
+          "sourceLine": 324,
           "usages": [
             {
               "diagramId": "selection-rollback",
@@ -5949,56 +6231,40 @@ window.LIFECYCLE_ATLAS_DATA = {
               "step": 4,
               "from": "Promoter",
               "to": "HostAgent"
+            },
+            {
+              "diagramId": "core-cutover",
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-4",
+              "step": 4,
+              "from": "Promoter",
+              "to": "HostAgent"
             }
           ]
         },
         {
-          "id": "bootset::select",
+          "id": "bootset::restart",
           "owner": "Host Agent",
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
-          "contract": "Consume one exact promoter permit and expected-current fence, commit one Host Agent operation, atomically move the Boot-set tag to the staged digest, verify readback, and optionally continue the journaled live cutover.",
-          "sourceLine": 308,
+          "contract": "Consume one exact Persistence selector-commit receipt, committed whole-stack stop plan, and final-reply handoff; stop every ordinary and Boot-set task, then re-enter a fresh cold activation where the selector is read once.",
+          "sourceLine": 325,
           "usages": [
             {
               "diagramId": "selection-rollback",
               "diagramTitle": "Select, upgrade, or roll back",
-              "callId": "selection-rollback-call-5",
-              "step": 5,
-              "from": "Promoter",
+              "callId": "selection-rollback-call-6",
+              "step": 6,
+              "from": "Supervisor",
               "to": "HostAgent"
             },
             {
               "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
+              "diagramTitle": "Complete Boot-set replacement",
               "callId": "core-cutover-call-8",
               "step": 8,
-              "from": "Promoter",
-              "to": "HostAgent"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-21",
-              "step": 21,
-              "from": "Promoter",
-              "to": "HostAgent"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-34",
-              "step": 34,
-              "from": "Promoter",
-              "to": "HostAgent"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-54",
-              "step": 54,
-              "from": "Promoter",
+              "from": "Supervisor",
               "to": "HostAgent"
             }
           ]
@@ -6009,8 +6275,8 @@ window.LIFECYCLE_ATLAS_DATA = {
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
-          "contract": "Consume one committed stop plan and final-reply handoff, stop selected Supervisor, Persistence, Router, and Engine Chambers in reverse dependency order, and retain the unchanged Boot-set selection.",
-          "sourceLine": 309,
+          "contract": "Consume one committed stop plan and final-reply handoff, stop ordinary Chambers then Supervisor, Gateway, Persistence, and Engine in reverse dependency order, and retain the unchanged Boot-set selection.",
+          "sourceLine": 326,
           "usages": [
             {
               "diagramId": "quiesce-wake",
@@ -6029,7 +6295,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "host",
           "implementationStatus": "existing",
           "contract": "An accepted lower installer supplies one one-use Boot Seed to a proved-unenrolled host.",
-          "sourceLine": 310,
+          "sourceLine": 327,
           "usages": [
             {
               "diagramId": "core-installation",
@@ -6047,8 +6313,8 @@ window.LIFECYCLE_ATLAS_DATA = {
           "path": "External conventional call (not I3)",
           "kind": "host",
           "implementationStatus": "existing",
-          "contract": "An authenticated lower wake source asks the Host Agent to reconcile and start or reuse the exact selected Engine, Router, Persistence, and Supervisor Chambers while no Engine may exist.",
-          "sourceLine": 311,
+          "contract": "An authenticated lower wake source asks Host Agent to enter a cold activation of the exact selector; it is valid while no Engine may exist.",
+          "sourceLine": 328,
           "usages": [
             {
               "diagramId": "host-activation",
@@ -6069,32 +6335,266 @@ window.LIFECYCLE_ATLAS_DATA = {
           ]
         },
         {
+          "id": "repair_boot_member",
+          "owner": "Host Agent",
+          "path": "External conventional call (not I3)",
+          "kind": "host",
+          "implementationStatus": "existing",
+          "contract": "Lower process supervision asks Host Agent to repair one crashed selected member from the cached exact activation plan; unsafe, repeated, or Engine repair escalates to complete fresh activation.",
+          "sourceLine": 329,
+          "usages": [
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-1",
+              "step": 1,
+              "from": "Monitor",
+              "to": "HostAgent"
+            }
+          ]
+        },
+        {
           "id": "deliver_final_reply",
           "owner": "Host Agent",
           "path": "External conventional call (not I3)",
           "kind": "host",
           "implementationStatus": "existing",
-          "contract": "The Host Agent uses a handed-off lower reply capability after the terminal receipt is durable and all selected boot Chambers may be stopped.",
-          "sourceLine": 312,
+          "contract": "Host Agent uses a handed-off lower reply capability after the terminal receipt is durable and selected boot Chambers may be stopped.",
+          "sourceLine": 330,
           "usages": [
             {
               "diagramId": "quiesce-wake",
               "diagramTitle": "Quiesce and wake",
-              "callId": "quiesce-wake-call-7",
-              "step": 7,
+              "callId": "quiesce-wake-call-8",
+              "step": 8,
               "from": "HostAgent",
               "to": "Requester"
             }
           ]
         },
         {
+          "id": "bootset_selector_seed",
+          "owner": "boot-control slice, containerd, and boot members",
+          "path": "External conventional call (not I3)",
+          "kind": "host",
+          "implementationStatus": "existing",
+          "contract": "On a proved-unenrolled Ark only, atomically initialize one accepted selector and its exact immutable manifests from the consumed Boot Seed.",
+          "sourceLine": 341,
+          "usages": [
+            {
+              "diagramId": "core-installation",
+              "diagramTitle": "First boot installation",
+              "callId": "core-installation-call-3",
+              "step": 3,
+              "from": "HostAgent",
+              "to": "BootControl"
+            }
+          ]
+        },
+        {
+          "id": "bootset_selector_read",
+          "owner": "boot-control slice, containerd, and boot members",
+          "path": "External conventional call (not I3)",
+          "kind": "host",
+          "implementationStatus": "existing",
+          "contract": "Read and validate the complete canonical selector bytes exactly once at one cold activation boundary; return selected, fallback, generation, permits, and digest without watching.",
+          "sourceLine": 342,
+          "usages": [
+            {
+              "diagramId": "core-installation",
+              "diagramTitle": "First boot installation",
+              "callId": "core-installation-call-4",
+              "step": 4,
+              "from": "HostAgent",
+              "to": "BootControl"
+            },
+            {
+              "diagramId": "host-activation",
+              "diagramTitle": "Selected Boot set cold start",
+              "callId": "host-activation-call-2",
+              "step": 2,
+              "from": "HostAgent",
+              "to": "BootControl"
+            },
+            {
+              "diagramId": "core-reboot",
+              "diagramTitle": "Reboot selected Boot set",
+              "callId": "core-reboot-call-2",
+              "step": 2,
+              "from": "HostAgent",
+              "to": "BootControl"
+            },
+            {
+              "diagramId": "core-cutover",
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-14",
+              "step": 14,
+              "from": "HostAgent",
+              "to": "BootControl"
+            }
+          ]
+        },
+        {
+          "id": "bootset_selector_fallback",
+          "owner": "boot-control slice, containerd, and boot members",
+          "path": "External conventional call (not I3)",
+          "kind": "host",
+          "implementationStatus": "existing",
+          "contract": "After latest fails before admission/effects, atomically install only the exact authorized fallback selector bytes bound by the read selector, consume its one-attempt permit, and prove readback.",
+          "sourceLine": 343,
+          "usages": [
+            {
+              "diagramId": "host-activation",
+              "diagramTitle": "Selected Boot set cold start",
+              "callId": "host-activation-call-15",
+              "step": 15,
+              "from": "HostAgent",
+              "to": "BootControl"
+            },
+            {
+              "diagramId": "core-reboot",
+              "diagramTitle": "Reboot selected Boot set",
+              "callId": "core-reboot-call-15",
+              "step": 15,
+              "from": "HostAgent",
+              "to": "BootControl"
+            },
+            {
+              "diagramId": "core-cutover",
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-27",
+              "step": 27,
+              "from": "HostAgent",
+              "to": "BootControl"
+            }
+          ]
+        },
+        {
+          "id": "persistence_volume_attach",
+          "owner": "boot-control slice, containerd, and boot members",
+          "path": "External conventional call (not I3)",
+          "kind": "host",
+          "implementationStatus": "existing",
+          "contract": "Attach the exact durable Ark volume to one selected Persistence task only, under the expected volume generation and exclusive-writer fence.",
+          "sourceLine": 344,
+          "usages": [
+            {
+              "diagramId": "core-installation",
+              "diagramTitle": "First boot installation",
+              "callId": "core-installation-call-7",
+              "step": 7,
+              "from": "HostAgent",
+              "to": "Volume"
+            },
+            {
+              "diagramId": "host-activation",
+              "diagramTitle": "Selected Boot set cold start",
+              "callId": "host-activation-call-5",
+              "step": 5,
+              "from": "HostAgent",
+              "to": "Volume"
+            },
+            {
+              "diagramId": "core-reboot",
+              "diagramTitle": "Reboot selected Boot set",
+              "callId": "core-reboot-call-5",
+              "step": 5,
+              "from": "HostAgent",
+              "to": "Volume"
+            },
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-8",
+              "step": 8,
+              "from": "HostAgent",
+              "to": "Volume"
+            },
+            {
+              "diagramId": "core-cutover",
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-17",
+              "step": 17,
+              "from": "HostAgent",
+              "to": "Volume"
+            }
+          ]
+        },
+        {
+          "id": "persistence_volume_release",
+          "owner": "boot-control slice, containerd, and boot members",
+          "path": "External conventional call (not I3)",
+          "kind": "host",
+          "implementationStatus": "existing",
+          "contract": "Prove the exact Persistence task dead, flush and unmount its volume, release its writer lease, and return fence evidence before another attachment.",
+          "sourceLine": 345,
+          "usages": [
+            {
+              "diagramId": "host-activation",
+              "diagramTitle": "Selected Boot set cold start",
+              "callId": "host-activation-call-14",
+              "step": 14,
+              "from": "HostAgent",
+              "to": "Volume"
+            },
+            {
+              "diagramId": "core-reboot",
+              "diagramTitle": "Reboot selected Boot set",
+              "callId": "core-reboot-call-14",
+              "step": 14,
+              "from": "HostAgent",
+              "to": "Volume"
+            },
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-7",
+              "step": 7,
+              "from": "HostAgent",
+              "to": "Volume"
+            },
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-20",
+              "step": 20,
+              "from": "HostAgent",
+              "to": "Volume"
+            },
+            {
+              "diagramId": "core-cutover",
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-13",
+              "step": 13,
+              "from": "HostAgent",
+              "to": "Volume"
+            },
+            {
+              "diagramId": "core-cutover",
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-26",
+              "step": 26,
+              "from": "HostAgent",
+              "to": "Volume"
+            },
+            {
+              "diagramId": "quiesce-wake",
+              "diagramTitle": "Quiesce and wake",
+              "callId": "quiesce-wake-call-7",
+              "step": 7,
+              "from": "HostAgent",
+              "to": "Volume"
+            }
+          ]
+        },
+        {
           "id": "containerd_import",
-          "owner": "containerd and boot members",
+          "owner": "boot-control slice, containerd, and boot members",
           "path": "External conventional call (not I3)",
           "kind": "host",
           "implementationStatus": "existing",
           "contract": "Import and digest-verify one bounded accepted OCI graph into the specified protected namespace.",
-          "sourceLine": 323,
+          "sourceLine": 346,
           "usages": [
             {
               "diagramId": "core-installation",
@@ -6108,114 +6608,12 @@ window.LIFECYCLE_ATLAS_DATA = {
         },
         {
           "id": "containerd_resolve",
-          "owner": "containerd and boot members",
+          "owner": "boot-control slice, containerd, and boot members",
           "path": "External conventional call (not I3)",
           "kind": "host",
           "implementationStatus": "existing",
-          "contract": "Resolve one exact image record or digest and inspect required content, lease, snapshot, and task evidence.",
-          "sourceLine": 324,
-          "usages": [
-            {
-              "diagramId": "core-installation",
-              "diagramTitle": "First boot installation",
-              "callId": "core-installation-call-4",
-              "step": 4,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "host-activation",
-              "diagramTitle": "Selected Boot set cold start",
-              "callId": "host-activation-call-2",
-              "step": 2,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-reboot",
-              "diagramTitle": "Reboot selected Boot set",
-              "callId": "core-reboot-call-2",
-              "step": 2,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-3",
-              "step": 3,
-              "from": "HostAgent",
-              "to": "containerd"
-            }
-          ]
-        },
-        {
-          "id": "containerd_tag_update",
-          "owner": "containerd and boot members",
-          "path": "External conventional call (not I3)",
-          "kind": "host",
-          "implementationStatus": "existing",
-          "contract": "Under the Host Agent's single-writer journal and expected-target fence, update one containerd image record and return authoritative target readback.",
-          "sourceLine": 325,
-          "usages": [
-            {
-              "diagramId": "core-installation",
-              "diagramTitle": "First boot installation",
-              "callId": "core-installation-call-3",
-              "step": 3,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "selection-rollback",
-              "diagramTitle": "Select, upgrade, or roll back",
-              "callId": "selection-rollback-call-6",
-              "step": 6,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-9",
-              "step": 9,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-22",
-              "step": 22,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-35",
-              "step": 35,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-55",
-              "step": 55,
-              "from": "HostAgent",
-              "to": "containerd"
-            }
-          ]
-        },
-        {
-          "id": "containerd_task_start",
-          "owner": "containerd and boot members",
-          "path": "External conventional call (not I3)",
-          "kind": "host",
-          "implementationStatus": "existing",
-          "contract": "Create and start one exact task with the fixed runsc runtime handler, constrained OCI spec, mounts, cgroup envelope, and log endpoints.",
-          "sourceLine": 326,
+          "contract": "Resolve one exact digest and inspect required content, lease, snapshot, and task evidence; never resolve selection from a mutable containerd tag.",
+          "sourceLine": 347,
           "usages": [
             {
               "diagramId": "core-installation",
@@ -6226,18 +6624,53 @@ window.LIFECYCLE_ATLAS_DATA = {
               "to": "containerd"
             },
             {
-              "diagramId": "core-installation",
-              "diagramTitle": "First boot installation",
-              "callId": "core-installation-call-6",
-              "step": 6,
+              "diagramId": "host-activation",
+              "diagramTitle": "Selected Boot set cold start",
+              "callId": "host-activation-call-3",
+              "step": 3,
               "from": "HostAgent",
               "to": "containerd"
             },
             {
+              "diagramId": "core-reboot",
+              "diagramTitle": "Reboot selected Boot set",
+              "callId": "core-reboot-call-3",
+              "step": 3,
+              "from": "HostAgent",
+              "to": "containerd"
+            },
+            {
+              "diagramId": "core-cutover",
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-2",
+              "step": 2,
+              "from": "HostAgent",
+              "to": "containerd"
+            },
+            {
+              "diagramId": "core-cutover",
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-15",
+              "step": 15,
+              "from": "HostAgent",
+              "to": "containerd"
+            }
+          ]
+        },
+        {
+          "id": "containerd_task_start",
+          "owner": "boot-control slice, containerd, and boot members",
+          "path": "External conventional call (not I3)",
+          "kind": "host",
+          "implementationStatus": "existing",
+          "contract": "Create and start one exact task with the fixed runsc runtime handler, constrained OCI spec, declared mounts, cgroup envelope, and log endpoints.",
+          "sourceLine": 348,
+          "usages": [
+            {
               "diagramId": "core-installation",
               "diagramTitle": "First boot installation",
-              "callId": "core-installation-call-7",
-              "step": 7,
+              "callId": "core-installation-call-6",
+              "step": 6,
               "from": "HostAgent",
               "to": "containerd"
             },
@@ -6250,10 +6683,18 @@ window.LIFECYCLE_ATLAS_DATA = {
               "to": "containerd"
             },
             {
-              "diagramId": "host-activation",
-              "diagramTitle": "Selected Boot set cold start",
-              "callId": "host-activation-call-3",
-              "step": 3,
+              "diagramId": "core-installation",
+              "diagramTitle": "First boot installation",
+              "callId": "core-installation-call-9",
+              "step": 9,
+              "from": "HostAgent",
+              "to": "containerd"
+            },
+            {
+              "diagramId": "core-installation",
+              "diagramTitle": "First boot installation",
+              "callId": "core-installation-call-10",
+              "step": 10,
               "from": "HostAgent",
               "to": "containerd"
             },
@@ -6268,24 +6709,24 @@ window.LIFECYCLE_ATLAS_DATA = {
             {
               "diagramId": "host-activation",
               "diagramTitle": "Selected Boot set cold start",
-              "callId": "host-activation-call-5",
-              "step": 5,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "host-activation",
-              "diagramTitle": "Selected Boot set cold start",
               "callId": "host-activation-call-6",
               "step": 6,
               "from": "HostAgent",
               "to": "containerd"
             },
             {
-              "diagramId": "core-reboot",
-              "diagramTitle": "Reboot selected Boot set",
-              "callId": "core-reboot-call-3",
-              "step": 3,
+              "diagramId": "host-activation",
+              "diagramTitle": "Selected Boot set cold start",
+              "callId": "host-activation-call-7",
+              "step": 7,
+              "from": "HostAgent",
+              "to": "containerd"
+            },
+            {
+              "diagramId": "host-activation",
+              "diagramTitle": "Selected Boot set cold start",
+              "callId": "host-activation-call-8",
+              "step": 8,
               "from": "HostAgent",
               "to": "containerd"
             },
@@ -6300,112 +6741,80 @@ window.LIFECYCLE_ATLAS_DATA = {
             {
               "diagramId": "core-reboot",
               "diagramTitle": "Reboot selected Boot set",
-              "callId": "core-reboot-call-5",
-              "step": 5,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-reboot",
-              "diagramTitle": "Reboot selected Boot set",
               "callId": "core-reboot-call-6",
               "step": 6,
               "from": "HostAgent",
               "to": "containerd"
             },
             {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-4",
-              "step": 4,
+              "diagramId": "core-reboot",
+              "diagramTitle": "Reboot selected Boot set",
+              "callId": "core-reboot-call-7",
+              "step": 7,
+              "from": "HostAgent",
+              "to": "containerd"
+            },
+            {
+              "diagramId": "core-reboot",
+              "diagramTitle": "Reboot selected Boot set",
+              "callId": "core-reboot-call-8",
+              "step": 8,
+              "from": "HostAgent",
+              "to": "containerd"
+            },
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-3",
+              "step": 3,
+              "from": "HostAgent",
+              "to": "containerd"
+            },
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-9",
+              "step": 9,
+              "from": "HostAgent",
+              "to": "containerd"
+            },
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-13",
+              "step": 13,
               "from": "HostAgent",
               "to": "containerd"
             },
             {
               "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-15",
-              "step": 15,
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-16",
+              "step": 16,
               "from": "HostAgent",
               "to": "containerd"
             },
             {
               "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-28",
-              "step": 28,
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-18",
+              "step": 18,
               "from": "HostAgent",
               "to": "containerd"
             },
             {
               "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-37",
-              "step": 37,
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-19",
+              "step": 19,
               "from": "HostAgent",
               "to": "containerd"
             },
             {
               "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-42",
-              "step": 42,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-43",
-              "step": 43,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-44",
-              "step": 44,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-45",
-              "step": 45,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-60",
-              "step": 60,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-61",
-              "step": 61,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-62",
-              "step": 62,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-63",
-              "step": 63,
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-20",
+              "step": 20,
               "from": "HostAgent",
               "to": "containerd"
             }
@@ -6413,16 +6822,80 @@ window.LIFECYCLE_ATLAS_DATA = {
         },
         {
           "id": "containerd_task_stop",
-          "owner": "containerd and boot members",
+          "owner": "boot-control slice, containerd, and boot members",
           "path": "External conventional call (not I3)",
           "kind": "host",
           "implementationStatus": "existing",
           "contract": "Signal, wait for, delete, and prove absence of one exact task and its runtime residue.",
-          "sourceLine": 327,
+          "sourceLine": 349,
           "usages": [
             {
+              "diagramId": "host-activation",
+              "diagramTitle": "Selected Boot set cold start",
+              "callId": "host-activation-call-13",
+              "step": 13,
+              "from": "HostAgent",
+              "to": "containerd"
+            },
+            {
+              "diagramId": "core-reboot",
+              "diagramTitle": "Reboot selected Boot set",
+              "callId": "core-reboot-call-13",
+              "step": 13,
+              "from": "HostAgent",
+              "to": "containerd"
+            },
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-2",
+              "step": 2,
+              "from": "HostAgent",
+              "to": "containerd"
+            },
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-6",
+              "step": 6,
+              "from": "HostAgent",
+              "to": "containerd"
+            },
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-12",
+              "step": 12,
+              "from": "HostAgent",
+              "to": "containerd"
+            },
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-19",
+              "step": 19,
+              "from": "HostAgent",
+              "to": "containerd"
+            },
+            {
               "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-9",
+              "step": 9,
+              "from": "HostAgent",
+              "to": "containerd"
+            },
+            {
+              "diagramId": "core-cutover",
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-10",
+              "step": 10,
+              "from": "HostAgent",
+              "to": "containerd"
+            },
+            {
+              "diagramId": "core-cutover",
+              "diagramTitle": "Complete Boot-set replacement",
               "callId": "core-cutover-call-11",
               "step": 11,
               "from": "HostAgent",
@@ -6430,89 +6903,17 @@ window.LIFECYCLE_ATLAS_DATA = {
             },
             {
               "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-23",
-              "step": 23,
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-12",
+              "step": 12,
               "from": "HostAgent",
               "to": "containerd"
             },
             {
               "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-30",
-              "step": 30,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-36",
-              "step": 36,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-47",
-              "step": 47,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-48",
-              "step": 48,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-49",
-              "step": 49,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-50",
-              "step": 50,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-56",
-              "step": 56,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-57",
-              "step": 57,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-58",
-              "step": 58,
-              "from": "HostAgent",
-              "to": "containerd"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-59",
-              "step": 59,
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-25",
+              "step": 25,
               "from": "HostAgent",
               "to": "containerd"
             }
@@ -6520,12 +6921,12 @@ window.LIFECYCLE_ATLAS_DATA = {
         },
         {
           "id": "routing::authenticate",
-          "owner": "Router",
+          "owner": "Gateway",
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
-          "contract": "Engine's fixed RBAC authentication hook: verify one exact Boot-set or lease-scoped identity and return its bounded Router profile; default deny.",
-          "sourceLine": 337,
+          "contract": "Engine's fixed authentication hook: verify one exact Boot-set or lease-scoped identity and return its bounded Gateway authorization profile; default deny.",
+          "sourceLine": 359,
           "usages": [
             {
               "diagramId": "core-bootstrap",
@@ -6533,7 +6934,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "callId": "core-bootstrap-call-1",
               "step": 1,
               "from": "Engine",
-              "to": "Router"
+              "to": "Gateway"
             },
             {
               "diagramId": "core-bootstrap",
@@ -6541,26 +6942,26 @@ window.LIFECYCLE_ATLAS_DATA = {
               "callId": "core-bootstrap-call-3",
               "step": 3,
               "from": "Engine",
-              "to": "Router"
+              "to": "Gateway"
             },
             {
-              "diagramId": "core-bootstrap",
-              "diagramTitle": "Boot control bootstrap",
-              "callId": "core-bootstrap-call-5",
-              "step": 5,
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-14",
+              "step": 14,
               "from": "Engine",
-              "to": "Router"
+              "to": "Gateway"
             }
           ]
         },
         {
           "id": "routing::authorize_registration",
-          "owner": "Router",
+          "owner": "Gateway",
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Engine's fixed registration hook: admit only the exact profile, prefix, epoch, and registration contract bound by Admission; default deny.",
-          "sourceLine": 338,
+          "sourceLine": 360,
           "usages": [
             {
               "diagramId": "core-bootstrap",
@@ -6568,7 +6969,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "callId": "core-bootstrap-call-2",
               "step": 2,
               "from": "Engine",
-              "to": "Router"
+              "to": "Gateway"
             },
             {
               "diagramId": "core-bootstrap",
@@ -6576,133 +6977,141 @@ window.LIFECYCLE_ATLAS_DATA = {
               "callId": "core-bootstrap-call-4",
               "step": 4,
               "from": "Engine",
-              "to": "Router"
+              "to": "Gateway"
+            },
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-15",
+              "step": 15,
+              "from": "Engine",
+              "to": "Gateway"
+            }
+          ]
+        },
+        {
+          "id": "routing::reconcile",
+          "owner": "Gateway",
+          "path": "I3",
+          "kind": "i3",
+          "implementationStatus": "existing",
+          "contract": "Register or replace the complete resident-function and dynamic-job-factory projection derived from one Persistence snapshot and route epoch. Boot-set membership is never reconciled through this function.",
+          "sourceLine": 361,
+          "usages": [
+            {
+              "diagramId": "core-installation",
+              "diagramTitle": "First boot installation",
+              "callId": "core-installation-call-12",
+              "step": 12,
+              "from": "Supervisor",
+              "to": "Gateway"
+            },
+            {
+              "diagramId": "host-activation",
+              "diagramTitle": "Selected Boot set cold start",
+              "callId": "host-activation-call-10",
+              "step": 10,
+              "from": "Supervisor",
+              "to": "Gateway"
             },
             {
               "diagramId": "core-bootstrap",
               "diagramTitle": "Boot control bootstrap",
               "callId": "core-bootstrap-call-6",
               "step": 6,
-              "from": "Engine",
-              "to": "Router"
-            }
-          ]
-        },
-        {
-          "id": "routing::reconcile",
-          "owner": "Router",
-          "path": "I3",
-          "kind": "i3",
-          "implementationStatus": "existing",
-          "contract": "Under an exact selected or candidate Router prefix, register or replace the complete resident-function and dynamic-job-factory projection derived from one Persistence snapshot and route epoch. A successor Supervisor may invoke the selected Router only through an operation-bound handover plan after exact Boot-set-tag readback.",
-          "sourceLine": 339,
-          "usages": [
-            {
-              "diagramId": "core-installation",
-              "diagramTitle": "First boot installation",
-              "callId": "core-installation-call-10",
-              "step": 10,
               "from": "Supervisor",
-              "to": "Router"
-            },
-            {
-              "diagramId": "host-activation",
-              "diagramTitle": "Selected Boot set cold start",
-              "callId": "host-activation-call-8",
-              "step": 8,
-              "from": "Supervisor",
-              "to": "Router"
-            },
-            {
-              "diagramId": "core-bootstrap",
-              "diagramTitle": "Boot control bootstrap",
-              "callId": "core-bootstrap-call-8",
-              "step": 8,
-              "from": "Supervisor",
-              "to": "Router"
+              "to": "Gateway"
             },
             {
               "diagramId": "core-reboot",
               "diagramTitle": "Reboot selected Boot set",
-              "callId": "core-reboot-call-8",
-              "step": 8,
-              "from": "Supervisor",
-              "to": "Router"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-10",
+              "callId": "core-reboot-call-10",
               "step": 10,
-              "from": "NextSupervisor",
-              "to": "Router"
+              "from": "Supervisor",
+              "to": "Gateway"
             },
             {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-17",
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-5",
+              "step": 5,
+              "from": "Supervisor",
+              "to": "Gateway"
+            },
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-11",
+              "step": 11,
+              "from": "Supervisor",
+              "to": "Gateway"
+            },
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-17",
               "step": 17,
               "from": "Supervisor",
-              "to": "NextRouter"
+              "to": "Gateway"
             },
             {
               "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-39",
-              "step": 39,
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-22",
+              "step": 22,
               "from": "Supervisor",
-              "to": "Router"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-65",
-              "step": 65,
-              "from": "NextSupervisor",
-              "to": "NextRouter"
+              "to": "Gateway"
             }
           ]
         },
         {
           "id": "routing::inspect",
-          "owner": "Router",
+          "owner": "Gateway",
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
-          "contract": "Return operation-bound registration owners, canonical-set digest, desired-snapshot revision, route epoch, fence state, and readiness evidence without mutation.",
-          "sourceLine": 340,
+          "contract": "Return operation-bound registration owners, canonical-set digest, desired-snapshot revision, route epoch, fence state, buffer state, and readiness evidence without mutation.",
+          "sourceLine": 362,
           "usages": [
             {
               "diagramId": "core-installation",
               "diagramTitle": "First boot installation",
-              "callId": "core-installation-call-11",
-              "step": 11,
+              "callId": "core-installation-call-13",
+              "step": 13,
               "from": "HostAgent",
-              "to": "Router"
+              "to": "Gateway"
             },
             {
               "diagramId": "host-activation",
               "diagramTitle": "Selected Boot set cold start",
-              "callId": "host-activation-call-9",
-              "step": 9,
+              "callId": "host-activation-call-11",
+              "step": 11,
               "from": "HostAgent",
-              "to": "Router"
+              "to": "Gateway"
             },
             {
               "diagramId": "core-bootstrap",
               "diagramTitle": "Boot control bootstrap",
-              "callId": "core-bootstrap-call-9",
-              "step": 9,
+              "callId": "core-bootstrap-call-7",
+              "step": 7,
               "from": "HostAgent",
-              "to": "Router"
+              "to": "Gateway"
             },
             {
               "diagramId": "core-reboot",
               "diagramTitle": "Reboot selected Boot set",
-              "callId": "core-reboot-call-9",
-              "step": 9,
+              "callId": "core-reboot-call-11",
+              "step": 11,
               "from": "HostAgent",
-              "to": "Router"
+              "to": "Gateway"
+            },
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-18",
+              "step": 18,
+              "from": "HostAgent",
+              "to": "Gateway"
             },
             {
               "diagramId": "activation-kernel",
@@ -6710,7 +7119,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "callId": "activation-kernel-call-3",
               "step": 3,
               "from": "HostAgent",
-              "to": "Router"
+              "to": "Gateway"
             },
             {
               "diagramId": "candidate-verification",
@@ -6718,7 +7127,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "callId": "candidate-verification-call-5",
               "step": 5,
               "from": "HostAgent",
-              "to": "Router"
+              "to": "Gateway"
             },
             {
               "diagramId": "candidate-verification",
@@ -6726,7 +7135,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "callId": "candidate-verification-call-7",
               "step": 7,
               "from": "HostAgent",
-              "to": "Router"
+              "to": "Gateway"
             },
             {
               "diagramId": "prepared-execution",
@@ -6734,7 +7143,7 @@ window.LIFECYCLE_ATLAS_DATA = {
               "callId": "prepared-execution-call-5",
               "step": 5,
               "from": "HostAgent",
-              "to": "Router"
+              "to": "Gateway"
             },
             {
               "diagramId": "prepared-execution",
@@ -6742,82 +7151,66 @@ window.LIFECYCLE_ATLAS_DATA = {
               "callId": "prepared-execution-call-13",
               "step": 13,
               "from": "HostAgent",
-              "to": "Router"
+              "to": "Gateway"
             },
             {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-12",
-              "step": 12,
-              "from": "NextSupervisor",
-              "to": "Router"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-25",
-              "step": 25,
-              "from": "Supervisor",
-              "to": "NextRouter"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-66",
-              "step": 66,
+              "diagramId": "ordinary-routed-cutover",
+              "diagramTitle": "Ordinary routed cutover",
+              "callId": "ordinary-routed-cutover-call-4",
+              "step": 4,
               "from": "HostAgent",
-              "to": "NextRouter"
+              "to": "Gateway"
+            },
+            {
+              "diagramId": "ordinary-routed-cutover",
+              "diagramTitle": "Ordinary routed cutover",
+              "callId": "ordinary-routed-cutover-call-13",
+              "step": 13,
+              "from": "Supervisor",
+              "to": "Gateway"
+            },
+            {
+              "diagramId": "core-cutover",
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-23",
+              "step": 23,
+              "from": "HostAgent",
+              "to": "Gateway"
             }
           ]
         },
         {
           "id": "routing::fence",
-          "owner": "Router",
+          "owner": "Gateway",
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
-          "contract": "Fence new admissions for one logical name, one Supervisor profile, or one exact route epoch at the expected revision.",
-          "sourceLine": 341,
+          "contract": "Fence new admissions for one ordinary logical name or exact route epoch at the expected revision; bounded calls may be held or rejected but are not durably accepted in Gateway RAM.",
+          "sourceLine": 363,
           "usages": [
             {
               "diagramId": "selection-rollback",
               "diagramTitle": "Select, upgrade, or roll back",
-              "callId": "selection-rollback-call-9",
-              "step": 9,
-              "from": "Persistence",
-              "to": "Router"
+              "callId": "selection-rollback-call-7",
+              "step": 7,
+              "from": "Supervisor",
+              "to": "Gateway"
+            },
+            {
+              "diagramId": "ordinary-routed-cutover",
+              "diagramTitle": "Ordinary routed cutover",
+              "callId": "ordinary-routed-cutover-call-7",
+              "step": 7,
+              "from": "Supervisor",
+              "to": "Gateway"
             },
             {
               "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
+              "diagramTitle": "Complete Boot-set replacement",
               "callId": "core-cutover-call-6",
               "step": 6,
               "from": "Supervisor",
-              "to": "Router"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-19",
-              "step": 19,
-              "from": "Supervisor",
-              "to": "Router"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-31",
-              "step": 31,
-              "from": "Supervisor",
-              "to": "Router"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-51",
-              "step": 51,
-              "from": "Supervisor",
-              "to": "Router"
+              "to": "Gateway"
             },
             {
               "diagramId": "quiesce-wake",
@@ -6825,26 +7218,26 @@ window.LIFECYCLE_ATLAS_DATA = {
               "callId": "quiesce-wake-call-2",
               "step": 2,
               "from": "Supervisor",
-              "to": "Router"
+              "to": "Gateway"
             }
           ]
         },
         {
           "id": "routing::install",
-          "owner": "Router",
+          "owner": "Gateway",
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
-          "contract": "Install the mode-specific projection for one newly selected ordinary revision and Prepared Realization: an activation factory for dynamic-job, or the stable declared functions of an exact ready resident-service Chamber.",
-          "sourceLine": 342,
+          "contract": "Install one ordinary mode-specific projection: an activation factory for dynamic-job, or stable declared functions of an exact ready resident-service Chamber.",
+          "sourceLine": 364,
           "usages": [
             {
               "diagramId": "selection-rollback",
               "diagramTitle": "Select, upgrade, or roll back",
               "callId": "selection-rollback-call-11",
               "step": 11,
-              "from": "Persistence",
-              "to": "Router"
+              "from": "Supervisor",
+              "to": "Gateway"
             },
             {
               "diagramId": "prepared-execution",
@@ -6852,26 +7245,42 @@ window.LIFECYCLE_ATLAS_DATA = {
               "callId": "prepared-execution-call-14",
               "step": 14,
               "from": "Supervisor",
-              "to": "Router"
+              "to": "Gateway"
+            },
+            {
+              "diagramId": "ordinary-routed-cutover",
+              "diagramTitle": "Ordinary routed cutover",
+              "callId": "ordinary-routed-cutover-call-12",
+              "step": 12,
+              "from": "Supervisor",
+              "to": "Gateway"
             }
           ]
         },
         {
           "id": "routing::reopen",
-          "owner": "Router",
+          "owner": "Gateway",
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
-          "contract": "Reopen a fenced ordinary factory, resident-service function set, or control profile only after authoritative selection, execution profile, desired-route revision, owner set, and route epoch agree.",
-          "sourceLine": 343,
+          "contract": "Reopen a fenced ordinary factory or resident-service function set only after authoritative selection, execution profile, desired-route revision, owner set, and route epoch agree; release bounded calls for caller-safe retry or dispatch.",
+          "sourceLine": 365,
           "usages": [
             {
               "diagramId": "selection-rollback",
               "diagramTitle": "Select, upgrade, or roll back",
               "callId": "selection-rollback-call-10",
               "step": 10,
-              "from": "Persistence",
-              "to": "Router"
+              "from": "Supervisor",
+              "to": "Gateway"
+            },
+            {
+              "diagramId": "selection-rollback",
+              "diagramTitle": "Select, upgrade, or roll back",
+              "callId": "selection-rollback-call-12",
+              "step": 12,
+              "from": "Supervisor",
+              "to": "Gateway"
             },
             {
               "diagramId": "prepared-execution",
@@ -6879,50 +7288,23 @@ window.LIFECYCLE_ATLAS_DATA = {
               "callId": "prepared-execution-call-15",
               "step": 15,
               "from": "Supervisor",
-              "to": "Router"
+              "to": "Gateway"
             },
             {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-13",
-              "step": 13,
-              "from": "NextSupervisor",
-              "to": "Router"
+              "diagramId": "ordinary-routed-cutover",
+              "diagramTitle": "Ordinary routed cutover",
+              "callId": "ordinary-routed-cutover-call-10",
+              "step": 10,
+              "from": "Supervisor",
+              "to": "Gateway"
             },
             {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-26",
-              "step": 26,
+              "diagramId": "ordinary-routed-cutover",
+              "diagramTitle": "Ordinary routed cutover",
+              "callId": "ordinary-routed-cutover-call-14",
+              "step": 14,
               "from": "Supervisor",
-              "to": "NextRouter"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-40",
-              "step": 40,
-              "from": "Supervisor",
-              "to": "Router"
-            }
-          ]
-        },
-        {
-          "id": "routing::claim",
-          "owner": "Router",
-          "path": "I3",
-          "kind": "i3",
-          "implementationStatus": "existing",
-          "contract": "Through a candidate Router's direct prefix, claim the complete canonical Router and stable alias function set under one fresh route epoch while public admission remains fenced.",
-          "sourceLine": 344,
-          "usages": [
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-24",
-              "step": 24,
-              "from": "Supervisor",
-              "to": "NextRouter"
+              "to": "Gateway"
             }
           ]
         },
@@ -6933,7 +7315,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Resolve a permitted locator once, or fetch an exact selector, and return verified immutable descriptors or bounded transfer capabilities.",
-          "sourceLine": 355,
+          "sourceLine": 376,
           "usages": [
             {
               "diagramId": "candidate-formation",
@@ -6968,7 +7350,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Read one exact Realization record, normalized launch spec, receipts, provider descriptors, and scoped immutable-resource capabilities.",
-          "sourceLine": 356,
+          "sourceLine": 377,
           "usages": [
             {
               "diagramId": "activation-kernel",
@@ -7009,6 +7391,14 @@ window.LIFECYCLE_ATLAS_DATA = {
               "step": 10,
               "from": "Supervisor",
               "to": "Persistence"
+            },
+            {
+              "diagramId": "ordinary-routed-cutover",
+              "diagramTitle": "Ordinary routed cutover",
+              "callId": "ordinary-routed-cutover-call-2",
+              "step": 2,
+              "from": "Supervisor",
+              "to": "Persistence"
             }
           ]
         },
@@ -7019,7 +7409,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Persist exact build definition/input identities, output OCI digest, receipt, and provider or rebuild policy without retaining the OCI graph.",
-          "sourceLine": 357,
+          "sourceLine": 378,
           "usages": [
             {
               "diagramId": "artifact-build",
@@ -7054,7 +7444,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Record or read back one derived Prepared projection only after exact profile-bound MET verification, verification-Chamber shutdown, authoritative OCI retention, digest readback, and accepted receipts agree. It stores no OCI bytes and moves no selection.",
-          "sourceLine": 358,
+          "sourceLine": 379,
           "usages": [
             {
               "diagramId": "candidate-verification",
@@ -7067,13 +7457,40 @@ window.LIFECYCLE_ATLAS_DATA = {
           ]
         },
         {
+          "id": "persistence::bootset::commit",
+          "owner": "Persistence",
+          "path": "I3",
+          "kind": "i3",
+          "implementationStatus": "existing",
+          "contract": "Consume one exact staged-closure receipt, promoter permit, expected selector generation, accepted target and fallback manifests, then durably persist manifests and atomically replace boot-control/selected.json; it starts no task.",
+          "sourceLine": 380,
+          "usages": [
+            {
+              "diagramId": "selection-rollback",
+              "diagramTitle": "Select, upgrade, or roll back",
+              "callId": "selection-rollback-call-5",
+              "step": 5,
+              "from": "Promoter",
+              "to": "Persistence"
+            },
+            {
+              "diagramId": "core-cutover",
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-5",
+              "step": 5,
+              "from": "Promoter",
+              "to": "Persistence"
+            }
+          ]
+        },
+        {
           "id": "persistence::selection::read",
           "owner": "Persistence",
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
-          "contract": "Read one exact ordinary Current selection and revision. It never resolves the lower Boot-set tag.",
-          "sourceLine": 359,
+          "contract": "Read one exact ordinary Current selection and revision. It never substitutes for the cold-boundary selector read.",
+          "sourceLine": 381,
           "usages": [
             {
               "diagramId": "prepared-execution",
@@ -7090,6 +7507,14 @@ window.LIFECYCLE_ATLAS_DATA = {
               "step": 9,
               "from": "Supervisor",
               "to": "Persistence"
+            },
+            {
+              "diagramId": "ordinary-routed-cutover",
+              "diagramTitle": "Ordinary routed cutover",
+              "callId": "ordinary-routed-cutover-call-1",
+              "step": 1,
+              "from": "Supervisor",
+              "to": "Persistence"
             }
           ]
         },
@@ -7100,13 +7525,21 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Consume one exact promoter permit and compare-and-swap one ordinary expected current revision to a Prepared candidate, transfer its Hold into selected image custody, and append selection history.",
-          "sourceLine": 360,
+          "sourceLine": 382,
           "usages": [
             {
               "diagramId": "selection-rollback",
               "diagramTitle": "Select, upgrade, or roll back",
-              "callId": "selection-rollback-call-8",
-              "step": 8,
+              "callId": "selection-rollback-call-9",
+              "step": 9,
+              "from": "Promoter",
+              "to": "Persistence"
+            },
+            {
+              "diagramId": "ordinary-routed-cutover",
+              "diagramTitle": "Ordinary routed cutover",
+              "callId": "ordinary-routed-cutover-call-9",
+              "step": 9,
               "from": "Promoter",
               "to": "Persistence"
             }
@@ -7118,64 +7551,72 @@ window.LIFECYCLE_ATLAS_DATA = {
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
-          "contract": "Read one exact desired-route snapshot, revision, handover generation, fence epoch, canonical-set digest, and any operation-bound successor plan.",
-          "sourceLine": 361,
+          "contract": "Read one exact desired-route snapshot, revision, ordinary handover generation, fence epoch, and canonical-set digest.",
+          "sourceLine": 383,
           "usages": [
             {
               "diagramId": "core-installation",
               "diagramTitle": "First boot installation",
-              "callId": "core-installation-call-9",
-              "step": 9,
+              "callId": "core-installation-call-11",
+              "step": 11,
               "from": "Supervisor",
               "to": "Persistence"
             },
             {
               "diagramId": "host-activation",
               "diagramTitle": "Selected Boot set cold start",
-              "callId": "host-activation-call-7",
-              "step": 7,
+              "callId": "host-activation-call-9",
+              "step": 9,
               "from": "Supervisor",
               "to": "Persistence"
             },
             {
               "diagramId": "core-bootstrap",
               "diagramTitle": "Boot control bootstrap",
-              "callId": "core-bootstrap-call-7",
-              "step": 7,
+              "callId": "core-bootstrap-call-5",
+              "step": 5,
               "from": "Supervisor",
               "to": "Persistence"
             },
             {
               "diagramId": "core-reboot",
               "diagramTitle": "Reboot selected Boot set",
-              "callId": "core-reboot-call-7",
-              "step": 7,
+              "callId": "core-reboot-call-9",
+              "step": 9,
               "from": "Supervisor",
               "to": "Persistence"
             },
             {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-16",
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-4",
+              "step": 4,
+              "from": "Supervisor",
+              "to": "Persistence"
+            },
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-10",
+              "step": 10,
+              "from": "Supervisor",
+              "to": "Persistence"
+            },
+            {
+              "diagramId": "boot-crash-repair",
+              "diagramTitle": "Same-selection crash repair",
+              "callId": "boot-crash-repair-call-16",
               "step": 16,
               "from": "Supervisor",
               "to": "Persistence"
             },
             {
               "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-38",
-              "step": 38,
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-21",
+              "step": 21,
               "from": "Supervisor",
-              "to": "NextPersistence"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-64",
-              "step": 64,
-              "from": "NextSupervisor",
-              "to": "NextPersistence"
+              "to": "Persistence"
             },
             {
               "diagramId": "quiesce-wake",
@@ -7193,14 +7634,14 @@ window.LIFECYCLE_ATLAS_DATA = {
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
-          "contract": "Compare-and-swap one exact successor handover plan and next route epoch against the current desired-route revision; it prepares evidence but moves neither selector.",
-          "sourceLine": 362,
+          "contract": "Compare-and-swap one exact ordinary resident-service handover plan and next route epoch against the current desired-route revision; it prepares evidence but moves neither selector.",
+          "sourceLine": 384,
           "usages": [
             {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-1",
-              "step": 1,
+              "diagramId": "ordinary-routed-cutover",
+              "diagramTitle": "Ordinary routed cutover",
+              "callId": "ordinary-routed-cutover-call-6",
+              "step": 6,
               "from": "Supervisor",
               "to": "Persistence"
             }
@@ -7212,40 +7653,16 @@ window.LIFECYCLE_ATLAS_DATA = {
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
-          "contract": "Terminalize one exact handover generation after the selected Boot set, Router owner set, route epoch, and readiness evidence agree.",
-          "sourceLine": 363,
+          "contract": "Terminalize one exact ordinary handover generation after Current selection, Gateway owner set, route epoch, and readiness evidence agree.",
+          "sourceLine": 385,
           "usages": [
             {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-14",
-              "step": 14,
-              "from": "NextSupervisor",
-              "to": "Persistence"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-27",
-              "step": 27,
+              "diagramId": "ordinary-routed-cutover",
+              "diagramTitle": "Ordinary routed cutover",
+              "callId": "ordinary-routed-cutover-call-15",
+              "step": 15,
               "from": "Supervisor",
               "to": "Persistence"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-41",
-              "step": 41,
-              "from": "Supervisor",
-              "to": "NextPersistence"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-67",
-              "step": 67,
-              "from": "NextSupervisor",
-              "to": "NextPersistence"
             }
           ]
         },
@@ -7256,7 +7673,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Acquire one bounded Hold over exact candidate Realization data and durable resource/evidence custody.",
-          "sourceLine": 364,
+          "sourceLine": 386,
           "usages": [
             {
               "diagramId": "candidate-formation",
@@ -7275,7 +7692,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Release one exact candidate Hold after authorized rejection, expiry, cancellation, or cleanup.",
-          "sourceLine": 365,
+          "sourceLine": 387,
           "usages": [
             {
               "diagramId": "candidate-verification",
@@ -7294,7 +7711,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Open one writer-fenced mutable workspace from an exact base and return its scoped attachment capability.",
-          "sourceLine": 366,
+          "sourceLine": 388,
           "usages": [
             {
               "diagramId": "fenced-development",
@@ -7313,7 +7730,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Apply an authorized mutation through the workspace fence without exposing a raw host path.",
-          "sourceLine": 367,
+          "sourceLine": 389,
           "usages": [
             {
               "diagramId": "fenced-development",
@@ -7332,7 +7749,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Renew the same workspace fence and lease for the same owner and cleanup duty.",
-          "sourceLine": 368,
+          "sourceLine": 390,
           "usages": [
             {
               "diagramId": "fenced-development",
@@ -7351,7 +7768,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Terminalize one exact workspace fence and reap unretained overlay data.",
-          "sourceLine": 369,
+          "sourceLine": 391,
           "usages": [
             {
               "diagramId": "fenced-development",
@@ -7370,7 +7787,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Atomically seal exact fenced workspace bytes as an immutable content-addressed revision.",
-          "sourceLine": 370,
+          "sourceLine": 392,
           "usages": [
             {
               "diagramId": "fenced-development",
@@ -7389,7 +7806,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Consume one exact sealed snapshot into a durable provider-native revision and receipt; it neither publishes remotely nor selects a Realization.",
-          "sourceLine": 371,
+          "sourceLine": 393,
           "usages": [
             {
               "diagramId": "fenced-development",
@@ -7408,21 +7825,13 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Flush the declared durable resources covered by one committed stop or Boot-set-cutover operation and return operation-bound receipts.",
-          "sourceLine": 372,
+          "sourceLine": 394,
           "usages": [
             {
               "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-32",
-              "step": 32,
-              "from": "Supervisor",
-              "to": "Persistence"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-52",
-              "step": 52,
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-7",
+              "step": 7,
               "from": "Supervisor",
               "to": "Persistence"
             },
@@ -7443,7 +7852,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Orchestrate locator or lock resolution into an exact candidate Realization and Hold. Formation starts no Chamber and cannot write current; preparation is separate.",
-          "sourceLine": 378,
+          "sourceLine": 400,
           "usages": [
             {
               "diagramId": "candidate-formation",
@@ -7462,7 +7871,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "For one selected dynamic-job Prepared Realization and idempotent bounded request, activate a fresh Chamber, invoke only its exact declared job entrypoint, return result and Run evidence, and stop/reap it before terminal success. It creates no resident route.",
-          "sourceLine": 379,
+          "sourceLine": 401,
           "usages": [
             {
               "diagramId": "prepared-execution",
@@ -7481,7 +7890,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Orchestrate a named fenced workspace and its staged attachment to one exact Developer Chamber activation.",
-          "sourceLine": 380,
+          "sourceLine": 402,
           "usages": [
             {
               "diagramId": "fenced-development",
@@ -7500,7 +7909,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Receive an exact candidate lifecycle, evidence, expiry, or cleanup event and drive only the next separately authorized step.",
-          "sourceLine": 381,
+          "sourceLine": 403,
           "usages": [
             {
               "diagramId": "candidate-verification",
@@ -7535,7 +7944,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Coordinate dependency-ordered quiescence, durable flush, and final reply-duty handoff to the Host Agent.",
-          "sourceLine": 382,
+          "sourceLine": 404,
           "usages": [
             {
               "diagramId": "quiesce-wake",
@@ -7553,30 +7962,38 @@ window.LIFECYCLE_ATLAS_DATA = {
           "path": "I3",
           "kind": "i3",
           "implementationStatus": "existing",
-          "contract": "Deliver one already authenticated wake event and bounded reply capability after the selected Router projection and Persistence service are ready.",
-          "sourceLine": 383,
+          "contract": "Deliver one already authenticated wake event and bounded reply capability after the selected Gateway projection and Persistence service are ready.",
+          "sourceLine": 405,
           "usages": [
             {
               "diagramId": "core-installation",
               "diagramTitle": "First boot installation",
-              "callId": "core-installation-call-12",
-              "step": 12,
+              "callId": "core-installation-call-14",
+              "step": 14,
               "from": "HostAgent",
               "to": "Supervisor"
             },
             {
               "diagramId": "host-activation",
               "diagramTitle": "Selected Boot set cold start",
-              "callId": "host-activation-call-10",
-              "step": 10,
+              "callId": "host-activation-call-12",
+              "step": 12,
               "from": "HostAgent",
               "to": "Supervisor"
             },
             {
               "diagramId": "core-reboot",
               "diagramTitle": "Reboot selected Boot set",
-              "callId": "core-reboot-call-10",
-              "step": 10,
+              "callId": "core-reboot-call-12",
+              "step": 12,
+              "from": "HostAgent",
+              "to": "Supervisor"
+            },
+            {
+              "diagramId": "core-cutover",
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-24",
+              "step": 24,
               "from": "HostAgent",
               "to": "Supervisor"
             }
@@ -7589,7 +8006,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Execute one exact build request in a separate Builder Chamber and return an exact artifact descriptor plus build receipt; it does not accept, import, or select the output.",
-          "sourceLine": 392,
+          "sourceLine": 414,
           "usages": [
             {
               "diagramId": "candidate-formation",
@@ -7632,7 +8049,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Judge one exact artifact, evidence set, and policy and return an acceptance receipt or rejection.",
-          "sourceLine": 393,
+          "sourceLine": 415,
           "usages": [
             {
               "diagramId": "candidate-formation",
@@ -7659,7 +8076,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Have an explicit artifact-store/provider adapter retain the exact verified OCI graph by digest, prove provider readback, and return a retention receipt. It does not accept, select, launch, or snapshot a Chamber.",
-          "sourceLine": 394,
+          "sourceLine": 416,
           "usages": [
             {
               "diagramId": "candidate-verification",
@@ -7678,7 +8095,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "optional-later",
           "contract": "Appraise fresh confidential-environment evidence bound to one builder identity and exact statement.",
-          "sourceLine": 395,
+          "sourceLine": 417,
           "usages": [
             {
               "diagramId": "attested-builds",
@@ -7705,7 +8122,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Execute the one declared finite dynamic-job entrypoint inside an exact newly activated Chamber and return subject-bound result evidence; the function is never a stable idle route.",
-          "sourceLine": 396,
+          "sourceLine": 418,
           "usages": [
             {
               "diagramId": "prepared-execution",
@@ -7724,7 +8141,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Execute the exact candidate and fixture verification plan through exact Chamber routes and return subject-bound evidence and a verdict.",
-          "sourceLine": 397,
+          "sourceLine": 419,
           "usages": [
             {
               "diagramId": "candidate-verification",
@@ -7751,36 +8168,12 @@ window.LIFECYCLE_ATLAS_DATA = {
               "to": "Fixtures"
             },
             {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-5",
+              "diagramId": "ordinary-routed-cutover",
+              "diagramTitle": "Ordinary routed cutover",
+              "callId": "ordinary-routed-cutover-call-5",
               "step": 5,
               "from": "Verifier",
-              "to": "NextSupervisor"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-18",
-              "step": 18,
-              "from": "Verifier",
-              "to": "NextRouter"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-29",
-              "step": 29,
-              "from": "Verifier",
-              "to": "NextPersistence"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-46",
-              "step": 46,
-              "from": "Verifier",
-              "to": "NextSupervisor"
+              "to": "Successor"
             },
             {
               "diagramId": "attested-builds",
@@ -7799,7 +8192,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "kind": "i3",
           "implementationStatus": "existing",
           "contract": "Have the distinct fenced promoter validate fresh MET evidence and issue one exact, one-use ordinary-selection or Boot-set-selection permit.",
-          "sourceLine": 398,
+          "sourceLine": 420,
           "usages": [
             {
               "diagramId": "selection-rollback",
@@ -7812,40 +8205,24 @@ window.LIFECYCLE_ATLAS_DATA = {
             {
               "diagramId": "selection-rollback",
               "diagramTitle": "Select, upgrade, or roll back",
-              "callId": "selection-rollback-call-7",
-              "step": 7,
+              "callId": "selection-rollback-call-8",
+              "step": 8,
+              "from": "Supervisor",
+              "to": "Promoter"
+            },
+            {
+              "diagramId": "ordinary-routed-cutover",
+              "diagramTitle": "Ordinary routed cutover",
+              "callId": "ordinary-routed-cutover-call-8",
+              "step": 8,
               "from": "Supervisor",
               "to": "Promoter"
             },
             {
               "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-7",
-              "step": 7,
-              "from": "Supervisor",
-              "to": "Promoter"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-20",
-              "step": 20,
-              "from": "Supervisor",
-              "to": "Promoter"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-33",
-              "step": 33,
-              "from": "Supervisor",
-              "to": "Promoter"
-            },
-            {
-              "diagramId": "core-cutover",
-              "diagramTitle": "Live Boot-set cutover",
-              "callId": "core-cutover-call-53",
-              "step": 53,
+              "diagramTitle": "Complete Boot-set replacement",
+              "callId": "core-cutover-call-3",
+              "step": 3,
               "from": "Supervisor",
               "to": "Promoter"
             }
@@ -7861,7 +8238,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "inspection-receipt",
             "realization"
           ],
-          "sourceLine": 49
+          "sourceLine": 51
         },
         {
           "id": "activation",
@@ -7872,19 +8249,19 @@ window.LIFECYCLE_ATLAS_DATA = {
             "realization",
             "run-receipt"
           ],
-          "sourceLine": 50
+          "sourceLine": 52
         },
         {
           "id": "admission",
           "term": "Admission",
-          "definition": "Host Agent-owned authority binding one fresh connection identity to one exact Chamber, Realization, registration contract, Engine listener, epoch, profile, and expiry. Ordinary Admissions are lease-scoped; Router, Persistence, Supervisor, and Host Agent bootstrap streams use exact Boot-set-scoped Admissions.",
+          "definition": "Host Agent-owned authority binding one fresh connection identity to one exact Chamber, Realization, registration contract, Engine listener, epoch, profile, and expiry. Ordinary Admissions are lease-scoped. Persistence receives one exact Boot-set-scoped direct Engine admission before Gateway exists; Gateway receives its own exact bootstrap admission; Supervisor and Host Agent use Gateway-gated Boot-set profiles.",
           "related": [
             "chamber-lease",
             "host-agent",
             "libp2p-peerid",
             "registration-contract"
           ],
-          "sourceLine": 51
+          "sourceLine": 53
         },
         {
           "id": "artifact-backed-launch-spec",
@@ -7895,7 +8272,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "oci-digest",
             "source-composed-launch-spec"
           ],
-          "sourceLine": 52
+          "sourceLine": 54
         },
         {
           "id": "assembly-covenant",
@@ -7905,7 +8282,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "covenant",
             "runnable-covenant"
           ],
-          "sourceLine": 53
+          "sourceLine": 55
         },
         {
           "id": "boot-seed",
@@ -7916,31 +8293,31 @@ window.LIFECYCLE_ATLAS_DATA = {
             "boot-set-selection",
             "builder"
           ],
-          "sourceLine": 54
+          "sourceLine": 56
         },
         {
           "id": "boot-set",
           "term": "Boot set",
-          "definition": "One immutable accepted root launch envelope binding exactly four ordered Runnable Covenant Realizations: Bootstrap Engine, Router, Persistence, and Supervisor. It binds their OCI descriptors, dependency order, host ABI, bootstrap Admissions and registration contracts, Persistence schema, acceptance evidence, and predecessor without becoming a general Covenant evaluator.",
+          "definition": "One immutable accepted root launch envelope binding exactly four ordered Runnable Covenant Realizations: Bootstrap Engine, Persistence, Gateway, and Supervisor. Gateway combines Router, RBAC/authorization, bounded buffering, and fenced route projection. The envelope binds exact OCI descriptors, dependency order, host ABI, bootstrap Admissions and registration contracts, Persistence schema and volume contract, acceptance evidence, and predecessor without becoming a general Covenant evaluator.",
           "related": [
             "boot-set-selection",
             "bootstrap-engine-covenant",
             "persistence-covenant",
-            "router-covenant",
+            "gateway-covenant",
             "supervisor-covenant"
           ],
-          "sourceLine": 55
+          "sourceLine": 57
         },
         {
           "id": "boot-set-selection",
           "term": "Boot-set selection",
-          "definition": "The Host Agent-owned, expected-current-fenced containerd image record dreamcatcher/bootset:current, targeting one exact Boot-set digest. It is the sole normal selector for the coherent four-member boot root.",
+          "definition": "The sole mutable canonical JSON record boot-control/selected.json on the host-attached durable volume. Persistence normally replaces it atomically under an expected-generation fence after exact content is staged and promotion is authorized; Host Agent reads it exactly once at each cold activation boundary. The same record may bind one exact pre-authorized last-known-good fallback.",
           "related": [
             "boot-set",
-            "containerd",
-            "host-agent"
+            "host-agent",
+            "persistence"
           ],
-          "sourceLine": 56
+          "sourceLine": 58
         },
         {
           "id": "bootstrap-engine-covenant",
@@ -7952,7 +8329,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "engine-chamber",
             "runnable-covenant"
           ],
-          "sourceLine": 57
+          "sourceLine": 59
         },
         {
           "id": "build-receipt",
@@ -7962,7 +8339,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "acceptance-receipt",
             "realization"
           ],
-          "sourceLine": 58
+          "sourceLine": 60
         },
         {
           "id": "builder",
@@ -7972,7 +8349,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "build-receipt",
             "runnable-covenant"
           ],
-          "sourceLine": 59
+          "sourceLine": 61
         },
         {
           "id": "candidate",
@@ -7983,7 +8360,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "hold",
             "realization"
           ],
-          "sourceLine": 60
+          "sourceLine": 62
         },
         {
           "id": "chamber",
@@ -7994,11 +8371,11 @@ window.LIFECYCLE_ATLAS_DATA = {
             "chamber-lease",
             "engine-chamber",
             "persistence-chamber",
-            "router-chamber",
+            "gateway-chamber",
             "supervisor-chamber",
             "realization"
           ],
-          "sourceLine": 61
+          "sourceLine": 63
         },
         {
           "id": "chamber-lease",
@@ -8009,19 +8386,19 @@ window.LIFECYCLE_ATLAS_DATA = {
             "chamber",
             "host-agent"
           ],
-          "sourceLine": 62
+          "sourceLine": 64
         },
         {
           "id": "containerd",
           "term": "containerd",
-          "definition": "The Host Agent's sole image, snapshot, and task backend. Its protected boot namespace durably retains the selected Boot set, all four required image closures, and the predecessor; its ordinary runtime namespace remains reconstructable. Tasks use the runsc runtime shim.",
+          "definition": "The Host Agent's sole image, snapshot, and task backend. Its protected boot namespace durably retains the exact selected and authorized-fallback Boot-set OCI closures, but it is not the selector; its ordinary runtime namespace remains reconstructable. Tasks use the runsc runtime shim.",
           "related": [
             "boot-set",
             "boot-set-selection",
             "host-agent",
             "oci-digest"
           ],
-          "sourceLine": 63
+          "sourceLine": 65
         },
         {
           "id": "contract-covenant",
@@ -8031,7 +8408,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "covenant",
             "runnable-covenant"
           ],
-          "sourceLine": 64
+          "sourceLine": 66
         },
         {
           "id": "covenant",
@@ -8042,7 +8419,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "contract-covenant",
             "runnable-covenant"
           ],
-          "sourceLine": 65
+          "sourceLine": 67
         },
         {
           "id": "covenant-locator",
@@ -8053,7 +8430,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "credential",
             "provider"
           ],
-          "sourceLine": 66
+          "sourceLine": 68
         },
         {
           "id": "covenant-lock",
@@ -8064,7 +8441,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "normalized-launch-spec",
             "realization"
           ],
-          "sourceLine": 67
+          "sourceLine": 69
         },
         {
           "id": "credential",
@@ -8074,7 +8451,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "covenant-locator",
             "provider"
           ],
-          "sourceLine": 68
+          "sourceLine": 70
         },
         {
           "id": "current-selection",
@@ -8087,7 +8464,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "realization",
             "selection"
           ],
-          "sourceLine": 69
+          "sourceLine": 71
         },
         {
           "id": "dynamic-job",
@@ -8099,7 +8476,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "prepared-realization",
             "resident-service"
           ],
-          "sourceLine": 70
+          "sourceLine": 72
         },
         {
           "id": "engine",
@@ -8111,19 +8488,19 @@ window.LIFECYCLE_ATLAS_DATA = {
             "i3-function",
             "registration-contract"
           ],
-          "sourceLine": 71
+          "sourceLine": 73
         },
         {
           "id": "engine-chamber",
           "term": "Engine Chamber",
-          "definition": "One gVisor activation of the selected Bootstrap Engine Covenant Realization. It starts before the other three boot Chambers and may remain running across Router-, Persistence-, or Supervisor-only replacement.",
+          "definition": "One gVisor activation of the selected Bootstrap Engine Covenant Realization. It starts first. Any selected Engine change and any Engine crash use a complete fresh Boot-set activation because every boot and ordinary registration depends on its epoch.",
           "related": [
             "boot-set",
             "bootstrap-engine-covenant",
             "chamber",
             "engine"
           ],
-          "sourceLine": 72
+          "sourceLine": 74
         },
         {
           "id": "execution-profile",
@@ -8135,7 +8512,43 @@ window.LIFECYCLE_ATLAS_DATA = {
             "resident-service",
             "realization"
           ],
-          "sourceLine": 73
+          "sourceLine": 75
+        },
+        {
+          "id": "gateway",
+          "term": "Gateway",
+          "definition": "The privileged boot worker combining Router, RBAC/authorization, bounded volatile call buffering, stable-route proxy functions, exact route projection, route epochs, and fencing in RAM. Supervisor supplies durable desired state; Gateway applies and inspects it without becoming durable selection, lifecycle-policy, or physical task authority.",
+          "related": [
+            "engine",
+            "persistence",
+            "route",
+            "gateway-covenant",
+            "supervisor"
+          ],
+          "sourceLine": 76
+        },
+        {
+          "id": "gateway-chamber",
+          "term": "Gateway Chamber",
+          "definition": "One gVisor activation of the selected Gateway Covenant Realization. It starts third, receives the protected Gateway control-listener capability, and reconstructs all route and authorization projection from Persistence after restart. Its volatile buffers are never durable acceptance.",
+          "related": [
+            "boot-set",
+            "chamber",
+            "gateway-covenant"
+          ],
+          "sourceLine": 77
+        },
+        {
+          "id": "gateway-covenant",
+          "term": "Gateway Covenant",
+          "definition": "The Runnable Covenant whose exact Boot-set Realization supplies the combined Router, RBAC/authorization, buffering, and route-projection Gateway outside the Engine image. Its routed warm-cutover machinery applies only to ordinary Chambers, never Boot-set members.",
+          "related": [
+            "boot-set",
+            "gateway",
+            "gateway-chamber",
+            "runnable-covenant"
+          ],
+          "sourceLine": 78
         },
         {
           "id": "hold",
@@ -8145,19 +8558,19 @@ window.LIFECYCLE_ATLAS_DATA = {
             "candidate",
             "realization"
           ],
-          "sourceLine": 74
+          "sourceLine": 79
         },
         {
           "id": "host-agent",
           "term": "Host Agent",
-          "definition": "The one small non-Chamber host authority combining the former process manager, image materializer, and direct-runtime adapter responsibilities. It owns Boot-set selection, containerd access, ordered four-member activation, physical lifecycle intent, Admission, task reconciliation, and reaping, but no Covenant interpretation, Builder, routing policy, or application policy.",
+          "definition": "The one small non-Chamber host authority, also called Procman at this boundary, combining process-manager, image-materializer, and direct-runtime-adapter responsibilities. It reads one Boot-set selection at cold activation, owns containerd access, ordered four-member activation, the exclusive Persistence mount, physical lifecycle intent, Admission, task reconciliation, reaping, and one narrowly pre-authorized fallback operation, but no Covenant interpretation, Builder, routing policy, application policy, or normal selection choice.",
           "related": [
             "admission",
             "boot-set-selection",
             "containerd",
             "engine"
           ],
-          "sourceLine": 75
+          "sourceLine": 80
         },
         {
           "id": "i3-function",
@@ -8168,7 +8581,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "registration-contract",
             "worker"
           ],
-          "sourceLine": 76
+          "sourceLine": 81
         },
         {
           "id": "immutable-identity",
@@ -8179,7 +8592,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "oci-digest",
             "provider"
           ],
-          "sourceLine": 77
+          "sourceLine": 82
         },
         {
           "id": "inspection-receipt",
@@ -8189,7 +8602,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "acceptance-receipt",
             "oci-digest"
           ],
-          "sourceLine": 78
+          "sourceLine": 83
         },
         {
           "id": "kind",
@@ -8198,7 +8611,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "related": [
             "provider"
           ],
-          "sourceLine": 79
+          "sourceLine": 84
         },
         {
           "id": "latest",
@@ -8208,17 +8621,17 @@ window.LIFECYCLE_ATLAS_DATA = {
             "covenant-locator",
             "current-selection"
           ],
-          "sourceLine": 80
+          "sourceLine": 85
         },
         {
           "id": "libp2p-peerid",
           "term": "libp2p PeerId",
-          "definition": "Proof-of-possession transport identity authenticated by Noise. Ordinary Chambers use fresh lease identities; the selected Router, Persistence, and Supervisor Chambers use exact Boot-set-scoped identities and Admissions to connect across the Engine Chamber boundary.",
+          "definition": "Proof-of-possession transport identity authenticated by Noise. Ordinary Chambers use fresh lease identities. Selected Persistence uses an exact direct bootstrap identity, selected Gateway uses an exact bootstrap identity, and Supervisor uses a Gateway-gated Boot-set identity across the Engine Chamber boundary.",
           "related": [
             "admission",
             "chamber"
           ],
-          "sourceLine": 81
+          "sourceLine": 86
         },
         {
           "id": "normalized-launch-spec",
@@ -8229,19 +8642,19 @@ window.LIFECYCLE_ATLAS_DATA = {
             "source-composed-launch-spec",
             "realization"
           ],
-          "sourceLine": 82
+          "sourceLine": 87
         },
         {
           "id": "oci-digest",
           "term": "OCI digest",
-          "definition": "Immutable materialization and verification identity for one OCI object or graph. A Boot-set tag selects an exact Boot-set digest rather than a moving upstream image tag.",
+          "definition": "Immutable materialization and verification identity for one OCI object or graph. The atomic Boot-set selection targets an exact Boot-set digest rather than a moving upstream image tag.",
           "related": [
             "artifact-backed-launch-spec",
             "boot-set",
             "containerd",
             "realization"
           ],
-          "sourceLine": 83
+          "sourceLine": 88
         },
         {
           "id": "operation",
@@ -8251,44 +8664,45 @@ window.LIFECYCLE_ATLAS_DATA = {
             "activation",
             "selection"
           ],
-          "sourceLine": 84
+          "sourceLine": 89
         },
         {
           "id": "persistence",
           "term": "Persistence",
-          "definition": "The durable worker owning ordinary current selections, candidate Holds, Realization manifests, Prepared projections, exact source and resource revisions, provider locators, desired route snapshots, and receipts. It does not own the lower Boot-set tag or OCI blobs.",
+          "definition": "The durable worker owning the normal atomic Boot-set selector write, ordinary current selections, candidate Holds, Realization manifests, Prepared projections, exact source and resource revisions, provider locators, desired route snapshots, and receipts. It records OCI custody but stores no OCI blobs.",
           "related": [
+            "boot-set-selection",
             "current-selection",
             "hold",
             "persistence-covenant",
             "prepared-realization",
             "realization",
-            "router"
+            "gateway"
           ],
-          "sourceLine": 85
+          "sourceLine": 90
         },
         {
           "id": "persistence-chamber",
           "term": "Persistence Chamber",
-          "definition": "One gVisor activation of the selected Persistence Covenant Realization. It has a separate failure and upgrade fate and remains available across Router- or Supervisor-only replacement.",
+          "definition": "One gVisor activation of the selected Persistence Covenant Realization. It starts second through a private boot-scoped Engine admission and is the only Chamber receiving the dedicated authoritative read-write data volume, including its boot-control slice.",
           "related": [
             "boot-set",
             "chamber",
             "persistence-covenant"
           ],
-          "sourceLine": 86
+          "sourceLine": 91
         },
         {
           "id": "persistence-covenant",
           "term": "Persistence Covenant",
-          "definition": "The Runnable Covenant whose exact Boot-set Realization supplies the durable Persistence worker and its data-volume and schema contract. It starts after Router and before Supervisor.",
+          "definition": "The Runnable Covenant whose exact Boot-set Realization supplies the durable Persistence worker, atomic Boot-set selector function, data-volume and schema contract, and crash recovery. It starts after Engine and before Gateway.",
           "related": [
             "boot-set",
             "persistence",
             "persistence-chamber",
             "runnable-covenant"
           ],
-          "sourceLine": 87
+          "sourceLine": 92
         },
         {
           "id": "prepared-realization",
@@ -8301,7 +8715,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "realization",
             "resident-service"
           ],
-          "sourceLine": 88
+          "sourceLine": 93
         },
         {
           "id": "provider",
@@ -8312,7 +8726,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "credential",
             "immutable-identity"
           ],
-          "sourceLine": 89
+          "sourceLine": 94
         },
         {
           "id": "realization",
@@ -8323,7 +8737,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "normalized-launch-spec",
             "chamber"
           ],
-          "sourceLine": 90
+          "sourceLine": 95
         },
         {
           "id": "realization-id",
@@ -8332,7 +8746,7 @@ window.LIFECYCLE_ATLAS_DATA = {
           "related": [
             "realization"
           ],
-          "sourceLine": 91
+          "sourceLine": 96
         },
         {
           "id": "registration-contract",
@@ -8344,69 +8758,33 @@ window.LIFECYCLE_ATLAS_DATA = {
             "realization",
             "worker"
           ],
-          "sourceLine": 92
+          "sourceLine": 97
         },
         {
           "id": "resident-service",
           "term": "Resident service",
-          "definition": "A selected Prepared Realization whose execution profile requires Supervisor to keep at least one exact ready Chamber and Router to expose its stable declared functions. Its availability policy is distinct from image preparation and Current selection.",
+          "definition": "A selected Prepared Realization whose execution profile requires Supervisor to keep at least one exact ready Chamber and Gateway to expose its stable declared functions. Its availability policy is distinct from image preparation and Current selection.",
           "related": [
             "dynamic-job",
             "execution-profile",
             "prepared-realization",
             "route"
           ],
-          "sourceLine": 93
+          "sourceLine": 98
         },
         {
           "id": "route",
           "term": "Route",
-          "definition": "A live Router-owned in-memory projection registered into Engine. A dynamic-job name resolves to an activation factory while an exact Chamber prefix resolves only during one job; a resident-service function resolves to a ready selected Chamber. Route state never selects a Boot set and is reconstructed from Persistence after restart.",
+          "definition": "A live Gateway-owned in-memory projection registered into Engine. A dynamic-job name resolves to an activation factory while an exact Chamber prefix resolves only during one job; a resident-service function resolves to a ready selected Chamber. Route state never selects a Boot set and is reconstructed from Persistence after restart.",
           "related": [
             "current-selection",
             "dynamic-job",
             "engine",
             "resident-service",
-            "router",
+            "gateway",
             "chamber"
           ],
-          "sourceLine": 94
-        },
-        {
-          "id": "router",
-          "term": "Router",
-          "definition": "The minimal worker that owns Dreamcatcher admission hooks, stable-route proxy functions, exact route projection, route epochs, and fencing in RAM. Supervisor supplies durable desired state; Router applies and inspects it without becoming selection or lifecycle-policy authority.",
-          "related": [
-            "engine",
-            "persistence",
-            "route",
-            "router-covenant",
-            "supervisor"
-          ],
-          "sourceLine": 95
-        },
-        {
-          "id": "router-chamber",
-          "term": "Router Chamber",
-          "definition": "One gVisor activation of the selected Router Covenant Realization. It alone receives the protected Router control-listener capability and may remain running across Persistence- or Supervisor-only replacement.",
-          "related": [
-            "boot-set",
-            "chamber",
-            "router-covenant"
-          ],
-          "sourceLine": 96
-        },
-        {
-          "id": "router-covenant",
-          "term": "Router Covenant",
-          "definition": "The minimal Runnable Covenant whose exact Boot-set Realization supplies Router outside the Engine image. It owns no desired-state evaluation, artifact choice, ordinary selection, or physical task authority.",
-          "related": [
-            "boot-set",
-            "router",
-            "router-chamber",
-            "runnable-covenant"
-          ],
-          "sourceLine": 97
+          "sourceLine": 99
         },
         {
           "id": "run-receipt",
@@ -8417,7 +8795,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "chamber",
             "realization"
           ],
-          "sourceLine": 98
+          "sourceLine": 100
         },
         {
           "id": "runnable-covenant",
@@ -8428,7 +8806,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "covenant",
             "worker"
           ],
-          "sourceLine": 99
+          "sourceLine": 101
         },
         {
           "id": "selection",
@@ -8441,7 +8819,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "prepared-realization",
             "realization"
           ],
-          "sourceLine": 100
+          "sourceLine": 102
         },
         {
           "id": "source-composed-launch-spec",
@@ -8452,43 +8830,43 @@ window.LIFECYCLE_ATLAS_DATA = {
             "normalized-launch-spec",
             "oci-digest"
           ],
-          "sourceLine": 101
+          "sourceLine": 103
         },
         {
           "id": "supervisor",
           "term": "Supervisor",
-          "definition": "The replaceable worker that reads Persistence, recovers the desired Covenant graph, proposes ordinary lifecycle work, resolves declared exports into registration contracts, and asks Router and Host Agent to apply typed effects. It owns neither selector, route mechanism, nor physical process effects.",
+          "definition": "The replaceable worker that reads Persistence, recovers the desired Covenant graph, proposes ordinary lifecycle work, resolves declared exports into registration contracts, and asks Gateway and Host Agent to apply typed effects. It owns neither selector, route mechanism, nor physical process effects.",
           "related": [
             "host-agent",
             "persistence",
             "registration-contract",
-            "router",
+            "gateway",
             "supervisor-covenant"
           ],
-          "sourceLine": 102
+          "sourceLine": 104
         },
         {
           "id": "supervisor-chamber",
           "term": "Supervisor Chamber",
-          "definition": "One gVisor activation of the selected Supervisor Covenant Realization. It has a separate failure and upgrade fate and is routed by the current Router.",
+          "definition": "One gVisor activation of the selected Supervisor Covenant Realization. It starts fourth, is routed by the selected Gateway, and is reconstructible from Persistence after an exact same-selection restart.",
           "related": [
             "boot-set",
             "chamber",
             "supervisor-covenant"
           ],
-          "sourceLine": 103
+          "sourceLine": 105
         },
         {
           "id": "supervisor-covenant",
           "term": "Supervisor Covenant",
-          "definition": "The Runnable Covenant whose exact Boot-set Realization supplies the replaceable Supervisor worker. It starts after Router and Persistence and drives all non-bootstrap Covenant reconciliation.",
+          "definition": "The Runnable Covenant whose exact Boot-set Realization supplies the replaceable Supervisor worker. It starts after Persistence and Gateway and drives all non-bootstrap Covenant reconciliation.",
           "related": [
             "boot-set",
             "runnable-covenant",
             "supervisor",
             "supervisor-chamber"
           ],
-          "sourceLine": 104
+          "sourceLine": 106
         },
         {
           "id": "worker",
@@ -8499,7 +8877,7 @@ window.LIFECYCLE_ATLAS_DATA = {
             "i3-function",
             "registration-contract"
           ],
-          "sourceLine": 105
+          "sourceLine": 107
         }
       ]
     },
@@ -8521,7 +8899,7 @@ window.LIFECYCLE_ATLAS_DATA = {
         "documentSha256": "651bd009b0872a53c3d413a32815dade5bf31ef45d8eae744fe0cf3fb033a391",
         "documentBytes": 63770,
         "repository": "dreamcatcher-tech/fundamentals",
-        "repositoryHead": "4fc19f1cbb07a616c472156da68affec385e9c10",
+        "repositoryHead": "96bc5f7f5d97641a0a33e8a98636d38dcfee8d51",
         "url": "https://github.com/dreamcatcher-tech/fundamentals/blob/a10fe03af4cbce32ad5326e82aec3da20f59f44c/docs/cardflow-filesystem-lease-sequences.md"
       },
       "stats": {

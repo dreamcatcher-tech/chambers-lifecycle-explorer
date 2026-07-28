@@ -57,39 +57,43 @@ The registration surfaces of record are:
    - public sequence order follows the deliberate `sequenceMeta` registry order while every published sequence ID remains stable;
    - document navigation, search, function and Dictionary catalogs, actor roles, and provenance remain scoped to the selected authority.
 
-   For Chambers specifically, verify that `HostAgent` is the leftmost lane wherever present. `containerd`
-   follows only in the installation, cold-start, reboot, selection, and live-cutover diagrams that expose the
-   standard backend, and every drawn `containerd_*` call originates at `HostAgent`. Ordinary activation and
-   stopping use the typed I3 functions `chamber::activate`, `chamber::inspect`, and `chamber::stop`; they do
-   not expose Image Materializer, direct `runsc`, or raw runtime lanes. The public Chambers order starts with
-   **First boot installation**, **Selected Boot set cold start**, **Boot control bootstrap**, **Reboot selected
-   Boot set**, and **Ordinary activation**, while preserving the published IDs for those renamed sequences.
-   Cold start contains exactly four `containerd_task_start` calls under separate no-matching branches for
-   Engine, Router, Persistence, then Supervisor. It contains no application-level identity-attest call and no
-   build, mutable pull, recency, or fallback branch.
+   For Chambers specifically, verify that `HostAgent` is the leftmost lane wherever present and that every
+   diagram declaring boot members orders them Engine, Persistence, Gateway, Supervisor. `containerd` appears only
+   in lower-host installation, cold-activation, reboot, crash-repair, selection, and complete-replacement views;
+   every `containerd_*` call originates at `HostAgent`. Ordinary activation and stopping use typed
+   `chamber::activate`, `chamber::inspect`, and `chamber::stop`; no Image Materializer, direct `runsc`, old Router,
+   or successor-Bootset lane may reappear. The public Chambers order starts with **First boot installation**,
+   **Selected Boot set cold start**, **Boot control bootstrap**, **Reboot selected Boot set**, **Same-selection
+   crash repair**, then **Ordinary activation**. Preserve all existing published IDs; preserve `core-cutover` for
+   the replacement of the former Boot-set cutover sequence, and assign new IDs only to the genuinely new crash and
+   ordinary-routed-cutover sequences.
 
-   The Host Agent is the sole containerd client and sole writer of the protected
-   `dreamcatcher/bootset:current` image record. That record selects one exact immutable Boot-set root binding
-   four ordered accepted Runnable Covenant Realizations: pinned near-upstream Bootstrap Engine, minimal Router,
-   durable Persistence, and replaceable Supervisor. Each runs in a separate gVisor Chamber. Engine contains only
-   listener/session mechanics, registration, dispatch, and ownership-checked cleanup. Router alone receives the
-   protected control-listener capability and registers deny-by-default authentication, registration, routing,
-   fencing, and inspection functions. Persistence then recovers durable desired routing; Supervisor asks Router
-   to reconcile the live RAM projection. Route policy remains Covenant-owned live worker registration, not code
-   injected permanently into Engine.
+   Cold activation contains four fresh `containerd_task_start` calls in Engine, Persistence, Gateway, Supervisor
+   order, exactly one `bootset_selector_read`, and one exclusive `persistence_volume_attach`. It contains no build,
+   moving-tag pull, recency selection, task reuse, or application identity-attest call. Persistence connects through
+   a private exact Boot-set admission before Gateway and is the only Chamber with the authoritative RW volume.
+   Gateway combines Router, RBAC/authorization, bounded volatile buffering, and route projection; Supervisor
+   reconstructs desired state from Persistence through Gateway before ordinary admission opens.
 
-   The selected and predecessor Boot-set plus all four member closures are pinned in the product-durable boot
-   namespace while the ordinary runtime namespace remains reconstructable. Persistence remains the sole normal
-   writer of ordinary `current[name]` and the durable route/handover record; Engine transport state never selects
-   the Boot set. `bootset::stage`, `bootset::inspect`, `bootset::select`, and `bootset::quiesce` perform lower-host
-   selection and shutdown without route-group promotion. Router and Supervisor replace one another sequentially,
-   while a same-Engine live cutover changes at most one of Router, Persistence, or Supervisor. Router replacement
-   uses a fenced break-before-make claim; Host Agent stops the exact predecessor task but invokes no Router
-   mutation function. Engine-changing replacement stops Supervisor, Persistence, Router, then Engine and starts
-   the successor quartet in forward order. Builder remains a separately sandboxed ordinary Covenant; an accepted
-   first Builder image may be imported by the Boot Seed, but build never enters Host Agent or cold start.
-   Missing, malformed, unaccepted, or mismatched selected boot state fails closed; only an externally accepted
-   one-use Boot Seed may establish a provably unenrolled Ark.
+   The sole mutable Boot-set selector is Persistence-maintained `boot-control/selected.json` on the durable Ark
+   volume. The protected containerd namespace retains exact selected/fallback OCI closures and GC leases but owns
+   no selector. Normal selection is `bootset::stage` followed by external authorization,
+   `persistence::bootset::commit`, and `bootset::restart`. Any selected member change stops every ordinary and boot
+   task and cold-starts a complete fresh quartet. The ordinary Gateway route process is represented separately and
+   must contain ordinary Persistence CAS plus `routing::fence/install/reopen`, never Boot-set selection or restart.
+
+   Same-selection crash repair uses the cached exact activation plan and rereads no selector. Persistence, Gateway,
+   and Supervisor branches may restart only their same selected Realization with a fresh Chamber ID; Persistence
+   must release and reacquire its exclusive volume fence. Gateway recovery is fail-closed and loses bounded RAM
+   buffers, so callers retry. Engine crash, ambiguous identity/fence, or failed bounded repair escalates to complete
+   selected cold activation.
+
+   Complete Boot-set replacement must show exact predecessor shutdown, volume release, one cold selector read, four
+   fresh starts, route reconstruction, and one note/context-preserving failure branch. The only automatic fallback
+   is `bootset_selector_fallback`, which installs an exact monotonic, compatibility-qualified recovery selector once
+   before ordinary admission or irreversible effects. It is not another mutable selector and may not loop. Builder
+   remains separately sandboxed; a Boot-set candidate is preferably cold-booted and crash-tested on an isolated
+   replacement host/VM without production writer lease or effect authority.
 
    Totals alone are not semantic proof. In particular, inspect note-only `alt`/`else` branches and nested control fragments; a note must not be attached to an unrelated nearby call merely because its line number is close.
 

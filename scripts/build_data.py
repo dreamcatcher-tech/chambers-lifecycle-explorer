@@ -23,7 +23,7 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
         "id": "core-installation",
         "shortTitle": "First boot installation",
         "kicker": "Step 1 · genesis",
-        "summary": "How an accepted one-use Boot Seed imports exact Engine, Router, Persistence, and Supervisor Covenant Realizations plus an optional separate Builder.",
+        "summary": "How a one-use Boot Seed imports exact Engine, Persistence, Gateway, and Supervisor Realizations, seeds selected.json, and cold-starts one fresh quartet.",
         "question": "What establishes the first trusted four-member boot root without building on the host or treating absence as authority?",
         "status": "core",
     },
@@ -31,30 +31,38 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
         "id": "host-activation",
         "shortTitle": "Selected Boot set cold start",
         "kicker": "Step 2 · wake",
-        "summary": "How the Host Agent resolves one exact Boot-set tag and starts or reuses Engine, Router, Persistence, then Supervisor without build, recency, or fallback.",
-        "question": "How do four exact Covenant Realizations become callable in dependency order while I3 is initially absent?",
+        "summary": "How Procman reads one atomic selector exactly once and starts fresh Engine, Persistence, Gateway, then Supervisor Chambers.",
+        "question": "How does one exact Boot-set selection become a fresh callable quartet while I3 is initially absent?",
         "status": "core",
     },
     "Boot control bootstrap": {
         "id": "core-bootstrap",
         "shortTitle": "Boot control bootstrap",
         "kicker": "Step 3 · basic Ark",
-        "summary": "How Router registers protected bootstrap hooks, Persistence recovers durable state, and Supervisor reconstructs stable routes in the already-running Engine.",
-        "question": "How can a separate Router Covenant bootstrap without depending on the routes it is creating?",
+        "summary": "How Persistence connects privately before Gateway, then Gateway establishes Router, RBAC, buffering, and route projection for Supervisor.",
+        "question": "How does Gateway reconstruct from durable state without becoming a prerequisite for Persistence itself?",
         "status": "core",
     },
     "Host reboot into the selected Boot set": {
         "id": "core-reboot",
         "shortTitle": "Reboot selected Boot set",
         "kicker": "Step 4 · reboot proof",
-        "summary": "How the Host Agent reuses the same one-tag cold kernel to create four fresh boot Chambers after host restart.",
-        "question": "How does reboot prove one coherent selected quartet rather than mix independently tagged services?",
+        "summary": "How host reboot repeats the one-read cold kernel and creates four fresh selected Chambers without task reuse.",
+        "question": "How does reboot prove one coherent selected quartet and preserve a bounded fallback path?",
+        "status": "core",
+    },
+    "Same-selection Boot-set crash repair": {
+        "id": "boot-crash-repair",
+        "shortTitle": "Same-selection crash repair",
+        "kicker": "Step 5 · crash repair",
+        "summary": "How exact Persistence, Gateway, or Supervisor crashes repair from the cached plan while Engine or uncertain failure escalates to full activation.",
+        "question": "Which boot-member crashes can restart locally without changing selection, and which require the whole stack?",
         "status": "core",
     },
     "Ordinary Chamber activation kernel": {
         "id": "activation-kernel",
         "shortTitle": "Ordinary activation",
-        "kicker": "Step 5 · boot ready",
+        "kicker": "Step 6 · boot ready",
         "summary": "How chamber::activate turns one exact Realization and lease into an admitted ordinary Chamber while host mechanics stay encapsulated.",
         "question": "What exact authority crosses the three-function Host Agent boundary before readiness?",
         "status": "core",
@@ -62,7 +70,7 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
     "Fenced development": {
         "id": "fenced-development",
         "shortTitle": "Fenced development",
-        "kicker": "Step 6 · development",
+        "kicker": "Step 7 · development",
         "summary": "How a mutable workspace is edited, sealed, and closed without exposing a host path.",
         "question": "How does development produce immutable input without promoting a running Chamber?",
         "status": "current",
@@ -70,7 +78,7 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
     "Form a candidate Realization": {
         "id": "candidate-formation",
         "shortTitle": "Form a candidate",
-        "kicker": "Step 7 · realization",
+        "kicker": "Step 8 · realization",
         "summary": "How a locator or lock becomes an exact dormant candidate without changing current or starting a Chamber.",
         "question": "How are resolution, build, acceptance, durable launch data, and later preparation kept separate?",
         "status": "current",
@@ -78,7 +86,7 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
     "Build an artifact": {
         "id": "artifact-build",
         "shortTitle": "Build an artifact",
-        "kicker": "Step 8 · optional",
+        "kicker": "Step 9 · optional",
         "summary": "How exact inputs produce an OCI digest and receipt while output bytes stay disposable and Builders never receive the containerd socket.",
         "question": "Where does building end, what remains durable, and how can later activation import the exact output?",
         "status": "later",
@@ -86,7 +94,7 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
     "Prepare and retain a tested Realization": {
         "id": "candidate-verification",
         "shortTitle": "Prepare tested image",
-        "kicker": "Step 9 · preparation",
+        "kicker": "Step 10 · preparation",
         "summary": "How exact image bytes run in a verification Chamber, pass profile-bound tests, stop, and remain retained as a dormant Prepared Realization.",
         "question": "How does the tested immutable image survive while the verification Chamber and its writable snapshot disappear?",
         "status": "current",
@@ -94,32 +102,40 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
     "Select, upgrade, or roll back": {
         "id": "selection-rollback",
         "shortTitle": "Select, upgrade, or roll back",
-        "kicker": "Step 10 · selection",
-        "summary": "How ordinary Persistence selection and lower Host Agent Boot-set selection remain distinct fenced operations over immutable targets.",
-        "question": "Which selector moves, and why does Boot-set selection require no Engine route group?",
+        "kicker": "Step 11 · selection",
+        "summary": "How ordinary Current CAS and Persistence's atomic Boot-set JSON commit remain distinct fenced operations.",
+        "question": "Which selector moves, and why does any Boot-set member change cause a complete fresh activation?",
         "status": "current",
     },
     "Execute a dynamic job or resident service": {
         "id": "prepared-execution",
         "shortTitle": "Job or resident service",
-        "kicker": "Step 11 · execution profile",
+        "kicker": "Step 12 · execution profile",
         "summary": "How one selected Prepared Realization either starts a fresh finite job Chamber on demand or stays ready behind stable service functions.",
         "question": "Which execution profile returns to zero after each job, and which makes live function availability a reconciled promise?",
         "status": "current",
     },
-    "Live Boot-set cutover": {
+    "Ordinary resident-service routed cutover": {
+        "id": "ordinary-routed-cutover",
+        "shortTitle": "Ordinary routed cutover",
+        "kicker": "Step 13 · routed handoff",
+        "summary": "How Gateway fences and boundedly buffers ordinary calls while a tested resident-service successor becomes Current and the predecessor drains.",
+        "question": "What can Gateway hand over warmly without turning its RAM buffer into a second durable queue?",
+        "status": "current",
+    },
+    "Complete Boot-set replacement and bounded fallback": {
         "id": "core-cutover",
-        "shortTitle": "Live Boot-set cutover",
-        "kicker": "Step 12 · control handoff",
-        "summary": "How Router and Supervisor hand one another over, Persistence remains the durable witness, and Engine-changing Boot sets use a bounded ordered replacement.",
-        "question": "How can Router, Persistence, or Supervisor change independently, and what changes when Engine also moves?",
+        "shortTitle": "Complete Boot-set replacement",
+        "kicker": "Step 14 · cold replacement",
+        "summary": "How any boot-member change commits one atomic selector, replaces the complete stack, and may consume one pre-authorized last-known-good recovery generation.",
+        "question": "How does whole-stack replacement avoid mixed generations while retaining one bounded, compatibility-qualified fallback?",
         "status": "current",
     },
     "Quiesce and wake": {
         "id": "quiesce-wake",
         "shortTitle": "Quiesce and wake",
-        "kicker": "Step 13 · idle edge",
-        "summary": "How ordinary Chambers and the four boot Chambers stop in dependency order while both selectors and durable custody survive.",
+        "kicker": "Step 15 · idle edge",
+        "summary": "How ordinary and boot Chambers stop in dependency order while selectors, Persistence data, and retained OCI custody survive.",
         "question": "What survives quiescence, and what recreates the selected four-member Boot set later?",
         "status": "current",
     },
@@ -217,7 +233,7 @@ DOCUMENT_CONFIGS: OrderedDict[str, dict[str, Any]] = OrderedDict(
                 "name": "Chambers",
                 "title": "Chambers lifecycle",
                 "subtitle": "Exact Boot sets, Prepared Realizations, dynamic jobs, resident services, and recovery",
-                "description": "Explore how one protected Boot-set tag binds separate Engine, Router, Persistence, and Supervisor Covenants while tested immutable images remain dormant until dynamic-job or resident-service execution.",
+                "description": "Explore how one atomic Persistence-maintained selector binds Engine, Persistence, Gateway, and Supervisor while Gateway upgrades ordinary Chambers and Boot-set changes replace the complete stack.",
                 "functionHeading": "Lifecycle call table",
                 "functionIntro": "Every I3 and conventional host-boundary function named by the Chambers lifecycle sequences.",
                 "manifestSnapshot": "chambers-lifecycle-sequences.md",
@@ -356,8 +372,8 @@ def participant_role(label: str, participant_id: str) -> str:
     if any(
         word in text
         for word in (
-            "filesystem", "persistence", "custody", "cas", "provider", "vault",
-            "boot store", "boot seed", "artifact store",
+            "filesystem", "persistence", "custody", "cas", "provider", "vault", "volume",
+            "boot store", "boot control", "boot-control", "boot seed", "artifact store",
         )
     ):
         return "resource"
@@ -366,7 +382,7 @@ def participant_role(label: str, participant_id: str) -> str:
         for word in ("verifier", "tester", "acceptor", "promoter", "attestation", "inspector", "recovery")
     ):
         return "assurance"
-    if any(word in text for word in ("supervisor", "router", "cardflow", "engine", "core init")):
+    if any(word in text for word in ("supervisor", "gateway", "router", "cardflow", "engine", "core init")):
         return "control" if "engine" not in text else "engine"
     if any(word in text for word in ("chamber", "builder", "candidate", "fixture", "developer", "members")):
         return "chamber"
