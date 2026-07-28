@@ -30,8 +30,8 @@ class BuildDataTests(unittest.TestCase):
                 "core-installation",
                 "host-activation",
                 "core-bootstrap",
-                "core-reboot",
                 "boot-crash-repair",
+                "scope-bound-child-core",
                 "candidate-formation",
                 "fenced-development",
                 "artifact-build",
@@ -78,7 +78,7 @@ class BuildDataTests(unittest.TestCase):
 
     def test_document_counts_match_the_two_sources(self) -> None:
         chambers = self.documents["chambers"]["stats"]
-        self.assertEqual((16, 198, 59, 137, 61, 57), (
+        self.assertEqual((16, 141, 52, 130, 11, 52), (
             chambers["sequences"], chambers["calls"], chambers["functions"],
             chambers["i3Calls"], chambers["hostCalls"], chambers["dictionaryTerms"],
         ))
@@ -87,7 +87,7 @@ class BuildDataTests(unittest.TestCase):
             cardflow["sequences"], cardflow["calls"], cardflow["functions"],
             cardflow["i3Calls"], cardflow["hostCalls"], cardflow["dictionaryTerms"],
         ))
-        self.assertEqual(87, self.payload["stats"]["dictionaryTerms"])
+        self.assertEqual(82, self.payload["stats"]["dictionaryTerms"])
 
     def test_prepared_image_and_execution_profile_projection_survives(self) -> None:
         chambers = self.documents["chambers"]
@@ -107,32 +107,27 @@ class BuildDataTests(unittest.TestCase):
         terms = {entry["term"] for entry in chambers["dictionary"]}
         self.assertTrue({"Prepared Realization", "Execution profile", "Dynamic job", "Resident service"} <= terms)
 
-    def test_host_boundary_is_explicit_and_chambers_only(self) -> None:
+    def test_host_boundary_is_intent_level_and_chambers_only(self) -> None:
         chambers_host = {
             function["id"]
             for function in self.documents["chambers"]["functions"]
             if function["kind"] == "host"
         }
         self.assertEqual(
-            {
-                "install_boot_seed", "wake_bootset", "repair_boot_member", "deliver_final_reply",
-                "bootset_selector_seed", "bootset_selector_read", "bootset_selector_fallback",
-                "persistence_volume_attach", "persistence_volume_release", "containerd_import",
-                "containerd_resolve", "containerd_task_start", "containerd_task_stop",
-            },
+            {"install_core_seed", "wake_ark_core", "recover_ark_tree", "start_ark_core", "deliver_final_reply"},
             chambers_host,
         )
         self.assertTrue(all(function["kind"] == "i3" for function in self.documents["cardflow"]["functions"]))
 
-    def test_chambers_display_starts_with_genesis_bootstrap_reboot_repair_then_ordinary_activation(self) -> None:
+    def test_chambers_display_starts_with_install_bootstrap_recovery_child_then_ordinary(self) -> None:
         sequences = self.documents["chambers"]["sequences"]
         self.assertEqual(
             [
-                ("core-installation", "First boot installation"),
-                ("host-activation", "Selected Boot set cold start"),
-                ("core-bootstrap", "Boot control bootstrap"),
-                ("core-reboot", "Reboot selected Boot set"),
-                ("boot-crash-repair", "Same-selection crash repair"),
+                ("core-installation", "First Ark Core installation"),
+                ("host-activation", "Selected Ark Core cold start"),
+                ("core-bootstrap", "Ark Core bootstrap"),
+                ("boot-crash-repair", "Whole-appliance recovery"),
+                ("scope-bound-child-core", "Child Ark Core scope"),
                 ("activation-kernel", "Ordinary activation"),
             ],
             [(sequence["id"], sequence["shortTitle"]) for sequence in sequences[:6]],
@@ -143,147 +138,112 @@ class BuildDataTests(unittest.TestCase):
         installation_calls = [call["function"] for call in by_id["core-installation"]["calls"]]
         host_calls = [call["function"] for call in by_id["host-activation"]["calls"]]
         core_calls = [call["function"] for call in by_id["core-bootstrap"]["calls"]]
-        reboot_calls = [call["function"] for call in by_id["core-reboot"]["calls"]]
+        recovery_calls = [call["function"] for call in by_id["boot-crash-repair"]["calls"]]
+        child_calls = [call["function"] for call in by_id["scope-bound-child-core"]["calls"]]
         ordinary_calls = [call["function"] for call in by_id["activation-kernel"]["calls"]]
-        self.assertIn("containerd_import", installation_calls)
-        self.assertIn("bootset_selector_seed", installation_calls)
-        self.assertNotIn("containerd_tag_update", installation_calls)
-        self.assertEqual(1, host_calls.count("bootset_selector_read"))
-        self.assertEqual(4, host_calls.count("containerd_task_start"))
-        self.assertIn("persistence_volume_attach", host_calls)
-        self.assertNotIn("persistence::realization::read", host_calls)
+
+        self.assertEqual(["install_core_seed", "start_ark_core"], installation_calls[:2])
+        self.assertEqual(1, host_calls.count("wake_ark_core"))
+        self.assertGreaterEqual(host_calls.count("start_ark_core"), 1)
         self.assertEqual(2, core_calls.count("routing::authenticate"))
         self.assertEqual(2, core_calls.count("routing::authorize_registration"))
         self.assertIn("persistence::routing::read", core_calls)
         self.assertIn("routing::reconcile", core_calls)
-        self.assertEqual(1, reboot_calls.count("bootset_selector_read"))
-        self.assertNotIn("persistence::realization::read", reboot_calls)
+        self.assertIn("recover_ark_tree", recovery_calls)
+        self.assertIn("start_ark_core", recovery_calls)
+        self.assertIn("ark::core::activate", child_calls)
+        self.assertIn("chamber::activate", child_calls)
         self.assertIn("persistence::realization::read", ordinary_calls)
         self.assertIn("chamber::activate", ordinary_calls)
-        self.assertIn("wake_bootset", host_calls)
-        self.assertNotIn("engine::identity::attest", host_calls)
+        self.assertFalse(any(call.startswith(("containerd_", "persistence_volume_", "bootset_")) for call in host_calls))
 
-        cold_starts = [call for call in by_id["host-activation"]["calls"] if call["function"] == "containerd_task_start"]
-        branches = {context["branch"] for call in cold_starts for context in call["context"]}
-        self.assertIn("Selected and authorized-fallback closures are exact and retained", branches)
-        notes = " ".join(note["text"] for call in cold_starts for note in call["notes"])
-        for marker in ("Fresh Engine", "Fresh Persistence", "Fresh Gateway", "Fresh Supervisor"):
-            self.assertIn(marker, notes)
-
-    def test_host_agent_and_containerd_projection_preserve_authority_order(self) -> None:
+    def test_host_agent_projection_preserves_scope_authority_and_hides_runtime_chatter(self) -> None:
         chambers = self.documents["chambers"]
-        boot_order = ["Engine", "Persistence", "Gateway", "Supervisor"]
+        worker_order = ["Engine", "Persistence", "Gateway", "Supervisor"]
+        forbidden_lanes = {"containerd", "BootControl", "Volume", "Runtime", "Materializer", "Router"}
         for sequence in chambers["sequences"]:
             participant_ids = [participant["id"] for participant in sequence["participants"]]
             if "HostAgent" in participant_ids:
                 self.assertEqual("HostAgent", participant_ids[0], sequence["id"])
-            present = [item for item in boot_order if item in participant_ids]
+            self.assertFalse(forbidden_lanes.intersection(participant_ids), sequence["id"])
+            present = [item for item in worker_order if item in participant_ids]
             self.assertEqual(sorted(participant_ids.index(item) for item in present), [participant_ids.index(item) for item in present])
             for call in sequence["calls"]:
-                if call["to"] == "containerd":
-                    self.assertEqual("HostAgent", call["from"], sequence["id"])
-                    self.assertTrue(call["function"].startswith("containerd_"), sequence["id"])
-                self.assertNotEqual("containerd", call["from"], sequence["id"])
-            self.assertNotIn("Runtime", participant_ids)
-            self.assertNotIn("Materializer", participant_ids)
-            self.assertNotIn("procman", participant_ids)
-            self.assertNotIn("Router", participant_ids)
+                self.assertFalse(call["function"].startswith(("containerd_", "persistence_volume_", "bootset_")))
 
         host_activation = next(sequence for sequence in chambers["sequences"] if sequence["id"] == "host-activation")
         roles = {participant["id"]: participant["role"] for participant in host_activation["participants"]}
         self.assertEqual("host", roles["HostAgent"])
-        self.assertEqual("host", roles["containerd"])
-        self.assertEqual("resource", roles["BootControl"])
-        self.assertEqual("resource", roles["Volume"])
+        self.assertEqual("engine", roles["Core"])
         self.assertEqual("resource", roles["Persistence"])
         self.assertEqual("control", roles["Gateway"])
 
         functions = {function["id"]: function for function in chambers["functions"]}
         self.assertEqual("Host Agent", functions["chamber::activate"]["owner"])
-        self.assertEqual("Host Agent", functions["bootset::restart"]["owner"])
-        self.assertEqual("Persistence", functions["persistence::bootset::commit"]["owner"])
-        self.assertEqual("boot-control slice, containerd, and boot members", functions["containerd_task_start"]["owner"])
+        self.assertEqual("Host Agent", functions["ark::core::restart"]["owner"])
+        self.assertEqual("Persistence", functions["persistence::core::commit"]["owner"])
         self.assertEqual("Gateway", functions["routing::reconcile"]["owner"])
+        self.assertEqual("External conventional call (not I3)", functions["start_ark_core"]["path"])
 
-    def test_protected_boot_and_reconstructable_runtime_semantics_survive_projection(self) -> None:
+    def test_ark_core_scope_and_private_network_semantics_survive_projection(self) -> None:
         chambers = self.documents["chambers"]
         snapshot = (ROOT / "source" / chambers["source"]["snapshotPath"]).read_text(encoding="utf-8")
         flat = snapshot.replace("\n", " ")
-        self.assertNotIn("Filesystem Service", snapshot)
-        self.assertNotIn("filesystem::", snapshot)
-        self.assertIn("containerd protected boot namespace = immutable Boot-set manifests", snapshot)
-        self.assertIn("containerd ordinary runtime namespace = reconstructable", snapshot)
-        self.assertIn("containerd state directory = volatile runtime state", snapshot)
-        self.assertIn("durable Ark volume -> boot-control slice + Persistence data", snapshot)
-        self.assertIn("Persistence is the only Chamber with the authoritative RW host-backed volume", flat)
-        self.assertIn("Host Agent normally reads only the `boot-control` slice at a cold boundary", flat)
+        for marker in (
+            "one exact OCI image, one gVisor task, one III Engine PID 1",
+            "any required Core worker loss -> Engine exit -> complete scope recovery",
+            "private container IP and III port",
+            "There is no host port mapping, host-network mode, donated Unix socket, or TCP fallback",
+            "Host forwarding and routes between sibling scopes are absent",
+            "no Persistence-, Gateway-, or Supervisor-local restart path",
+            "Builder as an ordinary separate sandbox",
+        ):
+            self.assertIn(marker, flat)
+        for retired in ("Boot set", "Boot-set", "bootset::", "repair_boot_member"):
+            self.assertNotIn(retired, snapshot)
 
         roles: dict[str, set[str]] = {}
         for sequence in chambers["sequences"]:
             for participant in sequence["participants"]:
                 roles.setdefault(participant["id"], set()).add(participant["role"])
         self.assertEqual({"resource"}, roles["Persistence"])
-        self.assertEqual({"resource"}, roles["BootControl"])
-        self.assertEqual({"resource"}, roles["Volume"])
         self.assertEqual({"control"}, roles["Gateway"])
+        self.assertEqual({"engine"}, roles["Engine"])
 
-        calls = [call for sequence in chambers["sequences"] for call in sequence["calls"]]
-        self.assertFalse(any(call["from"] == "containerd" for call in calls))
-        self.assertFalse(any({call["from"], call["to"]} == {"containerd", "Persistence"} for call in calls))
         build = next(sequence for sequence in chambers["sequences"] if sequence["id"] == "artifact-build")
-        self.assertNotIn("containerd", {participant["id"] for participant in build["participants"]})
         self.assertIn("persistence::build::record", [call["function"] for call in build["calls"]])
 
-    def test_engine_first_bootset_and_whole_stack_replacement_survive_projection(self) -> None:
+    def test_core_selection_replacement_and_ordinary_handover_remain_distinct(self) -> None:
         chambers = self.documents["chambers"]
-        snapshot = (ROOT / "source" / chambers["source"]["snapshotPath"]).read_text(encoding="utf-8")
-        flat = snapshot.replace("\n", " ")
-        self.assertIn("boot-control/selected.json", snapshot)
-        self.assertIn("Engine, Persistence, Gateway, Supervisor", snapshot)
-        self.assertIn("Gateway combines Router, RBAC/authorization, bounded volatile buffering", flat)
-        self.assertIn("Any selected Boot-set member change", snapshot)
-        self.assertIn("one-attempt last-known-good fallback", snapshot)
-        self.assertIn("Builder remains outside every boot Chamber", snapshot)
-        self.assertNotIn("dreamcatcher/bootset:current", snapshot)
-        self.assertNotIn("routing::claim", snapshot)
-
         sequences = {sequence["id"]: sequence for sequence in chambers["sequences"]}
-        reboot_functions = [call["function"] for call in sequences["core-reboot"]["calls"]]
-        self.assertEqual(4, reboot_functions.count("containerd_task_start"))
-        self.assertEqual(1, reboot_functions.count("bootset_selector_read"))
-        self.assertNotIn("containerd_import", reboot_functions)
-
-        selection_functions = [call["function"] for call in sequences["selection-rollback"]["calls"]]
-        self.assertLess(selection_functions.index("bootset::stage"), selection_functions.index("persistence::bootset::commit"))
-        self.assertLess(selection_functions.index("persistence::bootset::commit"), selection_functions.index("bootset::restart"))
-        self.assertNotIn("containerd_tag_update", selection_functions)
+        selection = [call["function"] for call in sequences["selection-rollback"]["calls"]]
+        self.assertLess(selection.index("ark::core::stage"), selection.index("persistence::core::commit"))
+        self.assertLess(selection.index("persistence::core::commit"), selection.index("ark::core::restart"))
 
         replacement = [call["function"] for call in sequences["core-cutover"]["calls"]]
-        self.assertEqual(4, replacement.count("containerd_task_start"))
-        self.assertEqual(5, replacement.count("containerd_task_stop"))
-        for function in ("bootset_selector_read", "bootset_selector_fallback", "persistence_volume_attach", "persistence_volume_release"):
+        for function in ("ark::core::stage", "ark::core::inspect", "persistence::core::commit", "ark::core::restart", "start_ark_core"):
             self.assertIn(function, replacement)
+        self.assertNotIn("routing::install", replacement)
+        self.assertNotIn("routing::reopen", replacement)
 
         ordinary = [call["function"] for call in sequences["ordinary-routed-cutover"]["calls"]]
         for function in ("routing::fence", "persistence::selection::commit", "routing::install", "routing::reopen"):
             self.assertIn(function, ordinary)
-        self.assertNotIn("persistence::bootset::commit", ordinary)
+        self.assertNotIn("persistence::core::commit", ordinary)
+        self.assertNotIn("ark::core::restart", ordinary)
 
-    def test_replacement_fallback_and_crash_context_survive_projection(self) -> None:
+    def test_fallback_whole_recovery_and_child_scope_context_survive_projection(self) -> None:
         chambers = self.documents["chambers"]
         sequences = {sequence["id"]: sequence for sequence in chambers["sequences"]}
-        replacement = sequences["core-cutover"]
-        participants = {participant["id"]: participant["role"] for participant in replacement["participants"]}
-        self.assertEqual("resource", participants["BootControl"])
-        self.assertEqual("resource", participants["Volume"])
-        self.assertEqual("resource", participants["Persistence"])
-        self.assertEqual("control", participants["Gateway"])
-
         branch_of = lambda call: {context["branch"] for context in call["context"]}
-        fallback = next(call for call in replacement["calls"] if call["function"] == "bootset_selector_fallback")
-        self.assertIn("Successor does not become ready", branch_of(fallback))
-        self.assertIn("Failure precedes admission/effects and exact fallback is eligible", branch_of(fallback))
-        self.assertTrue(any("one-attempt permit" in note["text"] for note in fallback["notes"]))
+
+        replacement = sequences["core-cutover"]
+        fallback_start = next(
+            call for call in reversed(replacement["calls"])
+            if call["function"] == "start_ark_core" and "Exact fallback remains eligible" in branch_of(call)
+        )
+        self.assertIn("Successor does not become ready", branch_of(fallback_start))
+        self.assertTrue(any("pre-authorized recovery selector once" in note["text"] for note in fallback_start["notes"]))
 
         ordinary = sequences["ordinary-routed-cutover"]
         success_install = next(call for call in ordinary["calls"] if call["function"] == "routing::install")
@@ -295,21 +255,19 @@ class BuildDataTests(unittest.TestCase):
         )
         self.assertTrue(any("reap failed candidate" in note["text"] for note in failed_stop["notes"]))
 
-        repair = sequences["boot-crash-repair"]
-        repair_branches = {
-            branch for call in repair["calls"] for branch in branch_of(call)
-            if branch.startswith("Exact selected") or branch.startswith("Engine crashed")
-        }
-        self.assertEqual(
-            {
-                "Exact selected Supervisor crashed",
-                "Exact selected Persistence crashed",
-                "Exact selected Gateway crashed",
-                "Engine crashed, identity or volume fence is uncertain, or bounded repair failed",
-            },
-            repair_branches,
-        )
-        self.assertNotIn("bootset_selector_read", [call["function"] for call in repair["calls"]])
+        recovery = sequences["boot-crash-repair"]
+        recovery_functions = [call["function"] for call in recovery["calls"]]
+        self.assertIn("recover_ark_tree", recovery_functions)
+        self.assertIn("start_ark_core", recovery_functions)
+        self.assertNotIn("persistence::core::commit", recovery_functions)
+        recovery_notes = " ".join(note["text"] for call in recovery["calls"] for note in call["notes"])
+        self.assertIn("Never restart an internal worker", recovery_notes)
+
+        child = sequences["scope-bound-child-core"]
+        child_notes = " ".join(note["text"] for call in child["calls"] for note in call["notes"])
+        self.assertIn("new child scope, private network, test volume, selector", child_notes)
+        self.assertIn("authenticated child session supplies scope", child_notes)
+        self.assertIn("cannot see parent siblings or another root Ark", child_notes)
 
         forbidden = {"routing::reconcile", "routing::fence", "routing::install", "routing::reopen"}
         all_calls = [call for sequence in chambers["sequences"] for call in sequence["calls"]]
@@ -418,13 +376,14 @@ class BuildDataTests(unittest.TestCase):
                 self.assertTrue(lines[entry["sourceLine"] - 1].startswith(f"| {entry['term']} |"))
 
         chambers = {entry["id"]: entry for entry in self.documents["chambers"]["dictionary"]}
-        self.assertIn("not an alias for Realization", chambers["covenant-lock"]["definition"])
-        self.assertIn("Covenant lock plus one normalized launch specification", chambers["realization"]["definition"])
-        self.assertIn("boot-set-selection", chambers["boot-set"]["related"])
-        self.assertIn("bootstrap-engine-covenant", chambers["boot-set"]["related"])
-        self.assertIn("gateway-covenant", chambers["boot-set"]["related"])
-        self.assertIn("persistence-covenant", chambers["boot-set"]["related"])
-        self.assertIn("supervisor-covenant", chambers["boot-set"]["related"])
+        self.assertIn("not launch authority", chambers["covenant-lock"]["definition"])
+        self.assertIn("one exact Covenant lock plus one normalized launch specification", chambers["realization"]["definition"])
+        self.assertIn("ark-core-selection", chambers["ark-core-appliance"]["related"])
+        self.assertIn("ark-scope", chambers["ark-core-appliance"]["related"])
+        self.assertIn("engine", chambers["ark-core-appliance"]["related"])
+        self.assertIn("gateway", chambers["ark-core-appliance"]["related"])
+        self.assertIn("persistence", chambers["ark-core-appliance"]["related"])
+        self.assertIn("supervisor", chambers["ark-core-appliance"]["related"])
 
         cardflow = {entry["id"]: entry for entry in self.documents["cardflow"]["dictionary"]}
         self.assertIn("Chambers-defined immutable executable lifecycle identity", cardflow["realization"]["definition"])
@@ -473,7 +432,7 @@ class BuildDataTests(unittest.TestCase):
         self.assertIn("rightCharacters", app)
         self.assertIn("kindWidth", app)
         self.assertIn('data-view="dictionary"', html)
-        self.assertIn("wake_bootset", html)
+        self.assertIn("wake_ark_core", html)
         self.assertNotIn("wake_engine", html)
         self.assertIn('id="dictionarySearch"', html)
         self.assertIn("renderDictionaryCatalog", app)

@@ -7,7 +7,7 @@ A polished, playable explorer for the authoritative Chambers lifecycle and Cardf
 ## What it provides
 
 - **Two explicit document workspaces** — switch between **Chambers** and **Cardflow** without mixing their actors, calls, functions, or provenance. Desktop uses document tabs; tablet/mobile uses a document selector.
-- **Legible Chambers startup ladder** — Chambers opens with **First boot installation**, **Selected Boot set cold start**, **Boot control bootstrap**, **Reboot selected Boot set**, **Same-selection crash repair**, then **Ordinary activation**. Persistence maintains one atomic `boot-control/selected.json`; Procman reads it once at a cold boundary and creates fresh Engine, Persistence, Gateway, and Supervisor Chambers in order. Persistence alone receives the authoritative RW volume. Gateway combines Router, RBAC/authorization, bounded volatile buffering, and route projection. Any selected boot-member change replaces the complete stack; Gateway warm cutover is reserved for ordinary resident services. Same-selection Persistence, Gateway, and Supervisor crashes may repair from the cached exact plan, while Engine or uncertain failure escalates to full activation. One pre-authorized last-known-good recovery selector may be consumed before ordinary admission/effects. An accepted Builder image may be imported at genesis but runs only as a separate ordinary Covenant.
+- **Legible Chambers startup ladder** — Chambers opens with **First Ark Core installation**, **Selected Ark Core cold start**, **Ark Core bootstrap**, **Whole-appliance crash recovery**, **Scope-bound child Ark Core activation**, then **Ordinary activation**. One atomic `boot-control/selected.json` names one OCI image and one gVisor Core task containing Engine PID 1 plus required Persistence, Gateway, and Supervisor workers. ProcMan reads the selector once, attaches one volume and Ark-private network, and starts that opaque unit without understanding its worker graph. Any required-role loss exits Engine and replaces the complete scope tree; member-local repair is deliberately absent. A child Core receives its own selector, test volume, private network, and ProcMan authority only for its descendants, reusing the same primitive for candidate rehearsal and multi-Ark co-hosting. Gateway warm cutover remains ordinary-only, and one pre-authorized last-known-good selector may be consumed before ordinary admission/effects.
 - **Trace** — custom sequence lanes with play/pause, reset, step, scrub, actor focus, call-type filtering, zoom, keyboard shortcuts, touch gestures, and document-aware deep links. The compact step/route/function summary stays structurally stable while full branch and note context remains in the selected-call inspector. The diagram participates in the primary page flow instead of owning a nested vertical scrollbar; selected calls receive only the minimum vertical reveal required, while horizontal pan is preserved exactly. Actor labels stay pinned below the page controls and track horizontal pan while the page moves through a long diagram. The selected-call inspector keeps a constant height while exploring one sequence.
 - **Browser navigation** — meaningful document, sequence, view, call, and function changes populate browser history, so Back and Forward restore the corresponding app state and primary-page position. A continuous scrub creates one navigable entry rather than corrupting the entry it started from.
 - **Map** — an actor relationship graph with directed, frequency-weighted connections and call drill-down.
@@ -94,10 +94,11 @@ source/cardflow-filesystem-lease-sequences.md ─┘   ├─ parses each functi
 ```
 
 The parser classifies calls from each source's function table rather than visual guesswork. Chambers keeps
-`install_boot_seed`, `wake_bootset`, `repair_boot_member`, `deliver_final_reply`, `bootset_selector_*`,
-`persistence_volume_*`, and `containerd_*` as conventional host-boundary calls. Typed `chamber::*` and
-`bootset::*` functions remain I3 calls registered by Host Agent after Gateway readiness;
-`persistence::bootset::commit` is Persistence-owned and `routing::*` is Gateway-owned. The current Cardflow
+`install_core_seed`, `wake_ark_core`, `recover_ark_tree`, `start_ark_core`, and `deliver_final_reply` as
+intent-level conventional host-boundary calls. Typed `chamber::*` and `ark::core::*` functions remain I3 calls
+registered by Host Agent after Gateway readiness; `persistence::core::commit` is Persistence-owned and
+`routing::*` is Gateway-owned. Lower selector, volume, CNI, containerd, and runsc subcommands are deliberately
+absent from the top-level sequences. The current Cardflow
 reference is entirely I3. Cardflow function statuses such as **required**
 and **contract extension required** are preserved in the function inspector.
 

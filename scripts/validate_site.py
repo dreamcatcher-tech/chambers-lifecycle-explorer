@@ -67,7 +67,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     documents = payload.get("documents", [])
     if [document.get("id") for document in documents] != ["chambers", "cardflow"]:
         fail("bundle must contain Chambers and Cardflow in that order")
-    expected_stats = {"documents": 2, "sequences": 25, "calls": 264, "functions": 92, "dictionaryTerms": 87}
+    expected_stats = {"documents": 2, "sequences": 25, "calls": 207, "functions": 85, "dictionaryTerms": 82}
     if payload.get("stats") != expected_stats:
         fail(f"unexpected combined stats: {payload.get('stats')}")
 
@@ -103,8 +103,8 @@ def validate_manifest_and_bundle(payload: dict) -> None:
 
     chambers, cardflow = documents
     expected_chambers = {
-        "sequences": 16, "actors": 33, "calls": 198, "i3Calls": 137,
-        "hostCalls": 61, "functions": 59, "usedFunctions": 59, "dictionaryTerms": 57,
+        "sequences": 16, "actors": 41, "calls": 141, "i3Calls": 130,
+        "hostCalls": 11, "functions": 52, "usedFunctions": 52, "dictionaryTerms": 52,
     }
     if chambers["stats"] != expected_chambers:
         fail(f"unexpected Chambers stats: {chambers['stats']}")
@@ -116,47 +116,49 @@ def validate_manifest_and_bundle(payload: dict) -> None:
         fail(f"unexpected Cardflow stats: {cardflow['stats']}")
 
     expected_startup = [
-        "core-installation", "host-activation", "core-bootstrap", "core-reboot",
-        "boot-crash-repair", "activation-kernel",
+        "core-installation", "host-activation", "core-bootstrap", "boot-crash-repair",
+        "scope-bound-child-core", "activation-kernel",
     ]
     if [sequence["id"] for sequence in chambers["sequences"][:6]] != expected_startup:
-        fail("Chambers must present install, cold start, bootstrap, reboot, crash repair, then ordinary activation")
+        fail("Chambers must present install, cold start, bootstrap, whole recovery, child Core, then ordinary activation")
 
     host_i3 = {
+        "ark::core::activate", "ark::core::inspect", "ark::core::quiesce",
+        "ark::core::restart", "ark::core::stage",
         "chamber::activate", "chamber::inspect", "chamber::stop",
-        "bootset::stage", "bootset::inspect", "bootset::restart", "bootset::quiesce",
     }
-    boot_order = ["Engine", "Persistence", "Gateway", "Supervisor"]
+    worker_order = ["Engine", "Persistence", "Gateway", "Supervisor"]
+    forbidden_lanes = {"containerd", "BootControl", "Volume", "Materializer", "Runtime", "Router", "NextRouter"}
+    forbidden_function_prefixes = ("containerd_", "persistence_volume_", "bootset_")
     for sequence in chambers["sequences"]:
         participants = [participant["id"] for participant in sequence["participants"]]
         if "HostAgent" in participants and participants[0] != "HostAgent":
             fail(f"{sequence['id']} does not keep Host Agent leftmost")
-        if any(item in participants for item in ("procman", "Materializer", "Runtime", "Router", "NextRouter")):
-            fail(f"{sequence['id']} retains a removed Chambers lane")
-        present = [item for item in boot_order if item in participants]
+        present_forbidden = forbidden_lanes.intersection(participants)
+        if present_forbidden:
+            fail(f"{sequence['id']} retains low-level or removed lanes: {sorted(present_forbidden)}")
+        present = [item for item in worker_order if item in participants]
         positions = [participants.index(item) for item in present]
         if positions != sorted(positions):
-            fail(f"{sequence['id']} violates Engine/Persistence/Gateway/Supervisor dependency order")
+            fail(f"{sequence['id']} violates Engine/Persistence/Gateway/Supervisor worker order")
         for call in sequence["calls"]:
-            if call["to"] == "containerd" and (
-                call["from"] != "HostAgent" or not call["function"].startswith("containerd_")
-            ):
-                fail(f"{sequence['id']} bypasses the Host Agent containerd boundary")
-            if call["from"] == "containerd":
-                fail(f"{sequence['id']} lets containerd initiate lifecycle work")
+            if call["function"].startswith(forbidden_function_prefixes):
+                fail(f"{sequence['id']} exposes low-level host call {call['function']}")
             if call["function"] in host_i3 and call["to"] != "HostAgent":
                 fail(f"{sequence['id']} aims a Host Agent I3 function at {call['to']}")
 
     sequence_by_id = {sequence["id"]: sequence for sequence in chambers["sequences"]}
     host_activation = sequence_by_id["host-activation"]
     host_calls = [call["function"] for call in host_activation["calls"]]
-    if "engine::identity::attest" in host_calls or host_calls.count("containerd_task_start") != 4:
-        fail("selected Boot-set cold start must have four fresh starts and no identity-attest call")
-    if host_calls.count("bootset_selector_read") != 1 or "persistence_volume_attach" not in host_calls:
-        fail("selected Boot-set cold start must read selected.json once and attach the exclusive Persistence volume")
+    if host_calls.count("wake_ark_core") != 1 or "start_ark_core" not in host_calls:
+        fail("selected Ark Core cold start must use one wake and the one intent-level Core-start macro")
+    if any(call.startswith(forbidden_function_prefixes) for call in host_calls):
+        fail("selected Ark Core cold start leaks lower runtime subcommands")
     host_participants = [participant["id"] for participant in host_activation["participants"]]
-    if [item for item in boot_order if item in host_participants] != boot_order:
-        fail("selected Boot-set cold start must declare Engine, Persistence, Gateway, Supervisor in order")
+    if [item for item in ("Core", "Persistence", "Gateway", "Supervisor") if item in host_participants] != [
+        "Core", "Persistence", "Gateway", "Supervisor",
+    ]:
+        fail("selected Ark Core cold start must declare Core, Persistence, Gateway, Supervisor in order")
 
     all_calls = [call for sequence in chambers["sequences"] for call in sequence["calls"]]
     for call in all_calls:
@@ -166,7 +168,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
             call["to"] == "Gateway"
             and call["function"] in {"routing::authenticate", "routing::authorize_registration"}
         ):
-            fail("Engine may invoke only the fixed Gateway authentication and registration hooks")
+            fail("Engine may invoke only fixed Gateway authentication and registration hooks")
         if call["function"].startswith("routing::") and call["to"] != "Gateway":
             fail("every routing function must target Gateway")
         if call["function"].startswith("persistence::") and call["to"] != "Persistence":
@@ -180,48 +182,47 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     for sequence in chambers["sequences"]:
         for participant in sequence["participants"]:
             roles_by_id.setdefault(participant["id"], set()).add(participant["role"])
-    for participant_id in ("Persistence", "BootControl", "Volume"):
-        if roles_by_id.get(participant_id) != {"resource"}:
-            fail(f"{participant_id} must remain a resource actor, got {roles_by_id.get(participant_id)}")
+    if roles_by_id.get("Persistence") != {"resource"}:
+        fail(f"Persistence must remain a resource actor, got {roles_by_id.get('Persistence')}")
     if roles_by_id.get("Gateway") != {"control"}:
         fail(f"Gateway must remain a control actor, got {roles_by_id.get('Gateway')}")
+    if roles_by_id.get("Engine") != {"engine"}:
+        fail(f"Engine must remain an engine actor, got {roles_by_id.get('Engine')}")
 
     chambers_snapshot = (SOURCE / chambers["source"]["snapshotPath"]).read_text(encoding="utf-8")
-    required_boot_markers = (
+    flattened = chambers_snapshot.replace("\n", " ")
+    required_core_markers = (
+        "one exact OCI image, one gVisor task, one III Engine PID 1",
         "boot-control/selected.json",
-        "Engine, Persistence, Gateway, Supervisor",
-        "Gateway combines Router, RBAC/authorization, bounded volatile buffering",
-        "Persistence is the only Chamber with the authoritative RW host-backed volume",
-        "Any selected Boot-set member change",
-        "Routed warm replacement is exclusively an ordinary-Chamber mechanism",
-        "one-attempt last-known-good fallback",
-        "Gateway crash is recoverable",
-        "Engine crash is the case that deliberately escalates",
-        "Builder remains outside every boot Chamber",
+        "any required Core worker loss -> Engine exit -> complete scope recovery",
+        "ProcMan connects directly to the Core's private container address and III port",
+        "Host forwarding and routes between sibling scopes are absent",
+        "no Persistence-, Gateway-, or Supervisor-local restart path",
+        "Gateway warm cutover applies only to ordinary Chambers",
+        "one-attempt LKG fallback",
+        "Builder as an ordinary separate sandbox",
     )
-    missing_boot_markers = [
-        marker for marker in required_boot_markers
-        if marker not in chambers_snapshot.replace("\n", " ")
-    ]
-    if missing_boot_markers:
-        fail(f"Chambers boot authority contract is incomplete: {missing_boot_markers}")
+    missing_core_markers = [marker for marker in required_core_markers if marker not in flattened]
+    if missing_core_markers:
+        fail(f"Chambers Ark Core authority contract is incomplete: {missing_core_markers}")
+    for retired in ("Boot set", "Boot-set", "bootset::", "repair_boot_member"):
+        if retired in chambers_snapshot:
+            fail(f"retired four-member Core vocabulary remains: {retired}")
 
-    reboot_calls = [call["function"] for call in sequence_by_id["core-reboot"]["calls"]]
-    if reboot_calls.count("containerd_task_start") != 4 or reboot_calls.count("bootset_selector_read") != 1:
-        fail("selected-Boot-set reboot must read one selector and start four fresh members")
+    bootstrap_calls = [call["function"] for call in sequence_by_id["core-bootstrap"]["calls"]]
+    if bootstrap_calls.count("routing::authenticate") != 2 or bootstrap_calls.count("routing::authorize_registration") != 2:
+        fail("Ark Core bootstrap must install Gateway hooks and admit scope-bound ProcMan")
 
     selection_calls = [call["function"] for call in sequence_by_id["selection-rollback"]["calls"]]
-    for required in ("bootset::stage", "persistence::bootset::commit", "bootset::restart"):
+    for required in ("ark::core::stage", "persistence::core::commit", "ark::core::restart"):
         if required not in selection_calls:
-            fail(f"Boot-set selection is missing {required}")
+            fail(f"Ark Core selection is missing {required}")
     if not (
-        selection_calls.index("bootset::stage")
-        < selection_calls.index("persistence::bootset::commit")
-        < selection_calls.index("bootset::restart")
+        selection_calls.index("ark::core::stage")
+        < selection_calls.index("persistence::core::commit")
+        < selection_calls.index("ark::core::restart")
     ):
-        fail("Boot-set staging, atomic Persistence commit, and complete restart are out of order")
-    if "containerd_tag_update" in selection_calls or "bootset::select" in selection_calls:
-        fail("retired containerd-tag Boot-set selection remains")
+        fail("Core staging, atomic Persistence commit, and complete restart are out of order")
 
     ordinary_cutover = [call["function"] for call in sequence_by_id["ordinary-routed-cutover"]["calls"]]
     for required in (
@@ -230,27 +231,36 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     ):
         if required not in ordinary_cutover:
             fail(f"ordinary routed cutover is missing {required}")
-    if "persistence::bootset::commit" in ordinary_cutover or "bootset::restart" in ordinary_cutover:
-        fail("ordinary routed cutover must not mutate or restart the Boot set")
+    if "persistence::core::commit" in ordinary_cutover or "ark::core::restart" in ordinary_cutover:
+        fail("ordinary routed cutover must not mutate or restart the Ark Core")
 
     replacement_calls = [call["function"] for call in sequence_by_id["core-cutover"]["calls"]]
-    if replacement_calls.count("containerd_task_start") != 4 or replacement_calls.count("containerd_task_stop") != 5:
-        fail("complete Boot-set replacement must stop predecessor/residue and start one fresh quartet")
     for required in (
-        "persistence::bootset::commit", "bootset::restart", "bootset_selector_read",
-        "bootset_selector_fallback", "persistence_volume_release", "persistence_volume_attach",
+        "ark::core::stage", "ark::core::inspect", "persistence::core::commit",
+        "ark::core::restart", "start_ark_core",
     ):
         if required not in replacement_calls:
-            fail(f"complete Boot-set replacement is missing {required}")
-    if "routing::claim" in replacement_calls or "containerd_tag_update" in replacement_calls:
-        fail("retired live Boot-set handover remains in complete replacement")
+            fail(f"complete Ark Core replacement is missing {required}")
+    if "routing::install" in replacement_calls or "routing::reopen" in replacement_calls:
+        fail("Core replacement must not use ordinary routed handover")
 
-    repair_calls = [call["function"] for call in sequence_by_id["boot-crash-repair"]["calls"]]
-    if "bootset_selector_read" in repair_calls:
-        fail("same-selection crash repair must use the cached exact activation plan")
-    for required in ("repair_boot_member", "persistence_volume_release", "persistence_volume_attach"):
-        if required not in repair_calls:
-            fail(f"same-selection crash repair is missing {required}")
+    recovery_calls = [call["function"] for call in sequence_by_id["boot-crash-repair"]["calls"]]
+    if "recover_ark_tree" not in recovery_calls or "start_ark_core" not in recovery_calls:
+        fail("whole-appliance recovery must reap the scope tree and start one fresh Core")
+    if "persistence::core::commit" in recovery_calls or "ark::core::restart" in recovery_calls:
+        fail("same-selection whole-appliance recovery must not mutate Core selection")
+
+    child_calls = [call["function"] for call in sequence_by_id["scope-bound-child-core"]["calls"]]
+    for required in ("ark::core::activate", "start_ark_core", "chamber::activate"):
+        if required not in child_calls:
+            fail(f"scope-bound child Core sequence is missing {required}")
+
+    retired_functions = [
+        function["id"] for function in chambers["functions"]
+        if function["id"].startswith(forbidden_function_prefixes) or function["id"].startswith("bootset::")
+    ]
+    if retired_functions:
+        fail(f"retired low-level or Boot-set function rows remain: {retired_functions}")
 
 
 def validate_html_and_assets(payload: dict) -> None:
@@ -370,10 +380,10 @@ def validate_source_refresh_contract() -> None:
             "docs/source-refresh-runbook.md",
             "Adding another Fundamentals sequence authority",
             "python3 scripts/sync_source.py ../fundamentals",
-            "Selected Boot set cold start",
-            "First boot installation",
+            "Selected Ark Core cold start",
+            "First Ark Core installation",
             "boot-control/selected.json",
-            "Same-selection crash repair",
+            "Whole-appliance crash recovery",
         ),
         RUNBOOK: (
             "Refresh an already registered authority",

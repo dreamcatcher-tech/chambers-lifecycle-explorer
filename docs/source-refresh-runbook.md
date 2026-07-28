@@ -57,43 +57,42 @@ The registration surfaces of record are:
    - public sequence order follows the deliberate `sequenceMeta` registry order while every published sequence ID remains stable;
    - document navigation, search, function and Dictionary catalogs, actor roles, and provenance remain scoped to the selected authority.
 
-   For Chambers specifically, verify that `HostAgent` is the leftmost lane wherever present and that every
-   diagram declaring boot members orders them Engine, Persistence, Gateway, Supervisor. `containerd` appears only
-   in lower-host installation, cold-activation, reboot, crash-repair, selection, and complete-replacement views;
-   every `containerd_*` call originates at `HostAgent`. Ordinary activation and stopping use typed
-   `chamber::activate`, `chamber::inspect`, and `chamber::stop`; no Image Materializer, direct `runsc`, old Router,
-   or successor-Bootset lane may reappear. The public Chambers order starts with **First boot installation**,
-   **Selected Boot set cold start**, **Boot control bootstrap**, **Reboot selected Boot set**, **Same-selection
-   crash repair**, then **Ordinary activation**. Preserve all existing published IDs; preserve `core-cutover` for
-   the replacement of the former Boot-set cutover sequence, and assign new IDs only to the genuinely new crash and
-   ordinary-routed-cutover sequences.
+   For Chambers specifically, verify that `HostAgent` is the leftmost lane wherever present. Top-level
+   diagrams must not expose containerd, selector-filesystem, volume, CNI, or runsc lanes/calls; those mechanics
+   remain encapsulated by `start_ark_core` and typed ordinary Host Agent operations. The public order starts with
+   **First Ark Core installation**, **Selected Ark Core cold start**, **Ark Core bootstrap**,
+   **Whole-appliance crash recovery**, **Scope-bound child Ark Core activation**, then **Ordinary activation**.
+   Preserve existing IDs where semantics persist (`core-installation`, `host-activation`, `core-bootstrap`,
+   `boot-crash-repair`, `activation-kernel`, and `core-cutover`); allocate a new ID only for a genuinely new sequence.
 
-   Cold activation contains four fresh `containerd_task_start` calls in Engine, Persistence, Gateway, Supervisor
-   order, exactly one `bootset_selector_read`, and one exclusive `persistence_volume_attach`. It contains no build,
-   moving-tag pull, recency selection, task reuse, or application identity-attest call. Persistence connects through
-   a private exact Boot-set admission before Gateway and is the only Chamber with the authoritative RW volume.
-   Gateway combines Router, RBAC/authorization, bounded volatile buffering, and route projection; Supervisor
-   reconstructs desired state from Persistence through Gateway before ordinary admission opens.
+   Cold activation must contain `wake_ark_core`, at least one `start_ark_core`, no lower runtime call, and one note
+   that the canonical selector is read exactly once. One selected Ark Core Appliance is one OCI image, one gVisor
+   task, Engine PID 1, and required Persistence, Gateway, and Supervisor workers in that internal order. Sandbox-local
+   worker bootstrap needs no host-donated Persistence stream. After Gateway installs fail-closed hooks, ProcMan
+   connects directly to the private container IP/III port without a host port mapping, host-network mode, or UDS
+   relay. Ordinary Chambers remain separate.
 
-   The sole mutable Boot-set selector is Persistence-maintained `boot-control/selected.json` on the durable Ark
-   volume. The protected containerd namespace retains exact selected/fallback OCI closures and GC leases but owns
-   no selector. Normal selection is `bootset::stage` followed by external authorization,
-   `persistence::bootset::commit`, and `bootset::restart`. Any selected member change stops every ordinary and boot
-   task and cold-starts a complete fresh quartet. The ordinary Gateway route process is represented separately and
-   must contain ordinary Persistence CAS plus `routing::fence/install/reopen`, never Boot-set selection or restart.
+   The sole mutable Core selector is Persistence-maintained `boot-control/selected.json`. Normal selection is
+   `ark::core::stage`, external authorization, `persistence::core::commit`, then `ark::core::restart`. Core restart
+   stops the complete Ark scope tree and starts one fresh appliance. The ordinary Gateway route sequence remains
+   separate and contains ordinary Persistence CAS plus `routing::fence/install/reopen`, never Core selection or
+   restart.
 
-   Same-selection crash repair uses the cached exact activation plan and rereads no selector. Persistence, Gateway,
-   and Supervisor branches may restart only their same selected Realization with a fresh Chamber ID; Persistence
-   must release and reacquire its exclusive volume fence. Gateway recovery is fail-closed and loses bounded RAM
-   buffers, so callers retry. Engine crash, ambiguous identity/fence, or failed bounded repair escalates to complete
-   selected cold activation.
+   Same-selection recovery is whole-appliance only: `recover_ark_tree` reaps every descendant and the failed Core,
+   releases that scope's attachments, and invokes `start_ark_core` from the cached exact plan without rereading or
+   changing selection. Persistence-, Gateway-, and Supervisor-local repair must not reappear. Complete Core
+   replacement shows one staged image, atomic selector commit, complete scope restart, one fresh Core start, route
+   reconstruction, and a context-preserving failure branch. Automatic fallback remains one exact monotonic,
+   compatibility-qualified recovery selector before ordinary admission or irreversible effects.
 
-   Complete Boot-set replacement must show exact predecessor shutdown, volume release, one cold selector read, four
-   fresh starts, route reconstruction, and one note/context-preserving failure branch. The only automatic fallback
-   is `bootset_selector_fallback`, which installs an exact monotonic, compatibility-qualified recovery selector once
-   before ordinary admission or irreversible effects. It is not another mutable selector and may not loop. Builder
-   remains separately sandboxed; a Boot-set candidate is preferably cold-booted and crash-tested on an isolated
-   replacement host/VM without production writer lease or effect authority.
+   Scope-bound child activation must show `ark::core::activate` creating a separate selector, test volume, private
+   network, Core task, and ProcMan registration. The authenticated child connection supplies scope; the child may
+   create only its own descendants. Never project a cross-scope network route, caller-selected scope, sibling task
+   handle, shared Ark volume, or generic containerd authority. The same primitive supports candidate Core rehearsal
+   and several independent root Arks on one physical host.
+
+   Builder remains separately sandboxed. The Core's accepted residual risk—container-root can reach Persistence's
+   mounted data—must not be mislabeled as process isolation or silently restored as a hard four-sandbox constraint.
 
    Totals alone are not semantic proof. In particular, inspect note-only `alt`/`else` branches and nested control fragments; a note must not be attached to an unrelated nearby call merely because its line number is close.
 
