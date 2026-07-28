@@ -67,12 +67,12 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
         "question": "How does development produce immutable input without promoting a running Chamber?",
         "status": "current",
     },
-    "Form and activate a candidate": {
+    "Form a candidate Realization": {
         "id": "candidate-formation",
         "shortTitle": "Form a candidate",
         "kicker": "Step 7 · realization",
-        "summary": "How a locator or lock becomes an exact candidate without changing current.",
-        "question": "How are resolution, build, acceptance, durable launch data, and execution kept separate?",
+        "summary": "How a locator or lock becomes an exact dormant candidate without changing current or starting a Chamber.",
+        "question": "How are resolution, build, acceptance, durable launch data, and later preparation kept separate?",
         "status": "current",
     },
     "Build an artifact": {
@@ -83,12 +83,12 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
         "question": "Where does building end, what remains durable, and how can later activation import the exact output?",
         "status": "later",
     },
-    "Verify a candidate": {
+    "Prepare and retain a tested Realization": {
         "id": "candidate-verification",
-        "shortTitle": "Verify a candidate",
-        "kicker": "Step 9 · evidence",
-        "summary": "How exact candidate and fixture Chambers produce a durable verdict without selecting current.",
-        "question": "How can a verdict remain exact even after its test Chambers disappear?",
+        "shortTitle": "Prepare tested image",
+        "kicker": "Step 9 · preparation",
+        "summary": "How exact image bytes run in a verification Chamber, pass profile-bound tests, stop, and remain retained as a dormant Prepared Realization.",
+        "question": "How does the tested immutable image survive while the verification Chamber and its writable snapshot disappear?",
         "status": "current",
     },
     "Select, upgrade, or roll back": {
@@ -99,10 +99,18 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
         "question": "Which selector moves, and why does Boot-set selection require no Engine route group?",
         "status": "current",
     },
+    "Execute a dynamic job or resident service": {
+        "id": "prepared-execution",
+        "shortTitle": "Job or resident service",
+        "kicker": "Step 11 · execution profile",
+        "summary": "How one selected Prepared Realization either starts a fresh finite job Chamber on demand or stays ready behind stable service functions.",
+        "question": "Which execution profile returns to zero after each job, and which makes live function availability a reconciled promise?",
+        "status": "current",
+    },
     "Live Boot-set cutover": {
         "id": "core-cutover",
         "shortTitle": "Live Boot-set cutover",
-        "kicker": "Step 11 · control handoff",
+        "kicker": "Step 12 · control handoff",
         "summary": "How Router and Supervisor hand one another over, Persistence remains the durable witness, and Engine-changing Boot sets use a bounded ordered replacement.",
         "question": "How can Router, Persistence, or Supervisor change independently, and what changes when Engine also moves?",
         "status": "current",
@@ -110,7 +118,7 @@ CHAMBERS_SEQUENCE_META: dict[str, dict[str, str]] = {
     "Quiesce and wake": {
         "id": "quiesce-wake",
         "shortTitle": "Quiesce and wake",
-        "kicker": "Step 12 · idle edge",
+        "kicker": "Step 13 · idle edge",
         "summary": "How ordinary Chambers and the four boot Chambers stop in dependency order while both selectors and durable custody survive.",
         "question": "What survives quiescence, and what recreates the selected four-member Boot set later?",
         "status": "current",
@@ -208,8 +216,8 @@ DOCUMENT_CONFIGS: OrderedDict[str, dict[str, Any]] = OrderedDict(
                 "id": "chambers",
                 "name": "Chambers",
                 "title": "Chambers lifecycle",
-                "subtitle": "Engine-first Boot sets, replaceable Router and Supervisor, exact Realizations, and wake",
-                "description": "Explore how one protected Boot-set tag binds separate Engine, Router, Persistence, and Supervisor Covenants while ordinary Chambers use an exact three-function Host Agent boundary.",
+                "subtitle": "Exact Boot sets, Prepared Realizations, dynamic jobs, resident services, and recovery",
+                "description": "Explore how one protected Boot-set tag binds separate Engine, Router, Persistence, and Supervisor Covenants while tested immutable images remain dormant until dynamic-job or resident-service execution.",
                 "functionHeading": "Lifecycle call table",
                 "functionIntro": "Every I3 and conventional host-boundary function named by the Chambers lifecycle sequences.",
                 "manifestSnapshot": "chambers-lifecycle-sequences.md",

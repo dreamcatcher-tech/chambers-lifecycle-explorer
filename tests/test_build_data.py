@@ -37,6 +37,7 @@ class BuildDataTests(unittest.TestCase):
                 "attested-builds",
                 "candidate-verification",
                 "selection-rollback",
+                "prepared-execution",
                 "core-cutover",
                 "quiesce-wake",
             },
@@ -75,7 +76,7 @@ class BuildDataTests(unittest.TestCase):
 
     def test_document_counts_match_the_two_sources(self) -> None:
         chambers = self.documents["chambers"]["stats"]
-        self.assertEqual((13, 172, 50, 121, 51, 53), (
+        self.assertEqual((14, 190, 54, 139, 51, 57), (
             chambers["sequences"], chambers["calls"], chambers["functions"],
             chambers["i3Calls"], chambers["hostCalls"], chambers["dictionaryTerms"],
         ))
@@ -84,7 +85,25 @@ class BuildDataTests(unittest.TestCase):
             cardflow["sequences"], cardflow["calls"], cardflow["functions"],
             cardflow["i3Calls"], cardflow["hostCalls"], cardflow["dictionaryTerms"],
         ))
-        self.assertEqual(83, self.payload["stats"]["dictionaryTerms"])
+        self.assertEqual(87, self.payload["stats"]["dictionaryTerms"])
+
+    def test_prepared_image_and_execution_profile_projection_survives(self) -> None:
+        chambers = self.documents["chambers"]
+        by_id = {sequence["id"]: sequence for sequence in chambers["sequences"]}
+        preparation = by_id["candidate-verification"]
+        execution = by_id["prepared-execution"]
+
+        preparation_calls = [call["function"] for call in preparation["calls"]]
+        self.assertLess(preparation_calls.index("chamber::stop"), preparation_calls.index("artifact::retain"))
+        self.assertLess(preparation_calls.index("artifact::retain"), preparation_calls.index("persistence::prepared::record"))
+        preparation_notes = " ".join(note["text"] for call in preparation["calls"] for note in call["notes"])
+        self.assertIn("never commit or reuse its writable snapshot", preparation_notes)
+
+        execution_calls = [call["function"] for call in execution["calls"]]
+        for function in ("chamber::job::run", "job::invoke", "chamber::stop", "routing::install", "routing::reopen"):
+            self.assertIn(function, execution_calls)
+        terms = {entry["term"] for entry in chambers["dictionary"]}
+        self.assertTrue({"Prepared Realization", "Execution profile", "Dynamic job", "Resident service"} <= terms)
 
     def test_host_boundary_is_explicit_and_chambers_only(self) -> None:
         chambers_host = {

@@ -7,8 +7,8 @@ Architecture classification: `architecture_delta_required`
 Design-lineage baseline: `8e364299e8a0dd5d6628f0c910e7261850b4632d`
 
 This document is the current Chambers lifecycle architecture authority. It owns the working design
-for lifecycle identity, state, sequencing, authority boundaries, custody, routing, verification,
-selection, quiescence, and recovery until it is explicitly superseded. The broader
+for lifecycle identity, state, sequencing, authority boundaries, image preparation and custody,
+dynamic-job versus resident-service execution, routing, verification, selection, quiescence, and recovery until it is explicitly superseded. The broader
 [`ark-agent-architecture.md`](ark-agent-architecture.md), owning Gherkin, schemas, implementation,
 and generated projections are downstream reconciliation targets and may temporarily lag this design.
 This status establishes design authority; it does not claim implementation or runtime acceptance.
@@ -26,10 +26,11 @@ This status establishes design authority; it does not claim implementation or ru
 - [Host reboot into the selected Boot set](#host-reboot-into-the-selected-boot-set)
 - [Ordinary Chamber activation kernel](#ordinary-chamber-activation-kernel)
 - [Fenced development](#fenced-development)
-- [Form and activate a candidate](#form-and-activate-a-candidate)
+- [Form a candidate Realization](#form-a-candidate-realization)
 - [Build an artifact](#build-an-artifact)
-- [Verify a candidate](#verify-a-candidate)
+- [Prepare and retain a tested Realization](#prepare-and-retain-a-tested-realization)
 - [Select, upgrade, or roll back](#select-upgrade-or-roll-back)
+- [Execute a dynamic job or resident service](#execute-a-dynamic-job-or-resident-service)
 - [Live Boot-set cutover](#live-boot-set-cutover)
 - [Quiesce and wake](#quiesce-and-wake)
 - [Attested multi-Ark builds (later)](#attested-multi-ark-builds-later)
@@ -65,9 +66,11 @@ navigational and does not alter the definition.
 | Covenant locator | Provider coordinates plus an optional logical credential need used to resolve Covenant content. It is not immutable runtime identity. | Covenant; Credential; Provider |
 | Covenant lock | The exact transitive closure of Covenant bytes, provider-native revisions, base-image and build inputs, mounts, workers, hardware, and launch policy. It is an input to candidate formation, not launch authority and not an alias for Realization. | Covenant; Normalized launch spec; Realization |
 | Credential | A named Vault need. It is never a secret value, token, or leased credential embedded in lifecycle identity. | Covenant locator; Provider |
-| Current selection | The sole Persistence-owned revisioned named choice `current[name] = {revision, realization}` for an ordinary durable lifecycle. Boot control uses the distinct Boot-set selection. | Candidate; Persistence; Realization; Selection |
+| Current selection | The sole Persistence-owned revisioned named choice `current[name] = {revision, realization}` for an ordinary durable lifecycle. Operational targets are Prepared Realizations; execution profile, not selection, determines whether any Chamber remains live. Boot control uses the distinct Boot-set selection. | Candidate; Persistence; Prepared Realization; Realization; Selection |
+| Dynamic job | One finite demand-triggered execution of a selected Prepared Realization. A fresh Chamber starts for the request, invokes its exact declared job entrypoint, records result and Run evidence, and is stopped and reaped; no live function availability is promised while idle. | Chamber; Execution profile; Prepared Realization; Resident service |
 | Engine | The III runtime that owns typed transport, Worker Manager listeners, function registration, invocation dispatch, and connection-owned cleanup. Dreamcatcher admission, lifecycle, and stable-route policy are registered by Covenants rather than built into this kernel. | Bootstrap Engine Covenant; Engine Chamber; I3 function; Registration contract |
 | Engine Chamber | One gVisor activation of the selected Bootstrap Engine Covenant Realization. It starts before the other three boot Chambers and may remain running across Router-, Persistence-, or Supervisor-only replacement. | Boot set; Bootstrap Engine Covenant; Chamber; Engine |
+| Execution profile | Behavior-affecting immutable Covenant and Realization policy choosing `dynamic-job` or `resident-service`. It binds the allowed entrypoint, availability promise, deadlines, and minimum ready residency without becoming image or Chamber identity. | Dynamic job; Prepared Realization; Resident service; Realization |
 | Hold | A bounded reference retaining one exact candidate and its custody, owner, expiry, and cleanup authority. | Candidate; Realization |
 | Host Agent | The one small non-Chamber host authority combining the former process manager, image materializer, and direct-runtime adapter responsibilities. It owns Boot-set selection, containerd access, ordered four-member activation, physical lifecycle intent, Admission, task reconciliation, and reaping, but no Covenant interpretation, Builder, routing policy, or application policy. | Admission; Boot-set selection; containerd; Engine |
 | I3 function | A named function registered by one owning actor and invoked at that actor. Sequence diagrams omit Engine's ordinary brokerage path; Engine is the arrow target only for functions registered by Engine workers. | Engine; Registration contract; Worker |
@@ -79,20 +82,22 @@ navigational and does not alter the definition.
 | Normalized launch spec | One exact source-composed or artifact-backed runtime composition with fixed platform, resources, launcher, runtime, and security inputs. | Artifact-backed launch spec; Source-composed launch spec; Realization |
 | OCI digest | Immutable materialization and verification identity for one OCI object or graph. A Boot-set tag selects an exact Boot-set digest rather than a moving upstream image tag. | Artifact-backed launch spec; Boot set; containerd; Realization |
 | Operation | Durable exact lifecycle intent retained until a matching terminal receipt; retries reconcile that same intent before conflicting work. | Activation; Selection |
-| Persistence | The durable worker owning ordinary current selections, candidate Holds, Realization manifests, exact source and resource revisions, provider locators, desired route snapshots, and receipts. It does not own the lower Boot-set tag or rebuildable OCI blobs. | Current selection; Hold; Persistence Covenant; Realization; Router |
+| Persistence | The durable worker owning ordinary current selections, candidate Holds, Realization manifests, Prepared projections, exact source and resource revisions, provider locators, desired route snapshots, and receipts. It does not own the lower Boot-set tag or OCI blobs. | Current selection; Hold; Persistence Covenant; Prepared Realization; Realization; Router |
 | Persistence Chamber | One gVisor activation of the selected Persistence Covenant Realization. It has a separate failure and upgrade fate and remains available across Router- or Supervisor-only replacement. | Boot set; Chamber; Persistence Covenant |
 | Persistence Covenant | The Runnable Covenant whose exact Boot-set Realization supplies the durable Persistence worker and its data-volume and schema contract. It starts after Router and before Supervisor. | Boot set; Persistence; Persistence Chamber; Runnable Covenant |
+| Prepared Realization | A derived accepted state, not a second identity: one exact artifact-backed Realization whose immutable OCI graph booted a verification Chamber, passed the required profile-bound tests, survived exact shutdown and cleanup, and remains digest-retained in an authoritative OCI provider with preparation and retention receipts. It may remain dormant with zero Chambers. | Dynamic job; Execution profile; OCI digest; Realization; Resident service |
 | Provider | An access, authority, and location family capable of resolving or supplying exact content under scoped credentials. | Covenant locator; Credential; Immutable identity |
 | Realization | The sole public immutable executable lifecycle identity: one exact Covenant lock plus one normalized launch specification, acceptance evidence, and launch plan. It is immediately materializable without mutable lookup, dependency choice, build, or substitution. | Covenant lock; Normalized launch spec; Chamber |
 | Realization ID | The digest of the canonical Realization manifest body. | Realization |
 | Registration contract | The digest of the canonical declared worker and export set for one exact Realization. Engine accepts only the matching Admission-scoped set; the Boot set binds the bootstrap contracts for all four required Realizations. | Admission; Boot set; Realization; Worker |
-| Route | A live Router-owned in-memory projection registered into Engine. A stable ordinary name resolves through an activation factory for its Current selection; an exact Chamber prefix resolves to one ready Chamber. Route state never selects a Boot set and is reconstructed from Persistence after restart. | Current selection; Engine; Router; Chamber |
+| Resident service | A selected Prepared Realization whose execution profile requires Supervisor to keep at least one exact ready Chamber and Router to expose its stable declared functions. Its availability policy is distinct from image preparation and Current selection. | Dynamic job; Execution profile; Prepared Realization; Route |
+| Route | A live Router-owned in-memory projection registered into Engine. A dynamic-job name resolves to an activation factory while an exact Chamber prefix resolves only during one job; a resident-service function resolves to a ready selected Chamber. Route state never selects a Boot set and is reconstructed from Persistence after restart. | Current selection; Dynamic job; Engine; Resident service; Router; Chamber |
 | Router | The minimal worker that owns Dreamcatcher admission hooks, stable-route proxy functions, exact route projection, route epochs, and fencing in RAM. Supervisor supplies durable desired state; Router applies and inspects it without becoming selection or lifecycle-policy authority. | Engine; Persistence; Route; Router Covenant; Supervisor |
 | Router Chamber | One gVisor activation of the selected Router Covenant Realization. It alone receives the protected Router control-listener capability and may remain running across Persistence- or Supervisor-only replacement. | Boot set; Chamber; Router Covenant |
 | Router Covenant | The minimal Runnable Covenant whose exact Boot-set Realization supplies Router outside the Engine image. It owns no desired-state evaluation, artifact choice, ordinary selection, or physical task authority. | Boot set; Router; Router Chamber; Runnable Covenant |
 | Run receipt | Durable evidence binding one Realization ID, fresh Chamber ID, host evidence, runtime specification identity, and outcome. | Activation; Chamber; Realization |
 | Runnable Covenant | A Covenant whose selected Realization may have zero or many concurrent Chambers, each containing one or more workers. | Chamber; Covenant; Worker |
-| Selection | A fenced compare-and-swap from an expected Current selection revision to one exact candidate Realization. Boot-set selection is a separate lower-host operation over one Boot-set digest. | Boot-set selection; Candidate; Current selection; Realization |
+| Selection | A fenced compare-and-swap from an expected Current selection revision to one exact Prepared candidate Realization. Boot-set selection is a separate lower-host operation over one Boot-set digest. | Boot-set selection; Candidate; Current selection; Prepared Realization; Realization |
 | Source-composed launch spec | A normalized launch specification that projects exact resource revisions and workers over an exact base OCI descriptor without producing or requiring a derived application image. | Artifact-backed launch spec; Normalized launch spec; OCI digest |
 | Supervisor | The replaceable worker that reads Persistence, recovers the desired Covenant graph, proposes ordinary lifecycle work, resolves declared exports into registration contracts, and asks Router and Host Agent to apply typed effects. It owns neither selector, route mechanism, nor physical process effects. | Host Agent; Persistence; Registration contract; Router; Supervisor Covenant |
 | Supervisor Chamber | One gVisor activation of the selected Supervisor Covenant Realization. It has a separate failure and upgrade fate and is routed by the current Router. | Boot set; Chamber; Supervisor Covenant |
@@ -114,6 +119,9 @@ navigational and does not alter the definition.
 - `normalized launch spec = one exact source-composed or artifact-backed runtime composition`.
 - `Realization = Covenant lock + exact normalized launch spec + acceptance evidence + launch plan`.
 - `realization id = digest(realization manifest body)`.
+- `execution profile = immutable dynamic-job or resident-service behavior bound into the Covenant lock and Realization`.
+- `Prepared Realization = exact artifact-backed Realization + profile-bound MET verification + exact shutdown receipt + authoritative OCI retention receipt`; Prepared is derived accepted state, not another executable identity.
+- A Prepared Realization retains the immutable image that booted the verification Chamber. It never captures, commits, or reuses that Chamber's writable runtime snapshot.
 - `registration contract = digest(canonical declared worker and export set for one exact Realization)`.
 - `Boot set = immutable accepted root launch envelope -> exactly one Bootstrap Engine + one Router + one Persistence + one Supervisor Covenant Realization in that order`.
 - `Boot-set digest != mutable upstream image tag`; the host selector always targets the exact digest.
@@ -148,6 +156,9 @@ navigational and does not alter the definition.
 - `one ordinary Chamber -> one runnable Covenant realization`.
 - `one runnable Covenant realization -> zero or many concurrent ordinary Chambers`.
 - `one durable named ordinary lifecycle -> zero or one current realization + zero or many candidate realizations`.
+- `one Prepared Realization -> one exact retained OCI graph + zero or many fresh Chambers over time`; the verification Chamber is never retained as a template.
+- `one dynamic-job request -> one fresh Chamber -> one exact job invocation -> one terminal result or failure -> zero retained tasks`.
+- `one selected resident-service Realization -> at least one exact ready Chamber while its availability policy remains active`; the initial baseline is one ready Chamber and does not invent a balancing pool.
 - `one ordinary Chamber -> one lease + one independent failure and cleanup fate`.
 - `one runnable Covenant -> one or more workers inside that Chamber`.
 - `Assembly Covenant -> process-tree subtree`; the Assembly itself has no Chamber.
@@ -169,7 +180,11 @@ bootstrap closure.
 - `dreamcatcher/bootset:current -> exact Boot-set digest`; the name means selected, never newest.
 - `Boot-set cold start = resolve selected Boot set -> verify four retained closures -> start or reuse Engine -> Router -> Persistence -> Supervisor tasks`; it never pulls, builds, interprets an arbitrary Covenant graph, or chooses a fallback.
 - `ordinary activation = exact launch data -> verified local content or exact pull/import -> containerd task with runsc runtime handler`.
-- `current ordinary realization may have zero live Chambers`.
+- `current ordinary realization may have zero live Chambers`; that is steady state for `dynamic-job` and a fenced reconciliation condition for `resident-service`.
+- `prepare(image realization) = build or resolve exact OCI graph -> run exact verification Chamber -> MET -> stop and reap it -> retain the same immutable graph in an authoritative OCI provider -> record Prepared receipts`.
+- `dynamic-job idle state = selected Prepared Realization + zero live Chambers`; demand activates a fresh Chamber and terminal job completion stops it.
+- `resident-service state = selected Prepared Realization + declared minimum ready residency`; Supervisor continuously reconciles a matching Chamber and Router's stable live-function projection.
+- Preparing and storing an image never creates an availability promise. Current selection never creates one either; the immutable execution profile does.
 - `activate(realization, lease) = committed Chamber intent -> fresh Chamber id -> readiness or terminal failure`.
 - `restart = same realization + fresh Chamber id`.
 - `source-composed realization + lost runtime cache = rematerialize from exact durable launch data while the exact base OCI graph remains obtainable`.
@@ -186,6 +201,7 @@ bootstrap closure.
 - The Host Agent journals prepared Boot-set selection and physical cutover intent before effects and terminalizes only after authoritative readback.
 - `current[name] = {revision, realization}` for ordinary lifecycles remains Persistence-owned.
 - `candidates[name][realization id] = Hold reference`; candidate state adds no duplicate realization fields.
+- `prepared[realization id] = {verification receipt, shutdown receipt, retention receipt, provider descriptor}`; it is a derived durable projection over the immutable Realization and stores no OCI bytes or stopped Chamber state.
 - `chambers[Chamber id] = {name, realization, lease, phase}` for ordinary Chambers.
 - `engine_chamber = {started_by_bootset, retained_for_bootset, engine realization, image, Chamber id, task id, listeners, Engine epoch, phase}`.
 - `router_chamber = {started_by_bootset, retained_for_bootset, router realization, image, Chamber id, task id, Engine epoch, route epoch, phase}`.
@@ -201,12 +217,13 @@ bootstrap closure.
 
 ### Routing
 
-- `route(name) = Router-owned activation factory for current[name]`; it is not a Chamber selector.
+- `route(dynamic-job name) = Router-owned activation factory for current[name]`; it creates no resident application function while idle.
+- `route(resident-service function) = Router projection to one exact ready Chamber of current[name]` under the selected execution profile and route epoch.
 - `route(Chamber id) = Router projection to one exact ready ordinary Chamber prefix`.
 - The prepared Engine supplies only listeners, direct function registration, dispatch, and ownership-checked connection cleanup. Its static configuration names the protected Router listener and fixed Router authentication and registration-hook IDs; it stores no dynamic route map.
 - Before the selected Router registers those fixed hook IDs, every Router-gated listener fails closed. The protected Router control listener is reachable only by the exact selected or candidate Router Chamber capability wired by Host Agent.
 - Router connects first, registers its canonical bootstrap functions, and starts deny-all except for exact Boot-set Host Agent, Persistence, and Supervisor identities. Those actors connect through Router-gated control Admissions rather than the protected control listener.
-- Persistence recovers durable selections and desired-route snapshots. Supervisor derives desired routing and asks Router to reconcile the complete stable alias and activation-factory projection before ordinary admission opens.
+- Persistence recovers durable selections, Prepared receipts, execution profiles, and desired-route snapshots. Supervisor derives mode-specific routing and asks Router to reconcile the complete resident-function and dynamic-job-factory projection before ordinary admission opens.
 - Route registrations remain owned by Router's live Engine connection. Router restart or Engine restart discards them; Supervisor reconstructs them from Persistence and live Chamber evidence.
 - Supervisor replacement keeps Router, Persistence, Engine, listener, and route epoch stable. A candidate Supervisor receives a non-mutating candidate profile; Router changes the stable Supervisor target only after readiness and the Boot-set decision point, then fences the predecessor profile.
 - Router replacement keeps Supervisor, Persistence, and Engine stable. The candidate Router is prepared under a direct candidate prefix and external admission is fenced. After the Boot-set decision, Host Agent stops the exact predecessor Router task; the successor then claims the canonical Router and stable alias function IDs under a fresh route epoch.
@@ -220,9 +237,10 @@ bootstrap closure.
 
 - `operation intent -> physical or Engine effect -> evidence -> operation receipt`.
 - Intent is durable before effect; completion follows authoritative evidence.
-- `ordinary selection = Persistence compare-and-swap current[name] from expected revision to exact candidate realization`.
+- `ordinary selection = Persistence compare-and-swap current[name] from expected revision to exact Prepared candidate Realization`.
 - `Boot-set selection = Host Agent expected-target-fenced update of dreamcatcher/bootset:current to one accepted Boot-set digest`.
 - `promotion selects immutable content, never a running Chamber`.
+- `preparation != selection != execution`; preparation stores one verified immutable image, selection chooses it by Realization, and the execution profile determines on-demand job or resident-service behavior.
 - Ordinary selection changes future activations and never relabels an existing Chamber.
 - Boot-set tag selection changes the next cold boot and may be followed by a separately journaled live cutover that reuses every unchanged member. Same-Engine live cutover changes only one of Router, Persistence, or Supervisor at a time.
 - `rollback = the same fenced selection operation targeting retained accepted content`.
@@ -230,8 +248,8 @@ bootstrap closure.
 
 ### Authority
 
-- Supervisor proposes logical work, ordinary Chamber activation, desired routes, and component handover.
-- Persistence owns ordinary current selections, candidates, Holds, Realizations, selection history, durable resources, and receipts.
+- Supervisor proposes preparation, logical work, ordinary Chamber activation, desired routes, dynamic-job execution, resident-service reconciliation, and component handover.
+- Persistence owns ordinary current selections, candidates, Holds, Realizations, Prepared projections, selection history, durable resources, and receipts; it records provider custody but never stores OCI bytes.
 - Router owns live admission hooks, route projection, route epochs, and route fences. It owns no desired-state evaluation, ordinary or Boot-set selection, candidate acceptance, or physical task effect.
 - The Host Agent owns the irreducible cold edge, Boot-set selector, containerd socket, physical operation journal, Admission, lifecycle effects, task reconciliation, and reaping.
 - The Host Agent executes only the four exact normalized launch plans already bound by the selected Boot set. It does not parse arbitrary Covenant graphs, choose workers, or become a second Covenant evaluator.
@@ -248,8 +266,9 @@ bootstrap closure.
 - The four selected worker and export contracts are fixed by their Realizations and Boot set. Separate images and Chambers preserve distinct identities, registrations, and failure fates.
 - The Host Agent mints each ordinary Chamber's fresh identity and binds it to exact launch admission before task start.
 - Builders run as ordinary separate Chambers. The installer may import the first accepted Builder image and seed its ordinary Realization, which closes bootstrap without putting compilation or package installation inside any boot Chamber.
-- Builder output enters bounded staging and candidate formation; Builder never receives the containerd socket or moves either selection.
-- Tester or the gate-appropriate verifier judges exact candidates.
+- Builder output enters bounded staging and candidate formation; Builder never receives the containerd socket, retains its own output as accepted product state, or moves either selection.
+- Tester or the gate-appropriate verifier judges the exact artifact-backed candidate and execution profile that actually ran.
+- An explicit artifact-store/provider adapter retains the same verified OCI graph by digest and proves readback; it cannot accept, select, start, or keep a Chamber alive.
 - A distinct fenced promoter authorizes either ordinary selection or Boot-set selection.
 - No Chamber receives a raw runtime socket or unrestricted host path.
 
@@ -317,11 +336,11 @@ none is a second general process manager or Covenant loader.
 | --- | --- | --- |
 | `routing::authenticate` | I3 | Engine's fixed RBAC authentication hook: verify one exact Boot-set or lease-scoped identity and return its bounded Router profile; default deny. |
 | `routing::authorize_registration` | I3 | Engine's fixed registration hook: admit only the exact profile, prefix, epoch, and registration contract bound by Admission; default deny. |
-| `routing::reconcile` | I3 | Under an exact selected or candidate Router prefix, register or replace the complete stable route and activation-factory projection derived from one Persistence snapshot and route epoch. A successor Supervisor may invoke the selected Router only through an operation-bound handover plan after exact Boot-set-tag readback. |
+| `routing::reconcile` | I3 | Under an exact selected or candidate Router prefix, register or replace the complete resident-function and dynamic-job-factory projection derived from one Persistence snapshot and route epoch. A successor Supervisor may invoke the selected Router only through an operation-bound handover plan after exact Boot-set-tag readback. |
 | `routing::inspect` | I3 | Return operation-bound registration owners, canonical-set digest, desired-snapshot revision, route epoch, fence state, and readiness evidence without mutation. |
 | `routing::fence` | I3 | Fence new admissions for one logical name, one Supervisor profile, or one exact route epoch at the expected revision. |
-| `routing::install` | I3 | Install the derived activation factory for one newly selected ordinary revision and Realization. |
-| `routing::reopen` | I3 | Reopen a fenced ordinary factory or control profile only after authoritative selection, desired-route revision, owner set, and route epoch agree. |
+| `routing::install` | I3 | Install the mode-specific projection for one newly selected ordinary revision and Prepared Realization: an activation factory for `dynamic-job`, or the stable declared functions of an exact ready `resident-service` Chamber. |
+| `routing::reopen` | I3 | Reopen a fenced ordinary factory, resident-service function set, or control profile only after authoritative selection, execution profile, desired-route revision, owner set, and route epoch agree. |
 | `routing::claim` | I3 | Through a candidate Router's direct prefix, claim the complete canonical Router and stable alias function set under one fresh route epoch while public admission remains fenced. |
 
 These functions are registered by the Router worker through Engine's built-in Worker Manager. They are
@@ -336,8 +355,9 @@ per function ID, so `routing::claim` is not advertised as an atomic multi-functi
 | `resource::resolve` | I3 | Resolve a permitted locator once, or fetch an exact selector, and return verified immutable descriptors or bounded transfer capabilities. |
 | `persistence::realization::read` | I3 | Read one exact Realization record, normalized launch spec, receipts, provider descriptors, and scoped immutable-resource capabilities. |
 | `persistence::build::record` | I3 | Persist exact build definition/input identities, output OCI digest, receipt, and provider or rebuild policy without retaining the OCI graph. |
+| `persistence::prepared::record` | I3 | Record or read back one derived Prepared projection only after exact profile-bound MET verification, verification-Chamber shutdown, authoritative OCI retention, digest readback, and accepted receipts agree. It stores no OCI bytes and moves no selection. |
 | `persistence::selection::read` | I3 | Read one exact ordinary Current selection and revision. It never resolves the lower Boot-set tag. |
-| `persistence::selection::commit` | I3 | Consume one exact promoter permit and compare-and-swap one ordinary expected current revision to a candidate, transfer its Hold, and append selection history. |
+| `persistence::selection::commit` | I3 | Consume one exact promoter permit and compare-and-swap one ordinary expected current revision to a Prepared candidate, transfer its Hold into selected image custody, and append selection history. |
 | `persistence::routing::read` | I3 | Read one exact desired-route snapshot, revision, handover generation, fence epoch, canonical-set digest, and any operation-bound successor plan. |
 | `persistence::routing::prepare` | I3 | Compare-and-swap one exact successor handover plan and next route epoch against the current desired-route revision; it prepares evidence but moves neither selector. |
 | `persistence::routing::complete` | I3 | Terminalize one exact handover generation after the selected Boot set, Router owner set, route epoch, and readiness evidence agree. |
@@ -355,7 +375,8 @@ per function ID, so `routing::claim` is not advertised as an atomic multi-functi
 
 | Function | Invocation path | Brief contract |
 | --- | --- | --- |
-| `chamber::covenant::load` | I3 | Orchestrate locator or lock resolution into an exact candidate Realization and Hold, optionally requesting a candidate Chamber; it cannot write `current`. |
+| `chamber::covenant::load` | I3 | Orchestrate locator or lock resolution into an exact candidate Realization and Hold. Formation starts no Chamber and cannot write `current`; preparation is separate. |
+| `chamber::job::run` | I3 | For one selected `dynamic-job` Prepared Realization and idempotent bounded request, activate a fresh Chamber, invoke only its exact declared job entrypoint, return result and Run evidence, and stop/reap it before terminal success. It creates no resident route. |
 | `chamber::workspace::materialize` | I3 | Orchestrate a named fenced workspace and its staged attachment to one exact Developer Chamber activation. |
 | `chamber::version::candidate_event` | I3 | Receive an exact candidate lifecycle, evidence, expiry, or cleanup event and drive only the next separately authorized step. |
 | `chamber::quiesce` | I3 | Coordinate dependency-ordered quiescence, durable flush, and final reply-duty handoff to the Host Agent. |
@@ -370,7 +391,9 @@ register a second physical-inspection function or acquire host mechanism authori
 | --- | --- | --- |
 | `artifact::build` | I3 | Execute one exact build request in a separate Builder Chamber and return an exact artifact descriptor plus build receipt; it does not accept, import, or select the output. |
 | `artifact::accept` | I3 | Judge one exact artifact, evidence set, and policy and return an acceptance receipt or rejection. |
+| `artifact::retain` | I3 | Have an explicit artifact-store/provider adapter retain the exact verified OCI graph by digest, prove provider readback, and return a retention receipt. It does not accept, select, launch, or snapshot a Chamber. |
 | `attestation::verify` *(later)* | I3 | Appraise fresh confidential-environment evidence bound to one builder identity and exact statement. |
+| `job::invoke` | I3 | Execute the one declared finite dynamic-job entrypoint inside an exact newly activated Chamber and return subject-bound result evidence; the function is never a stable idle route. |
 | `verification::invoke` | I3 | Execute the exact candidate and fixture verification plan through exact Chamber routes and return subject-bound evidence and a verdict. |
 | `selection::authorize` | I3 | Have the distinct fenced promoter validate fresh MET evidence and issue one exact, one-use ordinary-selection or Boot-set-selection permit. |
 
@@ -408,11 +431,15 @@ hardware:
   cpus: 1
   memory_mb: 512
 
+execution:
+  class: resident-service
+  min_ready: 1
+
 image:
-  role: base
+  role: artifact
   provider: oci-registry
   kind: oci-image
-  reference: docker.io/example/base@sha256:...
+  reference: docker.io/example/gateway@sha256:...
   credential: registry-read  # optional logical Vault need
 
 build: null
@@ -441,6 +468,15 @@ resources and the worker manifest are projected over it without creating a deriv
 An artifact-backed Covenant instead names `role: artifact` and an exact OCI descriptor. Worker-specific
 runtime, dependencies, installation, start, and tests stay in each `iii.worker.yaml`; Chamber-wide
 hardware, base/artifact role, optional build, and mounts stay in the Covenant.
+
+`execution` is behavior-affecting lock content. A `dynamic-job` profile instead declares one bounded
+`job::invoke` entrypoint and promises no live availability between requests. The baseline
+`resident-service` profile declares `min_ready: 1`; replica pools and traffic balancing remain later
+extensions. Any Realization selected for either operational profile must first become a Prepared
+Realization. A source-composed candidate remains useful for development, but it must be sealed into an
+artifact-backed candidate and the exact resulting OCI image must pass preparation before reusable job or
+resident-service selection. Changing only the execution profile forms a different Realization even when the
+OCI digest is unchanged.
 
 ### Assembly Covenant
 
@@ -606,10 +642,24 @@ persistence:
     gateway:
       revision: 43
       realization: sha256:R18
+    report-job:
+      revision: 12
+      realization: sha256:J7
   candidates:
     gateway:
       sha256:R19: hold@sha256:H19
       sha256:R20: hold@sha256:H20
+  prepared:
+    sha256:R18:
+      verification_receipt: receipt@sha256:VERIFY-R18
+      shutdown_receipt: receipt@sha256:STOP-R18
+      retention_receipt: receipt@sha256:RETAIN-R18
+      provider: oci://registry.example/gateway@sha256:IMAGE-R18
+    sha256:J7:
+      verification_receipt: receipt@sha256:VERIFY-J7
+      shutdown_receipt: receipt@sha256:STOP-J7
+      retention_receipt: receipt@sha256:RETAIN-J7
+      provider: oci://registry.example/report-job@sha256:IMAGE-J7
   routing:
     revision: 27
     selected_bootset: sha256:BOOTSET-42
@@ -620,7 +670,13 @@ persistence:
       gateway:
         current_revision: 43
         realization: sha256:R18
+        execution_profile: resident-service
         target_prefix: chamber::C42::gateway
+      report-job:
+        current_revision: 12
+        realization: sha256:J7
+        execution_profile: dynamic-job
+        factory: chamber::job::run
     handover: null
 
 host_agent:
@@ -677,10 +733,16 @@ host_agent:
   operations: {}
 ```
 
-Realization manifests are retrieved by content identity; these projections do not duplicate launch specs,
-locks, acceptance evidence, or provider data. Candidate values contain only a Hold reference. Chamber leases
-bind run ownership, deadline, resources, and cleanup. `persistence.routing` is the durable desired projection
-and handover record; live connection owners and readiness remain Router/Engine observations and are rebuilt.
+Realization manifests are retrieved by content identity; these projections do not duplicate launch specs or
+locks. Candidate values contain only a Hold reference. Prepared values bind transitive receipts and the exact
+authoritative provider locator without storing OCI bytes or stopped runtime state. Chamber leases bind run
+ownership, deadline, resources, and cleanup. `persistence.routing` is the durable desired projection and
+handover record; live connection owners and readiness remain Router/Engine observations and are rebuilt.
+
+`current[report-job] = J7` is valid with no matching Chamber: the selected Prepared image remains dormant until
+one bounded job request. Conversely, `current[gateway] = R18` carries a `resident-service` profile, so Supervisor
+must reconcile one matching ready Chamber and Router may expose its stable declared functions only after that
+readiness is proved.
 
 `current[gateway].realization = R18` remains true if all gateway Chambers are reaped. The Boot-set tag remains
 `BOOTSET-42` if all four boot Chambers stop. A later cold wake creates or reuses exact Engine, Router,
@@ -695,6 +757,8 @@ Persistence, and Supervisor Chambers in order; it performs no mutable dependency
 - Engine-bundled Dreamcatcher route policy -> separate Covenant-owned Router registration over the intrinsic Worker Manager;
 - ad hoc local control attachment -> exact Boot-set-scoped Admissions across separate Engine, Router, Persistence, and Supervisor Chambers;
 - legacy image or generation record -> `Realization` for ordinary lifecycles;
+- stopped verification Chamber or committed writable snapshot as a reusable template -> Prepared Realization retaining the same immutable OCI graph that was tested;
+- Current selection as an implicit always-live promise -> explicit immutable `dynamic-job` or `resident-service` execution profile;
 - `last/current/next` Chamber-bearing slots -> current selection, candidate Holds, and selection history;
 - proposal record -> exact candidate Realization mapped to one Hold reference;
 - separate Activation record -> `Chamber`;
@@ -733,11 +797,13 @@ stateDiagram-v2
     direction TB
     state "Selected Boot-set wake" as Wake
     state "Basic Ark: Engine + Router + Persistence + Supervisor" as Basic
-    state "On-demand operation" as Normal
+    state "Ordinary lifecycle ready" as Normal
     state "Fenced development" as Develop
     state "Form exact candidate" as Realize
-    state "Verify candidate" as Verify
+    state "Prepared dormant image" as Prepare
     state "Select ordinary Realization or Boot set" as Select
+    state "Finite dynamic-job Chamber" as Job
+    state "Ready resident-service Chamber" as Service
     state "No resident Chambers" as Quiescent
 
     [*] --> Wake
@@ -746,9 +812,13 @@ stateDiagram-v2
     Normal --> Develop: mutate named resource
     Develop --> Realize: seal exact source revision
     Normal --> Realize: resolve locator or realize from lock
-    Realize --> Verify: exact candidate and Hold ready
-    Verify --> Select: MET and distinct selection authorization
-    Verify --> Normal: reject, expire, or retain candidate
+    Realize --> Prepare: exact image passes profile tests, test Chamber stops, graph retained
+    Prepare --> Select: MET and distinct selection authorization
+    Realize --> Normal: reject, expire, or retain unprepared candidate
+    Select --> Job: dynamic-job request activates fresh Chamber
+    Job --> Select: terminal result then stop and reap
+    Select --> Service: resident-service profile reconciles readiness
+    Service --> Select: replacement, failure, or explicit stop
     Select --> Normal: fenced selector commit completed
     Normal --> Quiescent: reap every idle Chamber including four boot members
     Quiescent --> Wake: authenticated host wake
@@ -916,7 +986,7 @@ sequenceDiagram
     Note over Router,Supervisor: Admit exact selected Supervisor identity and registration contract—<br/>only the selected profile receives lifecycle-mutation authority
     Supervisor->>Persistence: `persistence::routing::read`
     Supervisor->>Router: `routing::reconcile`
-    Note over Router,Engine: Router registers or replaces the complete stable alias and<br/>activation-factory set under one fenced route epoch
+    Note over Router,Engine: Router registers or replaces the complete resident-function and<br/>dynamic-job-factory set under one fenced route epoch
     HostAgent->>Router: `routing::inspect`
     Note over HostAgent,Router: Readiness requires exact worker ownership, complete registration<br/>contract, matching Engine and route epochs, and exclusive Persistence lease
 ```
@@ -1039,7 +1109,9 @@ PeerId and when the peer requests Worker Manager. A claimed Chamber ID is never 
 are fresh per lease and destroyed with the Chamber.
 
 The current revision or candidate Hold is captured when intent commits. A concurrent selection change never
-relabels the Chamber, and a selected Realization may have zero live Chambers before or after this kernel.
+relabels the Chamber. A selected `dynamic-job` Realization normally has zero live Chambers before and after this
+kernel; a selected `resident-service` Realization with zero matching ready Chambers remains fenced and triggers
+Supervisor reconciliation.
 
 ## Fenced development
 
@@ -1084,27 +1156,25 @@ sequenceDiagram
 ```
 
 Workspace, snapshot, provider revision, Realization, and Chamber remain distinct identities. A sealed output
-becomes an input to a later Covenant lock. It enters **Form and activate a candidate**, forms one exact
+becomes an input to a later Covenant lock. It enters **Form a candidate Realization**, forms one exact
 candidate under a Hold, and may be selected only after verification. No workspace, containerd snapshot, or
 running Chamber is renamed into a candidate or current Realization.
 
-## Form and activate a candidate
+## Form a candidate Realization
 
 `entry = authorized caller + durable logical name + locator or exact Covenant lock + candidate quota`
 
-`exit = exact source-composed or artifact-backed candidate Realization + bounded Hold + optional ready Chamber`
+`exit = exact source-composed or artifact-backed candidate Realization + bounded Hold + zero new Chambers`
 
 Several candidates may coexist for one logical name. Candidate formation is logical work owned by Supervisor
-and Persistence; it does not need a Host Agent operation until an exact candidate is physically activated.
-This mode never changes either selection authority.
+and Persistence and never starts a Chamber. Preparation is the separately evidenced operation that later
+activates the exact artifact-backed candidate. Formation changes neither selection authority.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant HostAgent as Host Agent
     participant Persistence
     participant Supervisor
-    participant Candidate
     participant Builder
     participant Acceptor
     actor Caller
@@ -1132,19 +1202,15 @@ sequenceDiagram
     Note over Supervisor: Form and digest the complete immutable Realization
     Supervisor->>Persistence: `persistence::hold::acquire`
     Note over Persistence: Hold exact launch data, resources, receipts, provider descriptors,<br/>expiry, and cleanup authority—not ordinary OCI blobs
-
-    opt Inspection or verification needs a running instance
-        Supervisor->>HostAgent: `chamber::activate`
-        Note over HostAgent,Candidate: Apply the ordinary kernel to the exact candidate and Hold
-    end
 ```
 
 A moving locator is resolved only while forming the lock. Re-resolving it later may produce another lock and
 candidate; it never mutates `current`. Candidate admission deduplicates the same Realization identity.
 
-Source-composed launch is preferred when exact source and runtime base are cheaply obtainable. Artifact-backed
-launch remains available for distributable or opaque images and accepted build outputs. Persistence retains
-exact identity, evidence, and provider/rebuild policy rather than a duplicate ordinary OCI graph.
+Source-composed launch remains useful for development when exact source and runtime base are cheaply obtainable.
+Reusable `dynamic-job` and `resident-service` execution requires an artifact-backed candidate: preparation
+must test and retain the exact immutable image that future Chambers will use. Persistence retains exact identity,
+evidence, and provider/rebuild policy rather than a duplicate ordinary OCI graph.
 
 Builds are not assumed reproducible. A byte-identical authorized rebuild may restore an unavailable recorded
 OCI descriptor after evidence checks. A different digest is a different candidate. Rejection, missing Builder
@@ -1180,9 +1246,11 @@ sequenceDiagram
     Supervisor->>HostAgent: `chamber::stop`
 ```
 
-A later activation or `bootset::stage` may give the Host Agent the exact bounded output capability to import.
-The Builder never receives the containerd socket. If output must be durable independently, an explicit OCI
-provider receives it and Persistence retains only the exact provider descriptor and digest.
+A later preparation or `bootset::stage` may give the Host Agent the exact bounded output capability to import.
+The Builder never receives the containerd socket. Builder output remains disposable candidate staging; the
+separate `artifact::retain` step is mandatory before that image becomes a Prepared Realization selectable for
+`dynamic-job` or `resident-service` execution. The explicit OCI provider retains the graph and Persistence
+retains only the exact provider descriptor, digest, and transitive receipts.
 
 If bounded output disappears before import or publication, no selected identity changes. An authorized rebuild
 enters candidate formation. Matching the recorded digest proves byte convergence; a different digest is a
@@ -1193,11 +1261,15 @@ If a chosen frontend cannot operate inside the bounded Builder Chamber, build is
 external provider with exact input/output evidence. That limitation never expands the Host Agent or moves
 build onto the boot cold path.
 
-## Verify a candidate
+## Prepare and retain a tested Realization
 
-`verdict subject = exact candidate Realization + exact Chamber + exact plan + environment`
+`entry = exact artifact-backed candidate Realization + bounded Hold + declared execution profile`
 
-`verdict != selection`
+`verification subject = exact candidate Realization + exact Chamber + exact plan + environment`
+
+`exit = dormant Prepared Realization + authoritative retained OCI graph + zero verification Chambers, or no Prepared record`
+
+`Prepared != selected != running`
 
 ```mermaid
 sequenceDiagram
@@ -1209,13 +1281,16 @@ sequenceDiagram
     participant Supervisor
     participant Candidate
     participant Fixtures
+    participant ArtifactStore as Artifact store
     participant Verifier
     actor Requester
 
     Requester->>Verifier: `verification::invoke`
     Verifier->>Supervisor: `chamber::version::candidate_event`
+    Supervisor->>Persistence: `persistence::realization::read`
+    Note over Persistence,Supervisor: Require one exact artifact-backed candidate, Hold,<br/>execution profile, OCI descriptor, and bounded graph capability
     Supervisor->>HostAgent: `chamber::activate`
-    Note over HostAgent,Candidate: Apply the ordinary kernel to the exact candidate and Hold—<br/>rematerialize exactly or fail closed
+    Note over HostAgent,Candidate: Start the exact image under a fresh verification lease—<br/>rematerialize exactly or fail closed
     HostAgent->>Router: `routing::inspect`
 
     opt Declared fixtures are required
@@ -1229,27 +1304,40 @@ sequenceDiagram
     opt Declared fixtures were activated
         Verifier->>Fixtures: `verification::invoke`
     end
-    Note over Verifier: Emit MET, NOT_MET, or UNKNOWN bound to exact identities
+    Note over Verifier: Emit MET, NOT_MET, or UNKNOWN bound to the exact image,<br/>execution profile, Chamber, plan, and environment
     Verifier->>Supervisor: `chamber::version::candidate_event`
 
     Supervisor->>HostAgent: `chamber::stop`
     opt Declared fixtures were activated
         Supervisor->>HostAgent: `chamber::stop`
     end
-    opt Verdict rejects, expires, or cancels the candidate
+    Supervisor->>HostAgent: `chamber::inspect`
+    Note over HostAgent,Candidate: Prove the verification Chamber is absent and bind its terminal Run receipt—<br/>never commit or reuse its writable snapshot
+
+    alt MET, exact shutdown proof, and OCI retention succeed
+        Supervisor->>ArtifactStore: `artifact::retain`
+        Note over Candidate,ArtifactStore: Retain and read back the same immutable OCI graph by digest<br/>in an authoritative provider, with no running task stored
+        Supervisor->>Persistence: `persistence::prepared::record`
+        Note over Persistence: Bind Realization, execution profile, verification, shutdown,<br/>retention, provider, and acceptance receipts without moving current
+    else NOT_MET, expiry, or authorized rejection
         Supervisor->>Persistence: `persistence::hold::release`
+    else UNKNOWN or retention/readback failure
+        Note over Persistence,Supervisor: Leave the bounded candidate unprepared and unselected,<br/>then retry or expire under its existing Hold
     end
 ```
 
-MET permits a later selection request while the Hold remains valid; it does not keep verification Chambers
-alive. Further attempts create fresh Chambers of the same Realization and independently scoped evidence.
+Preparation is the explicit boundary between candidate work and reusable execution. The reusable object is the
+same immutable OCI graph that booted the verification Chamber, plus the exact Realization and transitive receipts.
+The Chamber itself is shut down and reaped; its writable runtime snapshot, process state, live registrations, and
+leases are never a template or storage format.
 
-A source-composed candidate can be recreated from exact durable launch data while its exact base graph is
-obtainable. An artifact-backed candidate needs its exact graph from staging, the ordinary runtime namespace,
-or a declared provider. The verifier never rebuilds or substitutes an image.
+Only a Prepared Realization may be selected for `dynamic-job` or `resident-service` execution. A Prepared
+Realization may remain stored indefinitely with zero live Chambers. Further verification attempts and every job
+request create fresh Chambers of the same Realization and independently scoped evidence. The verifier never
+rebuilds or substitutes an image, and Persistence stores provider custody evidence rather than OCI bytes.
 
-The first Tester is judged by the external bootstrap verifier. Once selected, its ordinary Realization supplies
-on-demand Tester Chambers. Tester never writes either selector.
+The first Tester is judged by the external bootstrap verifier. Once Prepared and selected under a `dynamic-job`
+profile, its ordinary Realization supplies fresh on-demand Tester Chambers; Tester never writes either selector.
 
 ## Select, upgrade, or roll back
 
@@ -1257,7 +1345,7 @@ on-demand Tester Chambers. Tester never writes either selector.
 
 `Boot-set selection authority = gate-appropriate fenced promoter + Host Agent expected-target tag update`
 
-`entry = exact accepted candidate or Boot set + valid custody + fresh evidence + expected selector revision`
+`entry = exact Prepared ordinary candidate or accepted Boot set + valid custody + fresh evidence + expected selector revision`
 
 ```mermaid
 sequenceDiagram
@@ -1285,19 +1373,22 @@ sequenceDiagram
         Supervisor->>Promoter: `selection::authorize`
         Promoter->>Persistence: `persistence::selection::commit`
         Persistence->>Router: `routing::fence`
-        alt Expected revision, Hold, evidence, or permit is stale
+        alt Expected revision, Prepared record, Hold, evidence, or permit is stale
             Note over Persistence: Leave current unchanged and consume no reusable authority
             Persistence->>Router: `routing::reopen`
         else Exact compare-and-swap succeeds
-            Note over Persistence: Transfer the Hold, append history, and set current[name]
+            Note over Persistence: Transfer the Hold into selected image custody,<br/>append history, and set current[name] to the Prepared Realization
             Persistence->>Router: `routing::install`
+            Note over Persistence,Router: Install only the execution-profile projection—<br/>dynamic-job factory or ready resident-service functions
         end
     end
 ```
 
-Selection always names immutable content, never a running Chamber. Existing ordinary Chambers remain pinned
-to their captured Realizations until independently drained. A new ordinary call uses the new Persistence
-revision. A new cold boot uses the new Boot-set target.
+Selection always names immutable content, never a running Chamber. Ordinary operational selection requires a
+Prepared Realization whose exact tested image remains retained independently of every Chamber. Existing ordinary
+Chambers remain pinned to their captured Realizations until independently drained. A new dynamic job snapshots
+the new Persistence revision when demand arrives; a resident service is routed only after a matching successor
+Chamber is ready. A new cold boot uses the new Boot-set target.
 
 The Boot-set path has one selector over an ordered quartet of exact Covenant Realizations, so it does not add
 independently mutable component tags or route-group selection to Engine. `bootset::stage` may import and
@@ -1310,6 +1401,61 @@ Rollback uses the same respective operation with retained accepted content as ta
 rollback from health, creation time, semantic version, fleet majority, surviving task, or cache contents.
 Boot-set rollback additionally requires the predecessor graph to remain pinned and its Persistence schema
 to remain compatible; otherwise rollback is not authorized.
+
+## Execute a dynamic job or resident service
+
+`entry = selected Prepared Realization + immutable execution profile + authoritative retained OCI graph`
+
+`dynamic-job exit = terminal result or attributable failure + Run evidence + zero job Chambers`
+
+`resident-service exit = one exact ready Chamber + stable declared route, or fenced unavailable state`
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant HostAgent as Host Agent
+    participant Router as Router
+    participant Persistence
+    participant Supervisor
+    participant Workload as Job or service Chamber
+    actor Requester
+
+    alt Profile is dynamic-job and one bounded request arrives
+        Requester->>Supervisor: `chamber::job::run`
+        Supervisor->>Persistence: `persistence::selection::read`
+        Supervisor->>Persistence: `persistence::realization::read`
+        Note over Persistence,Supervisor: Snapshot one selected Prepared Realization, retained provider descriptor,<br/>declared job entrypoint, request idempotency key, lease, and deadline
+        Supervisor->>HostAgent: `chamber::activate`
+        HostAgent->>Router: `routing::inspect`
+        Note over Router,Workload: Admit only the exact fresh Chamber prefix and declared registration contract—<br/>there is no stable idle application function
+        Supervisor->>Workload: `job::invoke`
+        Supervisor->>HostAgent: `chamber::stop`
+        Supervisor->>HostAgent: `chamber::inspect`
+        Note over HostAgent,Requester: Return terminal result and Run evidence only after the job Chamber<br/>is absent or one attributable cleanup operation remains
+    else Profile is resident-service
+        Supervisor->>Persistence: `persistence::selection::read`
+        Supervisor->>Persistence: `persistence::realization::read`
+        Supervisor->>HostAgent: `chamber::inspect`
+        alt No exact ready Chamber satisfies min_ready
+            Supervisor->>HostAgent: `chamber::activate`
+            HostAgent->>Router: `routing::inspect`
+        end
+        Supervisor->>Router: `routing::install`
+        Supervisor->>Router: `routing::reopen`
+        Note over Router,Requester: Stable declared functions remain open only while the selected exact Chamber,<br/>registration owner set, route epoch, and availability policy agree
+    end
+```
+
+Both branches consume the same kind of Prepared Realization; neither builds, retests, snapshots, or mutates the
+stored image at execution time. Their difference is residency and routing. A dynamic job has no live application
+function while idle: one request gets a fresh writable snapshot and exact Chamber prefix, then terminal handling
+stops and reaps it. A resident service requires Supervisor to keep one matching Chamber ready and Router to
+maintain its stable function projection; if readiness is lost, the route fences until exact replacement.
+
+The prepared image therefore outlives every job and every resident-service process, while no stopped Chamber
+becomes durable state. Current selection chooses the exact reusable Realization. Its immutable execution profile
+alone determines whether zero idle Chambers is the intended steady state or an availability failure requiring
+reconciliation.
 
 ## Live Boot-set cutover
 
@@ -1562,15 +1708,20 @@ Attestation binds a statement about one Builder realization, request, input clos
 fresh environment evidence. It does not prove truth, reproducibility, or acceptability. Inspectors and the
 Acceptor remain separate replaceable policy roles.
 
-Multi-Ark agreement still creates no Ark-local durability obligation for OCI bytes. Each output may remain
-in bounded disposable builder staging, be imported into a host's ordinary containerd runtime namespace, or be pushed
-to an explicit external OCI provider. Persistence records identities, evidence, and locators. If every byte
-source disappears, rebuilding is candidate work and a different digest is a different artifact.
+Multi-Ark build agreement alone creates no Ark-local durability obligation for OCI bytes. An output may remain
+in bounded disposable builder staging until preparation. It becomes selectable for `dynamic-job` or
+`resident-service` execution only after the exact graph is tested, the verification Chamber stops, and an
+explicit authoritative OCI provider returns a digest-bound retention receipt. Persistence records identities,
+evidence, and locators rather than blobs. If every byte source disappears, the Prepared custody condition is
+broken; execution fails closed and rebuilding is candidate work.
 
 ## Failure and recovery formulas
 
 - `operation remains non-terminal after interruption -> reconcile that exact operation before conflicting work`.
-- `current[name] = R + zero ordinary Chambers -> valid idle state`; do nothing until demand or explicit prewarm policy.
+- `current[name] = Prepared R + dynamic-job + zero ordinary Chambers -> valid idle state`; do nothing until one bounded job request.
+- `current[name] = Prepared R + resident-service + fewer than min_ready Chambers -> fenced unavailable state`; Supervisor activates an exact replacement and Router reopens only after readiness.
+- `candidate R + MET + exact verification-Chamber shutdown + retained OCI graph digest readback -> prepared[R] may be recorded`; none of those facts alone selects or starts it.
+- `dynamic job reaches terminal result or failure -> stop and reap its exact Chamber before successful chamber::job::run completion`; the Prepared image and Current selection remain.
 - `dreamcatcher/bootset:current = B + zero boot tasks -> valid idle state`; authenticated wake starts or reuses exact Engine, Router, Persistence, then Supervisor from `B`.
 - `admitted call snapshots ordinary current revision S and Realization R -> its Chamber remains pinned to (S, R)` even if selection changes before physical start completes.
 - `ready ordinary Chamber fails -> terminalize its exact lease and receipt`; authorized retry creates a fresh Chamber of the same Realization without changing current.
@@ -1596,8 +1747,9 @@ source disappears, rebuilding is candidate work and a different digest is a diff
 - `candidate Hold expires -> reap its candidate Chambers + remove candidates[name][R] + emit cleanup receipt`, unless another selector, candidate, or operation retains the exact durable launch data.
 - `source-composed ordinary runtime view unavailable -> rematerialize from exact durable launch data while its exact base graph remains obtainable; otherwise activation fails`.
 - `artifact-backed ordinary graph unavailable from runtime cache, output capability, or provider -> activation fails`; do not build from a lock inside `chamber::activate`.
+- `Prepared Realization provider graph missing or digest readback mismatched -> fence new jobs or resident-service replacement and fail closed`; a live predecessor may drain under its existing lease but cannot become image custody.
 - `build starts from a Covenant lock -> output enters candidate formation`, never directly as ordinary current or Boot-set current.
-- `rebuild reproduces an exact recorded OCI digest -> verify candidate and perform the appropriate fenced selection/custody operation`.
+- `rebuild reproduces an exact recorded OCI digest -> verify, shut down, retain, record Prepared, then separately perform any fenced selection`.
 - `rebuild produces another artifact or Realization digest -> distinct candidate`; only fenced selection may choose it.
 - `provider credential unavailable -> resolution or build fails closed`; selection is unchanged.
 - `Router projection disagrees with ordinary current or authoritative Chamber state -> lifecycle state wins`; fence affected admission and rebuild the projection.
@@ -1605,8 +1757,8 @@ source disappears, rebuilding is candidate work and a different digest is a diff
 - `ordinary admitted PeerId claims another Chamber or submits a non-exact registration set -> close stream + fail activation`; quarantined routes never publish.
 - `Admission expires, Engine epoch changes, route epoch is fenced, or lease is revoked -> reject new streams or routed calls`; replacement needs the appropriate fresh Chamber ID, lease, epoch, and identity.
 - `physical task survives but exact selected Boot set or Realization, lease, Admission, and operation cannot be proved -> reap it`; never adopt by runtime ID or apparent health.
-- `verifier unavailable or verdict UNKNOWN -> no selection`.
-- `stale ordinary revision, Hold, lease, operation subject, or permit -> reject before effect`.
+- `verifier unavailable, verdict UNKNOWN, shutdown unproved, or retention readback absent -> no Prepared record and no selection`.
+- `stale ordinary revision, Prepared record, Hold, lease, operation subject, or permit -> reject before effect`.
 - `cleanup names exact Chamber IDs, task identities, Boot-set digest, route epoch, and candidate Holds`; unrelated work is unaffected.
 - `Host Agent unavailable -> only an explicitly lower platform may wake or replace it`; no boot or ordinary Chamber can bootstrap its absent host authority.
 
@@ -1617,6 +1769,8 @@ source disappears, rebuilding is candidate work and a different digest is a diff
 - external provider-specific Covenant locators with optional logical credential names;
 - location-independent Covenants with top-level `hardware`, `image`, optional `build`, flat `mounts`, and plural `workers`;
 - exact Covenant locks and content-addressed Realizations with source-composed and artifact-backed launch modes;
+- immutable execution profiles distinguishing finite `dynamic-job` activation from continuously reconciled `resident-service` availability;
+- Prepared Realization as a derived receipt-backed state over one exact artifact-backed Realization, never a parallel identity, stopped Chamber, or writable snapshot;
 - one accepted OCI Boot-set root artifact binding exactly four ordered Runnable Covenant Realizations, their image descriptors, dependency order, host ABI, bootstrap Admissions and registration contracts, predecessor, acceptance, and Persistence schema;
 - a Bootstrap Engine Covenant whose pinned near-upstream image starts first in one gVisor Engine Chamber and contains only III transport, Worker Manager listeners, function registration, dispatch, and ownership-checked cleanup;
 - separate minimal Router, durable Persistence, and replaceable Supervisor Covenants and gVisor Chambers starting second, third, and fourth;
@@ -1639,6 +1793,7 @@ source disappears, rebuilding is candidate work and a different digest is a diff
 - per-function owner-safe III re-registration plus an admission fence and complete successor-owner proof, without claiming an atomic multi-function handover;
 - Persistence-owned `current[name] = {revision, realization}` as the only ordinary stable named selection;
 - `candidates[name][realization] = Hold reference` with several bounded candidates permitted;
+- `prepared[realization] = {verification, shutdown, retention, provider}` with exact OCI custody outside Persistence and zero required live tasks;
 - `chambers[id] = {name, realization, lease, phase}` with fresh zero-to-many ordinary Chambers per Realization;
 - no separate Activation record and no Chamber-bearing `last/current/next` slots;
 - exact-Chamber execution, verification, inspection, and cleanup;
@@ -1646,7 +1801,10 @@ source disappears, rebuilding is candidate work and a different digest is a diff
 - a Noise-authenticated Worker Manager stream gate with server-assigned `chamber::<Chamber-ID>` prefixes and exact complete-set publication;
 - privileged Router-bootstrap, selected-control, candidate-control, and ordinary-RBAC profiles that all retain Admission, prefix, lease, epoch, and registration-contract enforcement;
 - Builder as an ordinary separately sandboxed Covenant Chamber with no containerd socket, boot filesystem, tag mutation, or selection authority;
+- an explicit artifact-store/provider adapter that retains and reads back the exact tested OCI graph without gaining acceptance, selection, or task authority;
 - no build on Boot-set cold start or ordinary activation; missing artifact content enters candidate/rebuild work rather than hidden substitution;
+- `chamber::job::run` as bounded orchestration of one fresh Prepared job Chamber and `job::invoke`, followed by exact stop/reap and no stable idle application route;
+- baseline `resident-service` reconciliation with one exact ready Chamber and stable Router projection, while replica pools and balancing remain later;
 - ordinary selection through Persistence compare-and-swap and Router projection registered into Engine;
 - Boot-set selection through one Host Agent expected-target update of the single Boot-set tag;
 - Engine-first cold start; reverse-order Supervisor/Persistence/Router/Engine shutdown; component-only cutover that preserves every exact unchanged Chamber and epoch;
@@ -1669,12 +1827,12 @@ source disappears, rebuilding is candidate work and a different digest is a diff
 ### Required downstream reconciliation to this sequence authority
 
 - cross-stack architecture vocabulary and narrative;
-- Covenant owner schema and Gherkin (`source`, singular `worker`, and `worker.resources` are old);
-- Chambers owner process-tree, routing, image construction, Host Agent activation, verification, Boot-set packaging, and upgrade Gherkin;
+- Covenant owner schema and Gherkin, including immutable `dynamic-job` / `resident-service` execution profiles (`source`, singular `worker`, and `worker.resources` are old);
+- Chambers owner process-tree, routing, image construction, Prepared receipt and provider retention, dynamic-job, resident-service, Host Agent activation, verification, Boot-set packaging, and upgrade Gherkin;
 - Chambers runtime replacement of direct-runsc/materializer/procman surfaces with the typed Host Agent and standard containerd runsc runtime handler;
 - separate Bootstrap Engine, Router, Persistence, and Supervisor Covenant packaging with fixed boot order and independent physical fate;
 - III stable host identity/listener injection, protected Router listener, fixed auth/registration hook IDs, Engine-epoch Admission rebuild, candidate prefixes, owner-safe connection cleanup, and ordinary PeerId stream gate;
-- Persistence ordinary-selection, Realization/build-record/Hold/resource/provider contracts, initial seed state, flush, route-snapshot, handover epoch, and schema compatibility contracts;
+- Persistence ordinary-selection, Realization/build-record/Prepared/Hold/resource/provider contracts, initial seed state, flush, mode-specific route-snapshot, handover epoch, and schema compatibility contracts;
 - installer and recovery tooling for one-use accepted Boot Seed import, protected containerd boot namespace, all pinned selected/predecessor closures, and exact Boot-set-tag update/readback;
 - Host Agent operation journal, expected-current Boot-set fencing, same-Engine reuse proof, Engine-changing cutover reconciliation, containerd task receipts, and runtime-namespace invalidation;
 - generated traceability and registered Lifecycle Atlas after authoritative inputs change.

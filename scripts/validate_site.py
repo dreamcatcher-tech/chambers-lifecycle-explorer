@@ -67,7 +67,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     documents = payload.get("documents", [])
     if [document.get("id") for document in documents] != ["chambers", "cardflow"]:
         fail("bundle must contain Chambers and Cardflow in that order")
-    if payload.get("stats") != {"documents": 2, "sequences": 22, "calls": 238, "functions": 83, "dictionaryTerms": 83}:
+    if payload.get("stats") != {"documents": 2, "sequences": 23, "calls": 256, "functions": 87, "dictionaryTerms": 87}:
         fail(f"unexpected combined stats: {payload.get('stats')}")
 
     manifest_by_id = {entry["id"]: entry for entry in manifest.get("documents", [])}
@@ -100,7 +100,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
             fail(f"{document['id']} dictionary source-line binding failed")
 
     chambers, cardflow = documents
-    if chambers["stats"] != {"sequences": 13, "actors": 34, "calls": 172, "i3Calls": 121, "hostCalls": 51, "functions": 50, "usedFunctions": 49, "dictionaryTerms": 53}:
+    if chambers["stats"] != {"sequences": 14, "actors": 36, "calls": 190, "i3Calls": 139, "hostCalls": 51, "functions": 54, "usedFunctions": 54, "dictionaryTerms": 57}:
         fail(f"unexpected Chambers stats: {chambers['stats']}")
     if cardflow["stats"] != {"sequences": 9, "actors": 19, "calls": 66, "i3Calls": 66, "hostCalls": 0, "functions": 33, "usedFunctions": 31, "dictionaryTerms": 30}:
         fail(f"unexpected Cardflow stats: {cardflow['stats']}")
