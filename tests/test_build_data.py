@@ -190,17 +190,17 @@ class BuildDataTests(unittest.TestCase):
         snapshot = (ROOT / "source" / chambers["source"]["snapshotPath"]).read_text(encoding="utf-8")
         flat = snapshot.replace("\n", " ")
         for marker in (
-            "one exact OCI image, one gVisor task, one III Engine PID 1",
-            "any required Core worker loss -> Engine exit -> complete scope recovery",
-            "one-shot image bootstrap copies accepted III runtime bytes into private `/run/iii` tmpfs",
+            "one exact OCI image, one gVisor task, one s6 PID 1",
+            "any required Core process exit or semantic-readiness loss -> complete Core-task exit -> complete scope recovery",
+            "s6 as container PID 1, with one-shot bootstrap seeding accepted runtime bytes into private `/run/iii` tmpfs",
             "127.0.0.1:49133",
             "Ark-private scope listener at port `49134`",
             "There is no host port mapping, host-network mode, donated Unix socket, or TCP fallback",
             "explicit forwarding-deny fence separates sibling CIDRs",
             "ordinary descendants receive no Ark-volume contents",
             "22/22 independently verified checks",
-            "containerd/CNI-plugin and storage-driver integration remain downstream work",
-            "no Persistence-, Gateway-, or Supervisor-local restart path",
+            "s6 whole-appliance fatality, production containerd/CNI-plugin, and storage-driver integration require their own acceptance evidence",
+            "no member-local restart path",
             "Builder as an ordinary separate sandbox",
         ):
             self.assertIn(marker, flat)
@@ -267,7 +267,7 @@ class BuildDataTests(unittest.TestCase):
         self.assertNotIn("persistence::core::commit", recovery_functions)
         recovery_notes = " ".join(note["text"] for call in recovery["calls"] for note in call["notes"])
         self.assertIn("Never restart an internal worker", recovery_notes)
-        self.assertIn("PID 1 exits non-zero", recovery_notes)
+        self.assertIn("s6 stops the whole tree and exits PID 1 with no member-local restart", recovery_notes)
         self.assertIn("new task ID from the unchanged selected Core and volume", recovery_notes)
 
         child = sequences["scope-bound-child-core"]

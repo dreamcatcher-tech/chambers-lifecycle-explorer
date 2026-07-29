@@ -67,8 +67,9 @@ The registration surfaces of record are:
 
    Cold activation must contain `wake_ark_core`, at least one `start_ark_core`, no lower runtime call, and one note
    that the canonical selector is read exactly once. One selected Ark Core Appliance is one OCI image and one gVisor
-   task. A one-shot image bootstrap seeds private `/run/iii` tmpfs and `exec`s Engine as PID 1 before required
-   Persistence, Gateway, and Supervisor workers start in that internal order. The loopback Worker Manager at
+   task. s6 is PID 1: its one-shot bootstrap seeds private `/run/iii` tmpfs, then its accepted graph starts Engine,
+   Persistence, Gateway, and Supervisor in that internal order. s6 never restarts one required member locally; any
+   required-process exit or Engine-validated semantic-readiness loss exits the whole task. The loopback Worker Manager at
    `127.0.0.1:49133` admits only exact required workers without a host-donated Persistence stream. After Gateway
    installs fail-closed hooks, ProcMan uses the distinct Ark-private Worker Manager at port `49134` through a direct
    private Core address, with no host port mapping, host-network mode, or UDS relay. Ordinary Chambers remain separate
@@ -95,8 +96,9 @@ The registration surfaces of record are:
    independent root Arks on one physical host.
 
    Preserve the source's proof distinction: 22/22 checks establish bounded mechanisms on real runsc/Linux networking,
-   selector/LKG fixtures, and directory-backed volume fences. They do not establish production containerd/CNI-plugin,
-   storage-driver, packaging, deployment, or operational acceptance.
+   selector/LKG fixtures, directory-backed volume fences, and the superseded Engine-owned fatality mechanism. They do
+   not establish s6 whole-appliance fatality, production containerd/CNI-plugin, storage-driver, packaging, deployment,
+   or operational acceptance.
 
    Builder remains separately sandboxed. The Core's accepted residual risk—container-root can reach Persistence's
    mounted data—must not be mislabeled as process isolation or silently restored as a hard four-sandbox constraint.

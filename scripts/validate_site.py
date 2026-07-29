@@ -103,7 +103,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
 
     chambers, cardflow = documents
     expected_chambers = {
-        "sequences": 16, "actors": 42, "calls": 141, "i3Calls": 130,
+        "sequences": 16, "actors": 43, "calls": 141, "i3Calls": 130,
         "hostCalls": 11, "functions": 52, "usedFunctions": 52, "dictionaryTerms": 52,
     }
     if chambers["stats"] != expected_chambers:
@@ -192,17 +192,17 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     chambers_snapshot = (SOURCE / chambers["source"]["snapshotPath"]).read_text(encoding="utf-8")
     flattened = chambers_snapshot.replace("\n", " ")
     required_core_markers = (
-        "one exact OCI image, one gVisor task, one III Engine PID 1",
+        "one exact OCI image, one gVisor task, one s6 PID 1",
         "boot-control/selected.json",
-        "any required Core worker loss -> Engine exit -> complete scope recovery",
-        "one-shot image bootstrap copies accepted III runtime bytes into private `/run/iii` tmpfs",
+        "any required Core process exit or semantic-readiness loss -> complete Core-task exit -> complete scope recovery",
+        "s6 as container PID 1, with one-shot bootstrap seeding accepted runtime bytes into private `/run/iii` tmpfs",
         "127.0.0.1:49133",
         "Ark-private scope listener at port `49134`",
         "explicit forwarding-deny fence separates sibling CIDRs",
         "ordinary descendants receive no Ark-volume contents",
         "22/22 independently verified checks",
-        "containerd/CNI-plugin and storage-driver integration remain downstream work",
-        "no Persistence-, Gateway-, or Supervisor-local restart path",
+        "s6 whole-appliance fatality, production containerd/CNI-plugin, and storage-driver integration require their own acceptance evidence",
+        "no member-local restart path",
         "Gateway warm cutover applies only to ordinary Chambers",
         "one-attempt LKG fallback",
         "Builder as an ordinary separate sandbox",
