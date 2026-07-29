@@ -1,0 +1,155 @@
+# TLA+ model visualization refresh runbook
+
+This runbook maintains the TLA+ Model Explorer published at:
+
+<https://dreamcatcher-tech.github.io/chambers-lifecycle-explorer/tla/>
+
+The temporal source repository is private. The GitHub Pages repository is public. Treat synchronization as an explicit disclosure boundary, not as a generic copy operation.
+
+## What the three views mean
+
+The page deliberately separates three kinds of information:
+
+1. **Explain** — a curated, human-readable state/action or scope-topology map. Layout, descriptions, and walkthrough paths live in `scripts/tla_model_annotations.json`. The synchronization script fails if an annotated action or property name no longer resolves in the exact TLA+ module. This view explains the model but is **not** claimed to be a complete semantic derivation.
+2. **TLC state space** — an automatically generated aggregation of complete Graphviz DOT state graphs emitted by `tlc2.TLC -dump dot,actionlabels,colorize`. Every parsed concrete state and transition must be accounted for, and its count must agree with the checked evidence receipt. Raw private state labels and raw DOT files are not published.
+3. **Properties** — configured safety/liveness operators and the real TLC receipts for five deliberately weakened controls. A passing bounded check is model evidence, not implementation conformance.
+
+This distinction is a publication contract. Do not merge the curated and generated labels or describe the Explain view as “generated from all TLA+ semantics.”
+
+## Why not publish the ordinary TLC graph directly?
+
+TLC and the TLA+ Toolbox can generate a Graphviz state graph. The official TLA+ documentation warns that this is useful only for small state spaces because fully expanded DOT rendering becomes unreadable or times out as models grow. The current checked suite has 2,431 distinct states and 9,641 non-stuttering transitions across three models.
+
+The explorer therefore keeps the exact complete graph as a private build intermediate and publishes bounded aggregates:
+
+- `ArkCoreAppliance`: 413 states grouped by the scalar `mode` variable;
+- `MultiArk`: 2,007 states grouped into all 64 reachable `RootA / RootB / ChildA` phase tuples and shown as a matrix;
+- `HostCutover`: its exact 11-state action chain.
+
+References:
+
+- <https://docs.tlapl.us/using:generating_state_graphs>
+- <https://tla.msr-inria.inria.fr/tlatoolbox/doc/model/tlc-options-page.html>
+
+## Data flow and disclosure boundary
+
+```text
+private chambers-temporal-model @ exact clean upstream commit
+  ├─ model/*.tla + principal *.cfg
+  ├─ evidence/model-check-summary.json
+  └─ source/baseline.json
+          │
+          │ fresh official Java/TLC run + complete DOT parse
+          ▼
+public source/tla-model-projection.json
+  ├─ exact commit, file hashes, source line anchors
+  ├─ action/variable/property names
+  ├─ complete aggregate state + transition counts
+  ├─ passing model-check receipt
+  └─ expected-counterexample receipts
+          │
+          ▼
+site/tla/model-data.js → site/tla/index.html + app.js + styles.css
+```
+
+Never publish:
+
+- raw private `.tla` or `.cfg` bytes;
+- raw DOT files or concrete state labels;
+- raw TLC logs from the private model repository;
+- credentials or local filesystem paths.
+
+The projection may publish exact names, hashes, line anchors, aggregate values, and already approved architecture descriptions. Any broader disclosure requires separate review.
+
+## Refresh from a newer temporal-model commit
+
+### 1. Synchronize and verify the private source
+
+```bash
+git -C ../chambers-temporal-model fetch --all --prune
+git -C ../chambers-temporal-model pull --ff-only
+git -C ../chambers-temporal-model status --short --branch
+```
+
+The source checkout must be clean and `HEAD` must equal its upstream. The generator refuses a dirty, unpublished, or detached source by default.
+
+Run the temporal repository's own evidence/check process first. Its official Java-based SANY/TLC checks remain the authority for the receipt; this site does not replace them.
+
+### 2. Regenerate the public-safe projection
+
+```bash
+JAVA=/path/to/java \
+TLA_JAR=/path/to/tla2tools-1.7.4.jar \
+TEMPORAL_MODEL=../chambers-temporal-model \
+make sync-tla
+```
+
+The synchronization script:
+
+1. verifies source cleanliness and upstream equality;
+2. verifies the TLA+ tools jar SHA-256 against committed evidence;
+3. verifies current module/config hashes against the evidence receipt;
+4. runs each principal configuration through official `tlc2.TLC`;
+5. parses the complete DOT graph without publishing it;
+6. cross-checks DOT state and transition counts against committed evidence;
+7. validates every curated action and invariant name against the live module;
+8. writes `source/tla-model-projection.json` and then `site/tla/model-data.js`.
+
+### 3. Review the disclosure diff
+
+```bash
+git diff -- source/tla-model-projection.json site/tla/model-data.js \
+  scripts/tla_model_annotations.json
+git diff --check
+```
+
+Confirm that only expected names, descriptions, aggregates, hashes, and receipts changed. Search specifically for raw assignment/state text if model parsing was modified.
+
+### 4. Validate locally
+
+```bash
+make validate
+node --check site/tla/app.js
+node --check site/tla/model-data.js
+```
+
+`make validate` checks both the lifecycle-document explorer and the TLA+ explorer. It verifies exact generated bundles, aggregate coverage, counterexample receipts, source links, local-only runtime assets, responsive markers, and JavaScript syntax when Node is available.
+
+For local interaction diagnosis:
+
+```bash
+make serve
+# http://127.0.0.1:8008/tla/
+```
+
+Exercise all three models and views, scenario playback, action filtering, keyboard focus, and narrow/mobile layouts. Local rendering is not final publication acceptance.
+
+### 5. Publish and perform external QA
+
+After reviewing the diff, commit and push `main`. Wait for the **Publish Lifecycle Atlas** Pages workflow to succeed, then inspect a cache-busted public URL in a managed external browser:
+
+```text
+https://dreamcatcher-tech.github.io/chambers-lifecycle-explorer/tla/?qa=<commit>
+```
+
+Minimum deployed checks:
+
+- root Lifecycle Atlas → **TLA+ Model** link works;
+- Ark Core Explain/TLC/Properties views render and interact;
+- Multi-Ark phase matrix contains reachable dots and selection details;
+- Host Cutover shows the complete 11-state chain;
+- source and evidence receipts show the expected commit/hash;
+- scenario playback can pause/restart;
+- browser Back/Forward restores model/view state;
+- desktop and narrow/mobile screenshots have no clipping or overlap;
+- console has no uncaught error or failed asset request.
+
+## Changing explanatory annotations
+
+Descriptions and walkthroughs may be edited in `scripts/tla_model_annotations.json`, but they must not invent model behavior. Keep names exact and keep the curated/generated distinction visible. `sync_tla_visualization.py` rejects missing or extra `Next` actions and missing invariant operators.
+
+If the model adds a new state variable or topology that does not fit the current scalar/tuple/action aggregation, add a bounded aggregation mode and tests. Do not introduce an unbounded TLA+ parser or silently drop states to make a diagram look cleaner.
+
+## Canonical-source boundary
+
+This repository remains a public projection. Do not edit canonical Fundamentals diagrams, the private temporal model, or architecture-synthesis sources from the visualization refresh. A visualization can expose a discrepancy, but authority/model changes must occur in their owning repository and then be rechecked before this projection advances.

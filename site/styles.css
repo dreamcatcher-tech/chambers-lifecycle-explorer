@@ -209,6 +209,7 @@
   .icon-button.small { width: 44px; height: 44px; border-radius: 11px; font-size: 1.15rem; }
   .icon-button svg, .quiet-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
   .quiet-button { min-height: 44px; gap: 8px; padding: 0 12px; border-radius: 11px; color: var(--muted-strong); font-size: 0.76rem; font-weight: 650; }
+  .tla-model-link { text-decoration: none; }
   .quiet-button kbd { margin-left: 3px; padding: 3px 5px; border: 1px solid var(--line); border-radius: 5px; color: var(--muted); font-size: 0.61rem; }
   .text-button { padding: 0; border: 0; background: none; color: var(--muted-strong); text-decoration: underline; text-underline-offset: 3px; }
 
@@ -979,6 +980,11 @@
     .modal-foot { gap: 8px; }
     .modal-foot span:first-child { display: none; }
     .toast { right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); }
+  }
+
+  @media (max-width: 360px) {
+    .tla-model-link { width: 44px; padding: 0; }
+    .tla-model-link span { display: none; }
   }
 
   @media (prefers-reduced-motion: reduce) {

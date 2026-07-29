@@ -32,11 +32,15 @@ jobs:
       - name: Verify parser and source binding
         run: python3 -m unittest discover -s tests -v
 
-      - name: Verify generated bundle is current
-        run: python3 scripts/build_data.py --check --print-summary
+      - name: Verify generated bundles are current
+        run: |
+          python3 scripts/build_data.py --check --print-summary
+          python3 scripts/build_tla_data.py --check --print-summary
 
-      - name: Validate the publication artifact
-        run: python3 scripts/validate_site.py
+      - name: Validate the publication artifacts
+        run: |
+          python3 scripts/validate_site.py
+          python3 scripts/validate_tla_site.py
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v6

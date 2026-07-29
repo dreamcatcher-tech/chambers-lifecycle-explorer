@@ -4,6 +4,8 @@ A polished, playable explorer for the authoritative Chambers lifecycle and Cardf
 
 **Live site:** <https://dreamcatcher-tech.github.io/chambers-lifecycle-explorer/>
 
+**TLA+ Model Explorer:** <https://dreamcatcher-tech.github.io/chambers-lifecycle-explorer/tla/>
+
 ## What it provides
 
 - **Two explicit document workspaces** — switch between **Chambers** and **Cardflow** without mixing their actors, calls, functions, or provenance. Desktop uses document tabs; tablet/mobile uses a document selector.
@@ -15,6 +17,7 @@ A polished, playable explorer for the authoritative Chambers lifecycle and Cardf
 - **Dictionary** — every canonical term and relationship is generated from the selected document's authoritative `## Dictionary` section, with searchable definitions, related-term navigation, exact-line source links, and document-aware deep links.
 - **Cross-document search** — find a sequence, function, or dictionary term in either authority and move directly into its document workspace.
 - **Exact provenance** — every generated call resolves to a function-table row and every dictionary term resolves to its exact source line; each snapshot is bound to its Fundamentals source commit and SHA-256.
+- **Checked TLA+ model explorer** — the companion page separates a curated lifecycle/topology explanation from complete TLC-derived state-space aggregates and genuine safety/liveness/counterexample receipts. It covers the monolithic Ark Core appliance, Multi-Ark noninterference, and replacement-host cutover without publishing raw private model source or concrete state labels.
 - **Source jump** — the snapshot card and footer open the exact private GitHub source document in a new page for viewers with repository access.
 - **No runtime dependencies** — the published artifact is plain HTML, CSS, JavaScript, and generated data. No CDN or Mermaid runtime is needed.
 
@@ -31,6 +34,8 @@ dreamcatcher-tech/fundamentals
 This public repository contains intentional committed snapshots. The synchronization path is fail-closed: every registered document must be committed, the Fundamentals checkout must be clean and synchronized with its upstream, every diagram call must resolve to that document's function table, and the generated browser bundle must exactly match the copied sources.
 
 The durable maintainer/agent procedure is [`docs/source-refresh-runbook.md`](docs/source-refresh-runbook.md). It covers routine refreshes, semantic review, browser/publication proof, and deliberate onboarding of a new sequence-document family.
+
+The TLA+ projection has a separate disclosure-sensitive procedure in [`docs/tla-model-visualization-runbook.md`](docs/tla-model-visualization-runbook.md). Its source is the private `dreamcatcher-tech/chambers-temporal-model` repository. `sync_tla_visualization.py` runs the pinned models through genuine Java/TLC Graphviz export, proves that every concrete state and transition is represented in a bounded aggregate, checks curated names against the exact modules, and publishes only the approved projection.
 
 ```bash
 git -C ../fundamentals fetch --all --prune
@@ -72,6 +77,14 @@ Useful document-aware deep links:
 ?doc=cardflow&view=dictionary&term=logical-lease
 ```
 
+Useful TLA+ model links:
+
+```text
+tla/
+tla/?model=multi_ark&view=state-space
+tla/?model=host_cutover&view=properties
+```
+
 ## Architecture
 
 ```text
@@ -101,6 +114,26 @@ registered by Host Agent after Gateway readiness; `persistence::core::commit` is
 absent from the top-level sequences. The current Cardflow
 reference is entirely I3. Cardflow function statuses such as **required**
 and **contract extension required** are preserved in the function inspector.
+
+The TLA+ companion follows an independent, one-way public projection:
+
+```text
+private chambers-temporal-model @ exact commit
+  ├─ *.tla + principal *.cfg
+  ├─ model-check evidence receipt
+  └─ complete temporary TLC DOT graphs
+                │
+                ▼
+source/tla-model-projection.json
+  ├─ exact hashes and source-line anchors
+  ├─ complete aggregate state/transition coverage
+  └─ curated descriptions, explicitly labeled as curated
+                │
+                ▼
+site/tla/model-data.js → Explain · TLC state space · Properties
+```
+
+The raw TLA+ source, raw DOT graph, concrete TLC state labels, and private logs remain outside the public repository.
 
 ## Verification
 

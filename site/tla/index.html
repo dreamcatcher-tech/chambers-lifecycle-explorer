@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Interactive, source-bound visualization of the Chambers TLA+ models and genuine TLC state-space evidence." />
+    <meta name="color-scheme" content="dark" />
+    <title>TLA+ Model Explorer · Lifecycle Atlas</title>
+    <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../styles.css" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./model-data.js" defer></script>
+    <script src="./app.js" defer></script>
+  </head>
+  <body class="tla-page">
+    <a class="skip-link" href="#main-content">Skip to model explorer</a>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+
+    <header class="topbar tla-topbar">
+      <a class="brand" href="../" aria-label="Back to Lifecycle Atlas">
+        <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+        <span class="brand-copy">
+          <strong>Lifecycle Atlas</strong>
+          <small>TLA+ model explorer</small>
+        </span>
+      </a>
+
+      <nav class="model-switcher" id="modelSwitcher" aria-label="TLA+ model"></nav>
+
+      <div class="top-actions">
+        <a class="quiet-button atlas-link" href="../">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M11 6l-6 6 6 6" /></svg>
+          <span>Lifecycle Atlas</span>
+        </a>
+        <a class="icon-button source-link" id="headerSourceLink" href="#" target="_blank" rel="noopener noreferrer" aria-label="Open exact temporal-model commit">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5M10 14 19 5M19 14v5H5V5h5" /></svg>
+        </a>
+      </div>
+    </header>
+
+    <main id="main-content" class="tla-main">
+      <section class="model-hero" aria-labelledby="modelTitle">
+        <div class="hero-copy">
+          <p class="eyebrow" id="modelEyebrow">Checked temporal model</p>
+          <h1 id="modelTitle">Loading TLA+ model…</h1>
+          <p class="hero-summary" id="modelSummary"></p>
+          <p class="hero-question" id="modelQuestion"></p>
+        </div>
+        <div class="hero-receipt" aria-label="Model-check receipt">
+          <span class="pass-orbit" aria-hidden="true"><i></i></span>
+          <div>
+            <strong><span id="heroStatus">—</span> by TLC</strong>
+            <span id="heroReceipt">Loading checked evidence…</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="metric-row" aria-label="Current model statistics">
+        <article class="metric-card"><span>Generated</span><strong id="metricGenerated">—</strong><small>TLC states</small></article>
+        <article class="metric-card"><span>Distinct</span><strong id="metricDistinct">—</strong><small>complete state set</small></article>
+        <article class="metric-card"><span>Depth</span><strong id="metricDepth">—</strong><small>maximum search depth</small></article>
+        <article class="metric-card"><span>Actions</span><strong id="metricActions">—</strong><small>named in <code>Next</code></small></article>
+        <article class="metric-card"><span>Properties</span><strong id="metricProperties">—</strong><small>safety + liveness</small></article>
+      </section>
+
+      <section class="view-bar" aria-label="Visualization mode">
+        <div class="view-tabs" id="viewTabs" role="tablist" aria-label="Visualization mode">
+          <button type="button" role="tab" data-view="explain" aria-selected="true">Explain</button>
+          <button type="button" role="tab" data-view="state-space" aria-selected="false">TLC state space</button>
+          <button type="button" role="tab" data-view="properties" aria-selected="false">Properties</button>
+        </div>
+        <p id="viewDisclosure">Curated explanatory structure; exact names are checked against the module.</p>
+      </section>
+
+      <section class="explorer-grid">
+        <article class="visual-card">
+          <header class="visual-toolbar">
+            <div>
+              <span class="tool-label" id="visualKicker">Behavior map</span>
+              <h2 id="visualTitle">Model structure</h2>
+            </div>
+            <div class="scenario-controls" id="scenarioControls">
+              <label for="scenarioSelect">Walk a path</label>
+              <select id="scenarioSelect" aria-label="Choose an explanatory path"></select>
+              <button class="quiet-button" id="scenarioPlay" type="button" aria-label="Play selected path">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7Z" /></svg>
+                <span>Play</span>
+              </button>
+            </div>
+          </header>
+
+          <div class="visual-stage" id="visualStage">
+            <svg id="modelSvg" viewBox="0 0 1000 600" role="img" aria-labelledby="visualTitle visualDescription"></svg>
+            <p class="sr-only" id="visualDescription">Interactive model diagram. Select a state or action for details.</p>
+            <div class="properties-view" id="propertiesView" hidden></div>
+          </div>
+
+          <div class="scenario-strip" id="scenarioStrip" aria-live="polite"></div>
+          <footer class="visual-legend" id="visualLegend"></footer>
+        </article>
+
+        <aside class="model-inspector" aria-labelledby="inspectorTitle">
+          <div class="inspector-kicker" id="inspectorKicker">Selected state</div>
+          <h2 id="inspectorTitle">Choose a node</h2>
+          <p id="inspectorDescription"></p>
+          <dl class="inspector-facts" id="inspectorFacts"></dl>
+          <div class="inspector-actions" id="inspectorActions"></div>
+        </aside>
+      </section>
+
+      <section class="action-section" aria-labelledby="actionHeading">
+        <header>
+          <div>
+            <p class="eyebrow">Executable vocabulary</p>
+            <h2 id="actionHeading">Actions in <code>Next</code></h2>
+          </div>
+          <div class="action-filter" id="actionFilter" aria-label="Filter actions"></div>
+        </header>
+        <div class="action-grid" id="actionGrid"></div>
+      </section>
+
+      <section class="evidence-section" aria-labelledby="evidenceHeading">
+        <header>
+          <p class="eyebrow">Exact provenance</p>
+          <h2 id="evidenceHeading">What is explanatory, generated, and checked?</h2>
+        </header>
+        <div class="evidence-grid">
+          <article class="evidence-card curated">
+            <span>01 · Curated</span>
+            <h3>Explanatory structure</h3>
+            <p id="curatedExplanation"></p>
+          </article>
+          <article class="evidence-card derived">
+            <span>02 · Generated</span>
+            <h3>TLC state-space lens</h3>
+            <p id="derivedExplanation"></p>
+          </article>
+          <article class="evidence-card checked">
+            <span>03 · Checked</span>
+            <h3>Bounded proof receipt</h3>
+            <p id="proofExplanation"></p>
+          </article>
+        </div>
+        <div class="source-receipt">
+          <div>
+            <span class="receipt-label">Temporal source</span>
+            <strong id="receiptCommit">—</strong>
+            <small id="receiptModule">—</small>
+          </div>
+          <div>
+            <span class="receipt-label">TLC / SANY</span>
+            <strong id="receiptTooling">—</strong>
+            <small id="receiptJar">—</small>
+          </div>
+          <div>
+            <span class="receipt-label">Evidence receipt</span>
+            <strong id="receiptEvidence">—</strong>
+            <small id="receiptGenerated">—</small>
+          </div>
+          <a id="receiptSourceLink" href="#" target="_blank" rel="noopener noreferrer">Open exact private source ↗</a>
+        </div>
+      </section>
+
+      <footer class="tla-footer">
+        <span>Lifecycle Atlas · TLA+ Model Explorer</span>
+        <span id="footerBoundary">Public-safe projection; bounded model evidence is not deployment conformance.</span>
+        <a href="../">Back to lifecycle sequences ↑</a>
+      </footer>
+    </main>
+
+    <noscript>This explorer requires JavaScript to render the generated model projection.</noscript>
+  </body>
+</html>

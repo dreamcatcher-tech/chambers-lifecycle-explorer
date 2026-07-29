@@ -3,8 +3,12 @@
 This repository publishes a public interactive projection of deliberately registered private Fundamentals sequence authorities.
 
 - Load and follow `docs/source-refresh-runbook.md` whenever a Fundamentals sequence document changes, a source snapshot or generated bundle is stale, or a new sequence-document family must become a Lifecycle Atlas workspace.
+- Load and follow `docs/tla-model-visualization-runbook.md` whenever the temporal model, TLA+ projection, or `/tla/` application changes. The temporal checkout is private while this repository and its Pages artifact are public.
 - Treat every `source/*.md` file as a copied snapshot, never as architecture authority. The private `dreamcatcher-tech/fundamentals` source documents remain canonical.
 - Never edit `source/manifest.json` or `site/data.js` by hand. Refresh registered sources only with `python3 scripts/sync_source.py <fundamentals-checkout>`.
+- Never edit `source/tla-model-projection.json` or `site/tla/model-data.js` by hand. Regenerate them with `scripts/sync_tla_visualization.py` and `scripts/build_tla_data.py`. The sync must use a clean upstream temporal-model commit, the committed evidence receipt, and genuine Java/TLC DOT export.
+- Keep TLA+ publication layers explicit: **Explain** is a curated explanatory manifest checked against exact action/property names; **TLC state space** is an automatically derived complete aggregation; **Properties** reports checked obligations and real expected-counterexample receipts. Never imply that curated prose/layout is fully derived TLA+ semantics.
+- Do not publish raw private `.tla`/`.cfg` bytes, raw DOT graphs, concrete TLC state labels, raw logs, credentials, or local paths. The approved public projection is limited to exact provenance/hashes/line anchors, operator and variable names, bounded aggregate state/transition data, model-check receipts, and reviewed explanatory descriptions.
 - Existing source registration lives in `scripts/sync_source.py::DOCUMENTS`; matching workspace/parser metadata lives in `scripts/build_data.py::DOCUMENT_CONFIGS`. `source/manifest.json` is generated provenance, not an authoring registry.
 - Register new documents deliberately. Do not glob and publish every Fundamentals sequence file: registration copies exact source bytes into this public repository and browser payload.
 - Before refresh, fetch/pull both repositories and require Fundamentals to be clean, committed, branch-attached, and synchronized with its tracking remote. Do not project ambiguous local bytes.
@@ -27,7 +31,9 @@ This repository publishes a public interactive projection of deliberately regist
 ```bash
 make validate
 node --check site/app.js
+node --check site/tla/app.js
+node --check site/tla/model-data.js
 git diff --check
 ```
 
-- For website changes, commit and push the bounded change, wait for GitHub Pages, and use the cache-busted public deployment as the preview. Perform visual acceptance in a managed external browser, not locally hosted Chrome against localhost; the site does not need to be production-ready for this loop. Exercise desktop/tablet/390px/320px, every registered workspace, the densest sequence/map, Dictionary search/detail/related-term/source-line flows, deep links, keyboard/accessibility behavior, console errors, and live asset readback. If QA finds a defect, push another bounded fix and repeat against Pages.
+- For website changes, commit and push the bounded change, wait for GitHub Pages, and use the cache-busted public deployment as the preview. Perform visual acceptance in a managed external browser, not locally hosted Chrome against localhost; the site does not need to be production-ready for this loop. Exercise desktop/tablet/390px/320px, every registered workspace, the densest sequence/map, Dictionary search/detail/related-term/source-line flows, TLA+ model/view switches, TLC aggregate selection, scenario playback, deep links, keyboard/accessibility behavior, console errors, and live asset readback. If QA finds a defect, push another bounded fix and repeat against Pages.

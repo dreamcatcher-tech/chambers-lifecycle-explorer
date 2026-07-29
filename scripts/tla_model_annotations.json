@@ -1,0 +1,203 @@
+{
+  "schema": "dreamcatcher.chambers-tla-visualization-annotations/v1",
+  "disclosure": "Curated explanatory labels and layout only. Action, variable, property, source-line, state-space, and transition data are regenerated from the pinned TLA+ modules, TLC configurations, checked evidence, and TLC DOT dumps.",
+  "negative_controls": {
+    "member_local_restart": {"model": "ark_core_appliance", "title": "Independent member respawn", "description": "Disable whole-appliance exit after required-role loss."},
+    "stop_without_fence": {"model": "ark_core_appliance", "title": "Stop before authority fence", "description": "Allow selected-Core replacement to stop before route and effect authority are fenced."},
+    "fallback_after_effect": {"model": "ark_core_appliance", "title": "Fallback after irreversible effect", "description": "Allow LKG consumption after the pre-effect safety boundary."},
+    "caller_selected_scope": {"model": "multi_ark", "title": "Payload-selected sibling scope", "description": "Trust a caller-supplied target scope instead of deriving authority from the authenticated connection."},
+    "volume_before_release": {"model": "host_cutover", "title": "Candidate writer before release", "description": "Attach the candidate writer while the incumbent writer is still authoritative."}
+  },
+  "models": {
+    "ark_core_appliance": {
+      "module": "ArkCoreAppliance",
+      "title": "Ark Core Appliance",
+      "short_title": "Ark Core",
+      "eyebrow": "One scope · one failure unit",
+      "summary": "One OCI/gVisor appliance starts its required internal roles in order, opens authority only on aggregate readiness, and recovers or terminalizes as one unit.",
+      "question": "When can one Ark safely admit work, recover, or replace its selected Core?",
+      "property_description": "Under weak fairness for deterministic lifecycle actions, every Off, Starting, Fenced, Crashed, or Recovery state eventually reaches Ready or Terminal.",
+      "aggregation": {
+        "kind": "scalar",
+        "variable": "mode",
+        "label": "TLC states grouped by appliance mode"
+      },
+      "states": {
+        "Off": {"label": "Off", "description": "No appliance task owns the scope. A cold boundary may read the durable selector exactly once.", "tone": "quiet", "x": 92, "y": 215},
+        "Starting": {"label": "Starting", "description": "The task owns its scope attachments while Engine, Persistence, Gateway, and Supervisor become ready in order.", "tone": "blue", "x": 292, "y": 215},
+        "Ready": {"label": "Ready", "description": "Aggregate readiness, route generation, and effect ownership agree; admission may be open.", "tone": "green", "x": 518, "y": 215},
+        "Fenced": {"label": "Fenced", "description": "Route and effect authority are closed before a selected-Core replacement stops the appliance.", "tone": "amber", "x": 760, "y": 118},
+        "Crashed": {"label": "Crashed", "description": "A required-role or activation failure has stopped the entire appliance and closed authority.", "tone": "rose", "x": 744, "y": 405},
+        "Recovery": {"label": "Recovery", "description": "Attachments and descendants have been reaped; policy chooses cached restart, one-use safe fallback, or terminal evidence.", "tone": "violet", "x": 493, "y": 405},
+        "Terminal": {"label": "Terminal", "description": "The bounded recovery policy has stopped with inspectable evidence instead of silently continuing.", "tone": "rose", "x": 220, "y": 405}
+      },
+      "actions": {
+        "ColdReadAndStartTask": {"category": "boundary", "description": "At an Off boundary, cold-read the selected Core, cache that plan, and acquire the task's scope attachments."},
+        "StartEngine": {"category": "startup", "description": "Start Engine first; it is the appliance's internal PID 1."},
+        "StartPersistence": {"category": "startup", "description": "Start Persistence only after Engine is ready."},
+        "StartGateway": {"category": "startup", "description": "Start Gateway only after Engine and Persistence are ready."},
+        "StartSupervisor": {"category": "startup", "description": "Start Supervisor after Engine, Persistence, and Gateway are ready."},
+        "InstallAggregateReadiness": {"category": "readiness", "description": "Bind ProcMan registration and route evidence to the current task epoch once every required role is ready."},
+        "OpenAdmission": {"category": "authority", "description": "Open admission and effect authority only when all aggregate readiness evidence agrees."},
+        "CreateOrdinaryDescendant": {"category": "authority", "description": "Create ordinary descendant work only while the appliance is Ready and admission is open."},
+        "CommitSuccessorSelection": {"category": "selection", "description": "Durably select the successor Core without changing the already cached running plan."},
+        "FenceForSelectionChange": {"category": "boundary", "description": "Close route, admission, and effect authority before replacing the cached Core."},
+        "StopScopeForSelectionChange": {"category": "boundary", "description": "Stop and release the fenced appliance so the next Off boundary can cold-read the successor."},
+        "RequiredRoleFailure": {"category": "failure", "description": "Any required-role loss exits the whole appliance, closes authority, and marks a crash failure."},
+        "MemberLocalRespawn": {"category": "negative", "description": "Deliberately unsafe control reachable only when whole-appliance failure handling is disabled; the checked production configuration makes it unreachable."},
+        "FailStartingRole": {"category": "failure", "description": "An activation-time role failure exits the whole appliance before admission."},
+        "MarkIrreversibleActivationEffect": {"category": "boundary", "description": "Record the point after which an activation failure is no longer safe for automatic LKG fallback."},
+        "ReapCrashedScope": {"category": "recovery", "description": "Reap descendants and release route, network, and volume ownership from the crashed epoch."},
+        "RestartCachedSelection": {"category": "recovery", "description": "Restart the exact cached plan after a crash, even if a newer durable selector is pending."},
+        "ApplyAuthorizedLKG": {"category": "recovery", "description": "Consume the one-use LKG permit only before admission and irreversible effects."},
+        "TerminalizeRecovery": {"category": "recovery", "description": "Stop with inspectable terminal evidence when fallback is unsafe or retries are exhausted."}
+      },
+      "invariants": {
+        "TypeOK": "Every model variable remains inside its declared bounded domain.",
+        "InternalStartupOrder": "Persistence follows Engine; Gateway follows Persistence; Supervisor follows Gateway.",
+        "SingleAuthoritativeVolumeWriter": "At most one task epoch holds the authoritative volume.",
+        "LiveTaskOwnsOneScopeAttachment": "A live task has exactly its own volume/network attachment and a cached Core.",
+        "AdmissionRequiresAggregateReadiness": "Admission implies one live, fully ready, generation-aligned appliance.",
+        "EffectsRequireReadyAppliance": "Effect authority implies Ready, admitted, all-role evidence for the current epoch.",
+        "RequiredRoleFailureStopsWholeAppliance": "Required-role loss leaves no live member, admission, or effect owner behind.",
+        "FallbackIsPreAdmissionPreEffect": "Consumed LKG fallback is proven to be before admission and irreversible effects.",
+        "TerminalStateIsInspectable": "Terminal recovery always records inspectable evidence."
+      },
+      "curated_edges": [
+        {"from": "Off", "to": "Starting", "label": "cold read", "actions": ["ColdReadAndStartTask"]},
+        {"from": "Starting", "to": "Starting", "label": "ordered startup", "actions": ["StartEngine", "StartPersistence", "StartGateway", "StartSupervisor", "InstallAggregateReadiness", "MarkIrreversibleActivationEffect"]},
+        {"from": "Starting", "to": "Ready", "label": "admit", "actions": ["OpenAdmission"]},
+        {"from": "Ready", "to": "Ready", "label": "local work / select", "actions": ["CreateOrdinaryDescendant", "CommitSuccessorSelection"]},
+        {"from": "Ready", "to": "Fenced", "label": "fence", "actions": ["FenceForSelectionChange"]},
+        {"from": "Fenced", "to": "Off", "label": "stop", "actions": ["StopScopeForSelectionChange"]},
+        {"from": "Starting", "to": "Crashed", "label": "startup failure", "actions": ["FailStartingRole"]},
+        {"from": "Ready", "to": "Crashed", "label": "role failure", "actions": ["RequiredRoleFailure"]},
+        {"from": "Crashed", "to": "Recovery", "label": "reap", "actions": ["ReapCrashedScope"]},
+        {"from": "Recovery", "to": "Starting", "label": "restart / LKG", "actions": ["RestartCachedSelection", "ApplyAuthorizedLKG"]},
+        {"from": "Recovery", "to": "Terminal", "label": "terminalize", "actions": ["TerminalizeRecovery"]}
+      ],
+      "scenarios": [
+        {"id": "cold-start", "title": "Cold start to admission", "description": "One cold read, ordered required roles, aggregate evidence, then authority.", "steps": ["ColdReadAndStartTask", "StartEngine", "StartPersistence", "StartGateway", "StartSupervisor", "InstallAggregateReadiness", "OpenAdmission"]},
+        {"id": "cached-crash-recovery", "title": "Whole-appliance crash recovery", "description": "Required-role loss closes the whole scope; recovery reuses the cached plan.", "steps": ["RequiredRoleFailure", "ReapCrashedScope", "RestartCachedSelection", "StartEngine", "StartPersistence", "StartGateway", "StartSupervisor", "InstallAggregateReadiness", "OpenAdmission"]},
+        {"id": "successor-replacement", "title": "Selected-Core replacement", "description": "A committed successor waits behind an explicit fence, stop, and next cold read.", "steps": ["CommitSuccessorSelection", "FenceForSelectionChange", "StopScopeForSelectionChange", "ColdReadAndStartTask", "StartEngine", "StartPersistence", "StartGateway", "StartSupervisor", "InstallAggregateReadiness", "OpenAdmission"]},
+        {"id": "safe-lkg", "title": "Pre-effect LKG fallback", "description": "An activation failure can consume LKG only before admission or irreversible effects.", "steps": ["FailStartingRole", "ReapCrashedScope", "ApplyAuthorizedLKG", "StartEngine", "StartPersistence", "StartGateway", "StartSupervisor", "InstallAggregateReadiness", "OpenAdmission"]}
+      ]
+    },
+    "multi_ark": {
+      "module": "MultiArk",
+      "title": "Multi-Ark Isolation",
+      "short_title": "Multi-Ark",
+      "eyebrow": "Three scopes · no cross-scope authority",
+      "summary": "Two roots and one authenticated child share host ProcMan supervision while retaining separate Core, task, volume, network, route, descendant, and failure state.",
+      "question": "Can one scope start, fail, recover, or create descendants without gaining authority over a sibling?",
+      "property_description": "Under weak fairness, every started scope reaches Ready and every crashed scope reaches Off independently of its siblings.",
+      "aggregation": {
+        "kind": "tuple",
+        "variable": "phase",
+        "dimensions": ["RootA", "RootB", "ChildA"],
+        "values": ["Off", "Starting", "Ready", "Crashed"],
+        "label": "TLC states grouped by RootA / RootB / ChildA phase tuple"
+      },
+      "states": {},
+      "actions": {
+        "StartRoot": {"category": "startup", "description": "Start one named root with only its expected Core, volume, and private network."},
+        "StartChildFromAuthenticatedParent": {"category": "startup", "description": "Start ChildA only through its authenticated RootA parent and assign ChildA's own attachments."},
+        "MarkScopeReady": {"category": "readiness", "description": "Mark one scope Ready and create only that scope's local route."},
+        "CreateOrdinaryDescendant": {"category": "authority", "description": "Derive ordinary descendant authority from the authenticated caller scope, never a requested payload scope."},
+        "CrashScope": {"category": "failure", "description": "Crash one scope and remove only routes owned by that scope."},
+        "ReapScope": {"category": "recovery", "description": "Release only the crashed scope's attachments, authority edges, routes, and descendants."},
+        "RestartReapedScope": {"category": "recovery", "description": "Restart a reaped scope with its own next epoch and expected attachments."}
+      },
+      "invariants": {
+        "TypeOK": "Every per-scope variable remains inside its bounded domain.",
+        "EachScopeKeepsItsOwnAttachments": "Every active scope has its expected private volume and network.",
+        "DistinctActiveScopeAttachments": "Different active scopes never share a volume or private network.",
+        "OnlyScopeLocalRoutes": "Every stable route begins and ends in the same scope.",
+        "NoCrossScopeAuthority": "Ordinary descendant authority never crosses a scope boundary.",
+        "ChildParentIsFixed": "ChildA can only be rooted beneath authenticated RootA.",
+        "RootsRemainIndependent": "RootA and RootB remain independent root scopes."
+      },
+      "structure_nodes": [
+        {"id": "procman", "label": "Host ProcMan", "kicker": "Shared supervision only", "description": "Tracks scope selectors and lifecycle ownership without merging scope authority.", "tone": "violet", "x": 500, "y": 92},
+        {"id": "root-a", "label": "Root A", "kicker": "CoreA · VolumeA · NetworkA", "description": "Independent root scope and authenticated parent of Child A.", "tone": "blue", "x": 260, "y": 270},
+        {"id": "root-b", "label": "Root B", "kicker": "CoreB · VolumeB · NetworkB", "description": "Independent sibling root; no ordinary authority edge to Root A or Child A.", "tone": "green", "x": 740, "y": 270},
+        {"id": "child-a", "label": "Child A", "kicker": "CandidateCore · VolumeChild · NetworkChild", "description": "Separate child-root scope admitted only through authenticated Root A.", "tone": "amber", "x": 260, "y": 470}
+      ],
+      "structure_edges": [
+        {"from": "procman", "to": "root-a", "label": "supervise scope"},
+        {"from": "procman", "to": "root-b", "label": "supervise scope"},
+        {"from": "root-a", "to": "child-a", "label": "authenticated parent"}
+      ],
+      "scenarios": [
+        {"id": "independent-roots", "title": "Independent roots", "description": "Root A and Root B may interleave startup while retaining distinct attachments.", "steps": ["StartRoot", "StartRoot", "MarkScopeReady", "MarkScopeReady"]},
+        {"id": "authenticated-child", "title": "Authenticated child admission", "description": "Root A becomes Ready before it can start Child A in Child A's own scope.", "steps": ["StartRoot", "MarkScopeReady", "StartChildFromAuthenticatedParent", "MarkScopeReady"]},
+        {"id": "scope-local-recovery", "title": "Scope-local recovery", "description": "A named scope crashes, reaps, and restarts without mutating sibling ownership.", "steps": ["CrashScope", "ReapScope", "RestartReapedScope", "MarkScopeReady"]}
+      ]
+    },
+    "host_cutover": {
+      "module": "HostCutover",
+      "title": "Replacement-Host Cutover",
+      "short_title": "Host Cutover",
+      "eyebrow": "Private rehearsal · single authority transfer",
+      "summary": "A candidate appliance validates privately before the incumbent is fenced, its writer is released, and production authority moves once.",
+      "question": "Can a replacement host become authoritative without two writers or a private candidate leaking production authority?",
+      "property_description": "Once an authorized cutover starts, weak fairness over fence, release, attach, readiness, and grant reaches candidate ProductionReady.",
+      "aggregation": {
+        "kind": "last_action",
+        "variable": "lastAction",
+        "label": "Exact TLC state chain keyed by the action that produced each state"
+      },
+      "states": {
+        "Init": {"label": "Incumbent live", "description": "The incumbent owns production writer, route, effects, and outer ingress.", "tone": "green", "x": 78, "y": 140},
+        "ProvisionPrivateCandidate": {"label": "Private start", "description": "The candidate starts without production writer, route, effects, or ingress.", "tone": "blue", "x": 248, "y": 140},
+        "ValidatePrivateCandidate": {"label": "Private ready", "description": "The candidate proves private readiness while remaining non-authoritative.", "tone": "blue", "x": 418, "y": 140},
+        "CompletePrivateCrashRebootRehearsal": {"label": "Rehearsed", "description": "The private candidate completes a crash/reboot rehearsal and returns Off.", "tone": "violet", "x": 588, "y": 140},
+        "BeginCutover": {"label": "Cutover armed", "description": "Cutover begins only after validation and rehearsal; incumbent authority is still intact.", "tone": "amber", "x": 758, "y": 140},
+        "FenceIncumbentAuthority": {"label": "Incumbent fenced", "description": "Route, effects, and outer ingress are removed before writer release.", "tone": "rose", "x": 884, "y": 310},
+        "ReleaseIncumbentWriter": {"label": "Writer released", "description": "The fenced incumbent stops and releases the production writer lease.", "tone": "rose", "x": 758, "y": 480},
+        "AttachCandidateProductionWriter": {"label": "Candidate attached", "description": "Only after release, the candidate starts on the production writer generation.", "tone": "amber", "x": 588, "y": 480},
+        "CandidateAggregateReady": {"label": "Candidate ready", "description": "The candidate proves aggregate readiness for the exact writer generation.", "tone": "blue", "x": 418, "y": 480},
+        "GrantCandidateAuthority": {"label": "Authority moved", "description": "Route, effects, and outer ingress move together to the ready candidate.", "tone": "green", "x": 248, "y": 480},
+        "RetireIncumbent": {"label": "Incumbent retired", "description": "The stopped incumbent retires after the candidate owns production authority.", "tone": "quiet", "x": 78, "y": 480}
+      },
+      "actions": {
+        "ProvisionPrivateCandidate": {"category": "validation", "description": "Start the candidate on non-authoritative private resources."},
+        "ValidatePrivateCandidate": {"category": "validation", "description": "Mark private candidate validation without granting any production ownership."},
+        "CompletePrivateCrashRebootRehearsal": {"category": "validation", "description": "Prove a private crash/reboot cycle before cutover may begin."},
+        "BeginCutover": {"category": "cutover", "description": "Arm the cutover only after private validation and rehearsal."},
+        "FenceIncumbentAuthority": {"category": "boundary", "description": "Remove incumbent route, effect, and outer-ingress authority."},
+        "ReleaseIncumbentWriter": {"category": "boundary", "description": "Release the incumbent's production writer after authority is fenced."},
+        "AttachCandidateProductionWriter": {"category": "cutover", "description": "Attach the candidate writer only after the incumbent writer is gone."},
+        "CandidateAggregateReady": {"category": "readiness", "description": "Prove candidate readiness for the exact attached writer generation."},
+        "GrantCandidateAuthority": {"category": "authority", "description": "Grant route, effect, and outer-ingress ownership together to the candidate."},
+        "RetireIncumbent": {"category": "cutover", "description": "Retire the stopped incumbent after authority has moved."}
+      },
+      "invariants": {
+        "TypeOK": "Every host, phase, owner, and generation remains inside its bounded domain.",
+        "SingleAuthoritativeWriter": "At most one production writer exists.",
+        "SingleRouteOwner": "At most one production route owner exists.",
+        "SingleEffectOwner": "At most one effect owner exists.",
+        "AuthorityOwnersAgree": "Route, effect, and outer-ingress ownership move as one authority set.",
+        "AuthorityRequiresReadyWriter": "Production authority requires a ready host on the exact writer generation.",
+        "PrivateCandidateHasNoProductionAuthority": "Private validation never grants writer, route, effect, or ingress ownership.",
+        "CandidateAuthorityRequiresProof": "Candidate authority requires validation, rehearsal, and exclusive writer ownership.",
+        "FencedIncumbentCannotRegainAuthority": "After fencing begins, the incumbent cannot regain production authority."
+      },
+      "curated_edges": [
+        {"from": "Init", "to": "ProvisionPrivateCandidate", "label": "provision", "actions": ["ProvisionPrivateCandidate"]},
+        {"from": "ProvisionPrivateCandidate", "to": "ValidatePrivateCandidate", "label": "validate", "actions": ["ValidatePrivateCandidate"]},
+        {"from": "ValidatePrivateCandidate", "to": "CompletePrivateCrashRebootRehearsal", "label": "rehearse", "actions": ["CompletePrivateCrashRebootRehearsal"]},
+        {"from": "CompletePrivateCrashRebootRehearsal", "to": "BeginCutover", "label": "arm cutover", "actions": ["BeginCutover"]},
+        {"from": "BeginCutover", "to": "FenceIncumbentAuthority", "label": "fence", "actions": ["FenceIncumbentAuthority"]},
+        {"from": "FenceIncumbentAuthority", "to": "ReleaseIncumbentWriter", "label": "release writer", "actions": ["ReleaseIncumbentWriter"]},
+        {"from": "ReleaseIncumbentWriter", "to": "AttachCandidateProductionWriter", "label": "attach candidate", "actions": ["AttachCandidateProductionWriter"]},
+        {"from": "AttachCandidateProductionWriter", "to": "CandidateAggregateReady", "label": "prove ready", "actions": ["CandidateAggregateReady"]},
+        {"from": "CandidateAggregateReady", "to": "GrantCandidateAuthority", "label": "grant authority", "actions": ["GrantCandidateAuthority"]},
+        {"from": "GrantCandidateAuthority", "to": "RetireIncumbent", "label": "retire", "actions": ["RetireIncumbent"]}
+      ],
+      "scenarios": [
+        {"id": "safe-cutover", "title": "Validated single-writer cutover", "description": "Private proof precedes fence, release, writer attach, readiness, and authority grant.", "steps": ["ProvisionPrivateCandidate", "ValidatePrivateCandidate", "CompletePrivateCrashRebootRehearsal", "BeginCutover", "FenceIncumbentAuthority", "ReleaseIncumbentWriter", "AttachCandidateProductionWriter", "CandidateAggregateReady", "GrantCandidateAuthority", "RetireIncumbent"]}
+      ]
+    }
+  }
+}
