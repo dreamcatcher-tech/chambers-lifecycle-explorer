@@ -66,11 +66,13 @@ The registration surfaces of record are:
    `boot-crash-repair`, `activation-kernel`, and `core-cutover`); allocate a new ID only for a genuinely new sequence.
 
    Cold activation must contain `wake_ark_core`, at least one `start_ark_core`, no lower runtime call, and one note
-   that the canonical selector is read exactly once. One selected Ark Core Appliance is one OCI image, one gVisor
-   task, Engine PID 1, and required Persistence, Gateway, and Supervisor workers in that internal order. Sandbox-local
-   worker bootstrap needs no host-donated Persistence stream. After Gateway installs fail-closed hooks, ProcMan
-   connects directly to the private container IP/III port without a host port mapping, host-network mode, or UDS
-   relay. Ordinary Chambers remain separate.
+   that the canonical selector is read exactly once. One selected Ark Core Appliance is one OCI image and one gVisor
+   task. A one-shot image bootstrap seeds private `/run/iii` tmpfs and `exec`s Engine as PID 1 before required
+   Persistence, Gateway, and Supervisor workers start in that internal order. The loopback Worker Manager at
+   `127.0.0.1:49133` admits only exact required workers without a host-donated Persistence stream. After Gateway
+   installs fail-closed hooks, ProcMan uses the distinct Ark-private Worker Manager at port `49134` through a direct
+   private Core address, with no host port mapping, host-network mode, or UDS relay. Ordinary Chambers remain separate
+   and receive no Ark-volume contents.
 
    The sole mutable Core selector is Persistence-maintained `boot-control/selected.json`. Normal selection is
    `ark::core::stage`, external authorization, `persistence::core::commit`, then `ark::core::restart`. Core restart
@@ -86,10 +88,15 @@ The registration surfaces of record are:
    compatibility-qualified recovery selector before ordinary admission or irreversible effects.
 
    Scope-bound child activation must show `ark::core::activate` creating a separate selector, test volume, private
-   network, Core task, and ProcMan registration. The authenticated child connection supplies scope; the child may
-   create only its own descendants. Never project a cross-scope network route, caller-selected scope, sibling task
-   handle, shared Ark volume, or generic containerd authority. The same primitive supports candidate Core rehearsal
-   and several independent root Arks on one physical host.
+   network, Core task, and ProcMan registration. The authenticated child connection supplies scope and caller-supplied
+   routing fields are rejected. The child may create only its own descendants, each with a separate task attachment
+   to the child network. Never project cross-scope forwarding, caller-selected scope, sibling task handle, shared Ark
+   volume contents, or generic containerd authority. The same primitive supports candidate Core rehearsal and several
+   independent root Arks on one physical host.
+
+   Preserve the source's proof distinction: 22/22 checks establish bounded mechanisms on real runsc/Linux networking,
+   selector/LKG fixtures, and directory-backed volume fences. They do not establish production containerd/CNI-plugin,
+   storage-driver, packaging, deployment, or operational acceptance.
 
    Builder remains separately sandboxed. The Core's accepted residual risk—container-root can reach Persistence's
    mounted data—must not be mislabeled as process isolation or silently restored as a hard four-sandbox constraint.

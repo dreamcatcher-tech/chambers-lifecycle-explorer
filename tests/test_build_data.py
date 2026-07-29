@@ -192,9 +192,14 @@ class BuildDataTests(unittest.TestCase):
         for marker in (
             "one exact OCI image, one gVisor task, one III Engine PID 1",
             "any required Core worker loss -> Engine exit -> complete scope recovery",
-            "private container IP and III port",
+            "one-shot image bootstrap copies accepted III runtime bytes into private `/run/iii` tmpfs",
+            "127.0.0.1:49133",
+            "Ark-private scope listener at port `49134`",
             "There is no host port mapping, host-network mode, donated Unix socket, or TCP fallback",
-            "Host forwarding and routes between sibling scopes are absent",
+            "explicit forwarding-deny fence separates sibling CIDRs",
+            "ordinary descendants receive no Ark-volume contents",
+            "22/22 independently verified checks",
+            "containerd/CNI-plugin and storage-driver integration remain downstream work",
             "no Persistence-, Gateway-, or Supervisor-local restart path",
             "Builder as an ordinary separate sandbox",
         ):
@@ -262,12 +267,17 @@ class BuildDataTests(unittest.TestCase):
         self.assertNotIn("persistence::core::commit", recovery_functions)
         recovery_notes = " ".join(note["text"] for call in recovery["calls"] for note in call["notes"])
         self.assertIn("Never restart an internal worker", recovery_notes)
+        self.assertIn("PID 1 exits non-zero", recovery_notes)
+        self.assertIn("new task ID from the unchanged selected Core and volume", recovery_notes)
 
         child = sequences["scope-bound-child-core"]
         child_notes = " ".join(note["text"] for call in child["calls"] for note in call["notes"])
         self.assertIn("new child scope, private network, test volume, selector", child_notes)
         self.assertIn("authenticated child session supplies scope", child_notes)
-        self.assertIn("cannot see parent siblings or another root Ark", child_notes)
+        self.assertIn("payload routing fields are rejected", child_notes)
+        self.assertIn("deny forwarding to parent and sibling scope networks", child_notes)
+        self.assertIn("cannot see parent siblings, another root Ark", child_notes)
+        self.assertIn("denied recursive activation, cross-scope routes, runtime handles", child_notes)
 
         forbidden = {"routing::reconcile", "routing::fence", "routing::install", "routing::reopen"}
         all_calls = [call for sequence in chambers["sequences"] for call in sequence["calls"]]

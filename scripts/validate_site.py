@@ -103,7 +103,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
 
     chambers, cardflow = documents
     expected_chambers = {
-        "sequences": 16, "actors": 41, "calls": 141, "i3Calls": 130,
+        "sequences": 16, "actors": 42, "calls": 141, "i3Calls": 130,
         "hostCalls": 11, "functions": 52, "usedFunctions": 52, "dictionaryTerms": 52,
     }
     if chambers["stats"] != expected_chambers:
@@ -195,8 +195,13 @@ def validate_manifest_and_bundle(payload: dict) -> None:
         "one exact OCI image, one gVisor task, one III Engine PID 1",
         "boot-control/selected.json",
         "any required Core worker loss -> Engine exit -> complete scope recovery",
-        "ProcMan connects directly to the Core's private container address and III port",
-        "Host forwarding and routes between sibling scopes are absent",
+        "one-shot image bootstrap copies accepted III runtime bytes into private `/run/iii` tmpfs",
+        "127.0.0.1:49133",
+        "Ark-private scope listener at port `49134`",
+        "explicit forwarding-deny fence separates sibling CIDRs",
+        "ordinary descendants receive no Ark-volume contents",
+        "22/22 independently verified checks",
+        "containerd/CNI-plugin and storage-driver integration remain downstream work",
         "no Persistence-, Gateway-, or Supervisor-local restart path",
         "Gateway warm cutover applies only to ordinary Chambers",
         "one-attempt LKG fallback",
@@ -212,6 +217,12 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     bootstrap_calls = [call["function"] for call in sequence_by_id["core-bootstrap"]["calls"]]
     if bootstrap_calls.count("routing::authenticate") != 2 or bootstrap_calls.count("routing::authorize_registration") != 2:
         fail("Ark Core bootstrap must install Gateway hooks and admit scope-bound ProcMan")
+    bootstrap_notes = " ".join(
+        note["text"] for call in sequence_by_id["core-bootstrap"]["calls"] for note in call["notes"]
+    )
+    for required in ("private /run/iii tmpfs", "127.0.0.1:49133", "scope-IP:49134"):
+        if required not in bootstrap_notes:
+            fail(f"Ark Core bootstrap projection is missing {required}")
 
     selection_calls = [call["function"] for call in sequence_by_id["selection-rollback"]["calls"]]
     for required in ("ark::core::stage", "persistence::core::commit", "ark::core::restart"):
@@ -254,6 +265,12 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     for required in ("ark::core::activate", "start_ark_core", "chamber::activate"):
         if required not in child_calls:
             fail(f"scope-bound child Core sequence is missing {required}")
+    child_notes = " ".join(
+        note["text"] for call in sequence_by_id["scope-bound-child-core"]["calls"] for note in call["notes"]
+    )
+    for required in ("payload routing fields are rejected", "deny forwarding to parent and sibling scope networks", "Ark-volume contents"):
+        if required not in child_notes:
+            fail(f"scope-bound child Core projection is missing {required}")
 
     retired_functions = [
         function["id"] for function in chambers["functions"]
