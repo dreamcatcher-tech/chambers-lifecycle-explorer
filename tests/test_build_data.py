@@ -32,6 +32,7 @@ class BuildDataTests(unittest.TestCase):
                 "core-bootstrap",
                 "boot-crash-repair",
                 "scope-bound-child-core",
+                "ark-peer-interconnect",
                 "candidate-formation",
                 "fenced-development",
                 "artifact-build",
@@ -78,7 +79,7 @@ class BuildDataTests(unittest.TestCase):
 
     def test_document_counts_match_the_two_sources(self) -> None:
         chambers = self.documents["chambers"]["stats"]
-        self.assertEqual((16, 141, 52, 130, 11, 52), (
+        self.assertEqual((17, 146, 57, 135, 11, 57), (
             chambers["sequences"], chambers["calls"], chambers["functions"],
             chambers["i3Calls"], chambers["hostCalls"], chambers["dictionaryTerms"],
         ))
@@ -87,7 +88,7 @@ class BuildDataTests(unittest.TestCase):
             cardflow["sequences"], cardflow["calls"], cardflow["functions"],
             cardflow["i3Calls"], cardflow["hostCalls"], cardflow["dictionaryTerms"],
         ))
-        self.assertEqual(82, self.payload["stats"]["dictionaryTerms"])
+        self.assertEqual(87, self.payload["stats"]["dictionaryTerms"])
 
     def test_prepared_image_and_execution_profile_projection_survives(self) -> None:
         chambers = self.documents["chambers"]
@@ -119,7 +120,7 @@ class BuildDataTests(unittest.TestCase):
         )
         self.assertTrue(all(function["kind"] == "i3" for function in self.documents["cardflow"]["functions"]))
 
-    def test_chambers_display_starts_with_install_bootstrap_recovery_child_then_ordinary(self) -> None:
+    def test_chambers_display_starts_with_install_bootstrap_recovery_child_peer_then_ordinary(self) -> None:
         sequences = self.documents["chambers"]["sequences"]
         self.assertEqual(
             [
@@ -128,9 +129,10 @@ class BuildDataTests(unittest.TestCase):
                 ("core-bootstrap", "Ark Core bootstrap"),
                 ("boot-crash-repair", "Whole-appliance recovery"),
                 ("scope-bound-child-core", "Child Ark Core scope"),
+                ("ark-peer-interconnect", "Ark peer interconnect"),
                 ("activation-kernel", "Ordinary activation"),
             ],
-            [(sequence["id"], sequence["shortTitle"]) for sequence in sequences[:6]],
+            [(sequence["id"], sequence["shortTitle"]) for sequence in sequences[:7]],
         )
         self.assertEqual(list(range(1, len(sequences) + 1)), [sequence["ordinal"] for sequence in sequences])
 
@@ -140,6 +142,7 @@ class BuildDataTests(unittest.TestCase):
         core_calls = [call["function"] for call in by_id["core-bootstrap"]["calls"]]
         recovery_calls = [call["function"] for call in by_id["boot-crash-repair"]["calls"]]
         child_calls = [call["function"] for call in by_id["scope-bound-child-core"]["calls"]]
+        peer_calls = [call["function"] for call in by_id["ark-peer-interconnect"]["calls"]]
         ordinary_calls = [call["function"] for call in by_id["activation-kernel"]["calls"]]
 
         self.assertEqual(["install_core_seed", "start_ark_core"], installation_calls[:2])
@@ -152,7 +155,12 @@ class BuildDataTests(unittest.TestCase):
         self.assertIn("recover_ark_tree", recovery_calls)
         self.assertIn("start_ark_core", recovery_calls)
         self.assertIn("ark::core::activate", child_calls)
+        self.assertIn("ark::child::stop", child_calls)
         self.assertIn("chamber::activate", child_calls)
+        self.assertEqual(
+            {"ark::peer::contact", "ark::peer::connect", "ark::peer::session::open", "ark::peer::disconnect"},
+            set(peer_calls),
+        )
         self.assertIn("persistence::realization::read", ordinary_calls)
         self.assertIn("chamber::activate", ordinary_calls)
         self.assertFalse(any(call.startswith(("containerd_", "persistence_volume_", "bootset_")) for call in host_calls))
@@ -196,7 +204,7 @@ class BuildDataTests(unittest.TestCase):
             "127.0.0.1:49133",
             "Ark-private scope listener at port `49134`",
             "There is no host port mapping, host-network mode, donated Unix socket, or TCP fallback",
-            "explicit forwarding-deny fence separates sibling CIDRs",
+            "explicit inter-scope forwarding-deny fence",
             "ordinary descendants receive no Ark-volume contents",
             "22/22 independently verified checks",
             "s6 whole-appliance fatality, production containerd/CNI-plugin, and storage-driver integration require their own acceptance evidence",
@@ -272,12 +280,20 @@ class BuildDataTests(unittest.TestCase):
 
         child = sequences["scope-bound-child-core"]
         child_notes = " ".join(note["text"] for call in child["calls"] for note in call["notes"])
-        self.assertIn("new child scope, private network, test volume, selector", child_notes)
+        self.assertIn("new child scope, private network, volume, selector", child_notes)
         self.assertIn("authenticated child session supplies scope", child_notes)
-        self.assertIn("payload routing fields are rejected", child_notes)
+        self.assertIn("payload parent/routing fields are rejected", child_notes)
         self.assertIn("deny forwarding to parent and sibling scope networks", child_notes)
-        self.assertIn("cannot see parent siblings, another root Ark", child_notes)
-        self.assertIn("denied recursive activation, cross-scope routes, runtime handles", child_notes)
+        self.assertIn("new Chamber can reach only its owning Child Core", child_notes)
+        self.assertIn("Parenthood grants no inspection, data, route, policy, or ordinary-control capability", child_notes)
+        self.assertIn("denied cross-scope routes, runtime handles, and caller-selected scope", child_notes)
+        self.assertIn("ark::child::stop", [call["function"] for call in child["calls"]])
+
+        peer = sequences["ark-peer-interconnect"]
+        peer_notes = " ".join(note["text"] for call in peer["calls"] for note in call["notes"])
+        self.assertIn("through an activation receipt, Oath/registry exchange, or any authorized out-of-band path", peer_notes)
+        self.assertIn("same-host, parent/child, sibling, and remote peers use the same end-to-end protocol", peer_notes)
+        self.assertIn("scope-private Worker Manager address and ProcMan lifecycle channel are never exposed", peer_notes)
 
         forbidden = {"routing::reconcile", "routing::fence", "routing::install", "routing::reopen"}
         all_calls = [call for sequence in chambers["sequences"] for call in sequence["calls"]]

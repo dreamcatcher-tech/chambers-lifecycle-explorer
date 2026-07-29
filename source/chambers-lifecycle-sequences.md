@@ -40,6 +40,7 @@ containerd/CNI-plugin, and storage-driver integration require their own acceptan
 - [Host reboot into the selected Ark Core](#host-reboot-into-the-selected-ark-core)
 - [Whole-appliance crash recovery](#whole-appliance-crash-recovery)
 - [Scope-bound child Ark Core activation](#scope-bound-child-ark-core-activation)
+- [Ark-to-Ark peer interconnect](#ark-to-ark-peer-interconnect)
 - [Ordinary Chamber activation kernel](#ordinary-chamber-activation-kernel)
 - [Fenced development](#fenced-development)
 - [Form a candidate Realization](#form-a-candidate-realization)
@@ -65,11 +66,13 @@ Each term is unique in this table. **Definition** is normative; **Related terms*
 | Acceptance receipt | Durable evidence that one exact launch specification, artifact, or Ark Core Appliance was accepted under one policy and named evidence receipts. | Inspection receipt; Realization |
 | Activation | The operation that creates one fresh Chamber from one exact Realization and lease. It is not a durable identity. | Chamber; Realization; Run receipt |
 | Admission | Host Agent-owned authority binding one fresh connection identity to one exact scope, Chamber, Realization, registration contract, Engine listener, epoch, profile, and expiry. | Ark scope; Chamber lease; Host Agent; libp2p PeerId; Registration contract |
+| Ark contact card | An Ark-signed, expiring descriptor containing its Ark PeerId, supported interconnect protocol versions, and direct or relay-reachable addresses. It is routing metadata, not a bearer capability, lifecycle handle, or invitation. | Ark Interconnect; Gateway; libp2p PeerId |
 | Ark Core Appliance | One accepted OCI image and one gVisor Chamber containing s6 as PID 1, the III Engine, and required Persistence, Gateway, and Supervisor processes. s6 runs one-shot private-runtime bootstrap, ordered startup, aggregate process supervision, and whole-task fail-fast shutdown; the appliance is one selection, upgrade, crash, and recovery unit. | Ark Core selection; Ark scope; Engine; Gateway; Persistence; Supervisor |
 | Ark Core Seed | An externally accepted one-use installation or explicit-recovery bundle containing one exact Ark Core Appliance, initial durable Persistence state, selector bytes, and optionally an accepted Builder Realization. It never selects itself after enrollment. | Ark Core Appliance; Ark Core selection; Builder |
 | Ark Core selection | The sole mutable canonical JSON record `boot-control/selected.json` for one Ark scope. Persistence normally replaces it atomically under an expected-generation fence after exact content is staged and promotion is authorized; ProcMan reads it exactly once at each cold boundary. | Ark Core Appliance; Ark scope; Host Agent; Persistence |
-| Ark scope | The immutable ProcMan lifecycle and isolation domain for one Ark Core Appliance, its volume, private network, selector, last-known-good record, and descendants. A request's scope is derived from its authenticated connection, never caller-selected. | Ark Core Appliance; Ark-private network; Root-capable activation |
-| Ark-private network | One container network allocated to one Ark scope, with a per-task attachment for its Core and each ordinary descendant. The host reaches the Core's private address directly, while host port publication, host networking, and forwarding to sibling-scope networks are explicitly denied. | Ark scope; Engine; Host Agent |
+| Ark Interconnect | The universal Gateway-mediated, end-to-end authenticated peer transport used by any two Arks, whether parent/child, siblings, co-located, or remote. A receiver-local invitation and policy authorize the exact peer session and exported I3 capabilities; topology and parenthood authorize nothing. | Ark contact card; Gateway; I3 function; libp2p PeerId |
+| Ark scope | The immutable ProcMan lifecycle and isolation domain for one Ark Core Appliance, its volume, private network, selector, last-known-good record, and descendants. One host has exactly one parentless host-root scope; every other scope is a child whose parent is derived from an authenticated creation request, never caller-selected. | Ark Core Appliance; Ark-private network; Child Ark; Host-root Ark |
+| Ark-private network | One container network allocated to one Ark scope, with a per-task attachment for its Core and each ordinary descendant. The host reaches the Core's private address directly, while host port publication, host networking, and forwarding to other scope networks are explicitly denied. Accepted Gateway egress may reach topology-neutral Ark Interconnect addresses without making another scope locally routable. | Ark Interconnect; Ark scope; Engine; Host Agent |
 | Artifact-backed launch spec | A normalized launch specification whose executable root is one exact OCI descriptor with exact provider or bounded rebuild provenance and fixed runtime and security configuration. | Normalized launch spec; OCI digest; Source-composed launch spec |
 | Assembly Covenant | A Covenant that expands to a process-tree subtree. The Assembly itself has no Chamber. | Covenant; Runnable Covenant |
 | Build receipt | Durable evidence binding one build request, Builder Realization, output artifact identity, and evidence root. | Acceptance receipt; Realization |
@@ -77,6 +80,8 @@ Each term is unique in this table. **Definition** is normative; **Related terms*
 | Candidate | One exact accepted or testable Realization retained under a bounded Hold but not selected as current. | Current selection; Hold; Realization |
 | Chamber | One ephemeral host-local activation of one exact Runnable Covenant Realization. Every activation or restart receives a fresh Chamber ID; workers packaged together share that Chamber's physical fate. | Activation; Ark Core Appliance; Chamber lease; Realization |
 | Chamber lease | Bounded Host Agent authority for one exact Chamber, including admission, lifetime, and cleanup scope. | Admission; Chamber; Host Agent |
+| Child Ark | An independently isolated Ark scope created only by a live Ark's authenticated `ark::core::activate` request. It may serve development, rehearsal, delegation, or another principal without inheriting the lifecycle parent's policy or identity. | Ark scope; Host-root Ark; Lifecycle parent |
+| Child Ark activation | A specific accepted Host Agent operation that creates one direct child Ark scope for an exact Core under the authenticated caller's child-creation lease. The child receives ProcMan authority only for its own descendants; the parent receives only the distinct direct-child teardown handle. | Ark Core Appliance; Ark scope; Child Ark; Host Agent; Lifecycle parent |
 | containerd | ProcMan's sole image, snapshot, and task backend. It retains exact selected and fallback OCI content but owns no selection or application policy. | Ark Core Appliance; Ark Core selection; Host Agent; OCI digest |
 | Contract Covenant | A promise-only Covenant with no Chamber of its own. | Covenant; Runnable Covenant |
 | Covenant | A location-independent promise describing behavior, dependencies, resources, workers, evidence, and policy without naming the repository that carries it. | Assembly Covenant; Contract Covenant; Runnable Covenant |
@@ -89,13 +94,15 @@ Each term is unique in this table. **Definition** is normative; **Related terms*
 | Execution profile | Immutable Covenant and Realization policy choosing `dynamic-job` or `resident-service`, with the allowed entrypoint, availability promise, deadlines, and minimum ready residency. | Dynamic job; Prepared Realization; Resident service; Realization |
 | Gateway | The required Ark Core worker combining authentication, RBAC/authorization, bounded volatile buffering, stable-route proxying, exact route projection, route epochs, and fencing in RAM. | Ark Core Appliance; Engine; Persistence; Route; Supervisor |
 | Hold | A bounded reference retaining one exact candidate and its custody, owner, expiry, and cleanup authority. | Candidate; Realization |
-| Host Agent | The small non-Chamber host authority, also called ProcMan. Per Ark scope it reads one selector at cold activation, attaches one volume and private network, starts one opaque Core task, attaches descendants only to that scope, enforces the no-forwarding boundary, owns physical lifecycle and Admission, and executes one bounded pre-authorized fallback. It contains no internal Core orchestration or Covenant policy. | Admission; Ark Core selection; Ark scope; containerd; Engine |
+| Host Agent | The small non-Chamber host authority, also called ProcMan. It has one configured host-root boot slot. Per scope it reads one selector at cold activation, attaches one volume and private network, starts one opaque Core task, attaches descendants only to that scope, enforces the no-forwarding boundary, owns physical lifecycle and Admission, and executes one bounded pre-authorized fallback. It creates every non-root scope only for an authenticated live parent's child request and contains no internal Core orchestration or Covenant policy. | Admission; Ark Core selection; Ark scope; containerd; Engine; Host-root Ark |
+| Host-root Ark | The sole parentless Ark scope configured for one ProcMan host. Installation, wake, reboot, and lower-platform recovery may boot only this scope directly; multi-Ark hosting occurs below it. | Ark scope; Child Ark; Host Agent |
 | I3 function | A named function registered by one owning actor and invoked at that actor. Sequence diagrams omit Engine's ordinary brokerage path. | Engine; Registration contract; Worker |
 | Immutable identity | A provider-native commit, tree, digest, CID, or snapshot identifying exact content rather than a moving locator. | Covenant lock; OCI digest; Provider |
 | Inspection receipt | Durable evidence binding one exact artifact, inspection plan, evidence root, and verdict. | Acceptance receipt; OCI digest |
 | Kind | The logical content form being addressed, independent of provider and location. | Provider |
 | Latest | A moving resolution policy. It is never runtime identity or selection authority. | Covenant locator; Current selection |
 | libp2p PeerId | Proof-of-possession transport identity authenticated by Noise. Ordinary Chambers use fresh lease identities; each Core and ProcMan session is bound to one Ark scope and epoch. | Admission; Ark scope; Chamber |
+| Lifecycle parent | The Ark whose authenticated child-creation request caused one direct child scope to exist. Parenthood grants only an opaque, generation-bound right to tear down that direct child's complete subtree; it grants no data, route, inspection, identity, policy, peer-session, or ordinary control authority. | Child Ark; Host Agent; Host-root Ark |
 | Normalized launch spec | One exact source-composed or artifact-backed runtime composition with fixed platform, resources, launcher, runtime, and security inputs. | Artifact-backed launch spec; Source-composed launch spec; Realization |
 | OCI digest | Immutable materialization and verification identity for one OCI object or graph. Ark Core selection names an exact appliance digest, never a moving image tag. | Ark Core Appliance; Artifact-backed launch spec; containerd; Realization |
 | Operation | Durable exact lifecycle intent retained until a matching terminal receipt; retries reconcile that same intent before conflicting work. | Activation; Selection |
@@ -106,7 +113,6 @@ Each term is unique in this table. **Definition** is normative; **Related terms*
 | Realization ID | The digest of the canonical Realization manifest body. | Realization |
 | Registration contract | The digest of the canonical declared worker and export set for one exact Realization or Core worker. Engine admits only the exact scope- and epoch-bound set. | Admission; Ark Core Appliance; Realization; Worker |
 | Resident service | A selected Prepared Realization whose profile requires Supervisor to keep an exact ready Chamber and Gateway to expose its stable declared functions. | Dynamic job; Execution profile; Prepared Realization; Route |
-| Root-capable activation | A specific accepted Host Agent operation that creates a child Ark scope for an exact candidate Core. The child receives ProcMan authority only for its own descendants and never ambient containerd or sibling-scope authority. | Ark Core Appliance; Ark scope; Host Agent |
 | Route | A live Gateway-owned in-memory projection registered into Engine. It is reconstructed from Persistence and never selects an Ark Core Appliance. | Current selection; Dynamic job; Engine; Gateway; Resident service |
 | Run receipt | Durable evidence binding one Realization ID, fresh Chamber ID, host evidence, runtime specification identity, and outcome. | Activation; Chamber; Realization |
 | Runnable Covenant | A Covenant whose selected Realization may have zero or many concurrent Chambers, each containing one or more workers. | Chamber; Covenant; Worker |
@@ -131,6 +137,9 @@ Each term is unique in this table. **Definition** is normative; **Related terms*
 
 ### Cardinality
 
+- `one ProcMan host -> exactly one configured host-root Ark scope`; only lower installation, wake, reboot, or recovery boots that parentless scope directly.
+- `one authenticated child-creation request -> one direct child Ark scope + one distinct teardown handle`; every non-root Ark has exactly one lifecycle parent.
+- `one lifecycle parent -> zero or many direct child Arks`; each child may create only its own direct descendants under the same rule.
 - `one Ark scope -> one selector -> zero or one live Ark Core Appliance -> zero or many descendant Chambers`.
 - `one selected Core activation -> one Chamber + one s6 PID 1 + one Engine process + exactly one required Persistence process + one required Gateway process + one required Supervisor process`.
 - `one Core -> one OCI image + one gVisor sandbox + one private runtime tmpfs + one volume attachment + one Ark-private network + one Engine epoch + one recovery fate`.
@@ -140,7 +149,7 @@ Each term is unique in this table. **Definition** is normative; **Related terms*
 - `one Prepared Realization -> one exact retained OCI graph + zero or many fresh Chambers over time`.
 - `one dynamic-job request -> one fresh Chamber -> one terminal result or failure -> zero retained job tasks`.
 - `one selected resident-service -> at least one exact ready Chamber while its availability policy is active`.
-- `one root-capable activation -> one child Ark scope`; its descendants inherit only that child scope.
+- `one accepted Ark contact card + one receiver-local invitation -> at most one exact authenticated peer session`; parenthood and co-location contribute no authority.
 
 ### Runtime
 
@@ -149,7 +158,8 @@ Each term is unique in this table. **Definition** is normative; **Related terms*
 - The immutable image starts s6 as PID 1. An accepted s6 one-shot copies III runtime bytes into private `/run/iii` tmpfs without making the image root writable; ordered long-runs then start Engine, Persistence, Gateway, and Supervisor.
 - s6 never repairs a required Core member locally. Any required-process exit or Engine-validated semantic-readiness loss records the cause, withdraws aggregate readiness, stops the complete service tree, and exits the Core task. The accepted s6 graph and its fixed failure notifier are part of the selected Core closure.
 - Engine exposes `127.0.0.1:49133` only for exact required in-appliance workers and an Ark-private scope listener at port `49134` for Gateway-authorized traffic. ProcMan connects directly to the private container address only after Gateway policy readiness. There is no host port mapping, host-network mode, donated Unix socket, or TCP fallback.
-- Each Ark scope has a distinct private network with one attachment per gVisor task. An explicit forwarding-deny fence separates sibling CIDRs; descendants attach only to their owning scope.
+- Each Ark scope has a distinct private network with one attachment per gVisor task. An explicit forwarding-deny fence separates every pair of scope CIDRs; descendants attach only to their owning scope.
+- Each ready Ark Gateway may use its ordinary accepted egress profile to dial direct or mutually selected relay addresses from an Ark contact card. The same end-to-end authenticated Ark Interconnect session is required for parent/child, siblings, same-host, and remote peers; ProcMan never wires a pair-specific route.
 - ProcMan treats selector read, content resolution, OCI specification, containerd, runsc, mount, CNI, and task cleanup as one internal launch/stop macro. Top-level diagrams expose intent, not those subcommands.
 - Gateway buffering is bounded and volatile. Core restart loses it; callers remain idempotent and retry.
 - Build is never part of Core cold start or ordinary activation.
@@ -159,13 +169,15 @@ Each term is unique in this table. **Definition** is normative; **Related terms*
 - `core_selection = {schema, generation, selected_core, expected_predecessor, acceptance, promotion_permit, fallback}`.
 - `fallback = {last_known_good_core, exact_selector_bytes_digest, fallback_permit, eligibility, max_attempts: 1}` or null.
 - `core_manifests[digest] = immutable accepted Ark Core Appliance manifest`.
-- `host_scope_journal[scope] = {parent_scope, selector_digest, selected_generation, active_core, task_id, volume_fence, network_id, forwarding_fence, descendants, admission_opened, fallback_consumed, phase}`.
+- `host_scope_journal[scope] = {parent_scope, selector_digest, selected_generation, active_core, task_id, volume_fence, network_id, forwarding_fence, descendants, direct_child_teardown_handles, admission_opened, fallback_consumed, phase}`.
 - ProcMan reads selector bytes exactly once per cold activation and caches one exact plan for same-selection whole-appliance recovery.
 - Persistence normally writes `boot-control/selected.json`; ProcMan may install only exact pre-authorized fallback bytes before admission/effects.
 - `current[name] = {revision, realization}` remains the ordinary selection.
 - `candidates[name][realization] = Hold reference`; `prepared[realization]` stores verification, shutdown, retention, and provider evidence, not OCI bytes.
 - Gateway RAM is reconstructible from Persistence, live Chamber observations, Engine epoch, and route epoch.
 - Scope identity is derived from the authenticated Core connection; callers cannot name a sibling scope or parent task.
+- `peer_contact[ark] = {ark_peer_id, protocol_versions, direct_or_relay_addresses, expiry, signature}` contains no lifecycle or bearer authority.
+- `peer_session = {local_ark, remote_ark, remote_peer_id, invitation, policy_revision, admitted_exports, epoch, expiry}` is Gateway-owned volatile projection reconstructed only from receiver-local durable policy and a fresh authenticated handshake.
 
 ### Routing
 
@@ -175,7 +187,9 @@ Each term is unique in this table. **Definition** is normative; **Related terms*
 - Ordinary Chambers connect only to their owning Core's Ark-private listener with fresh lease identities and exact Admissions; they receive no Ark-volume attachment or contents.
 - Supervisor derives desired ordinary routes from Persistence and asks Gateway to reconcile the complete projection before admission opens.
 - Gateway warm cutover applies only to ordinary Chambers, never the Ark Core Appliance.
-- No network route, Engine address, mount, task handle, registration namespace, or lifecycle capability crosses sibling Ark scopes.
+- No private network route, Engine address, mount, task handle, registration namespace, or ordinary lifecycle capability crosses Ark scopes.
+- Ark-to-Ark traffic crosses only the Ark Interconnect boundary: the remote Ark PeerId is authenticated end to end, the receiver validates its own invitation and policy, and Gateway projects only the admitted peer-session exports. The scope-private Worker Manager address is never published as a peer address.
+- A signed contact card can be exchanged in an activation receipt, through Oath/registry traffic, or out of band, but it never creates a route or session by itself.
 
 ### Transition
 
@@ -185,18 +199,20 @@ Each term is unique in this table. **Definition** is normative; **Related terms*
 - `required role failure = process exit or Engine-validated semantic loss -> s6 closes aggregate readiness and exits the Core task -> ProcMan reaps descendants and old Core -> restart exact still-selected appliance`.
 - `activation fallback = successor fails before admission/effects + exact pre-authorized LKG + compatibility + unused permit -> remove successor residue -> install exact fallback selector -> one fallback cold start`.
 - Automatic fallback is forbidden after ordinary admission, irreversible migration/effect, incompatible state, or the one bounded attempt.
-- A candidate Core may be activated in a child scope with a non-production volume and its own network, then create only descendants of that scope.
+- A ready Ark may activate an accepted Core in one direct child scope with its own volume policy and network. The child may create only its own descendants; development/rehearsal and delegated hosted use follow the same lifecycle primitive.
+- Parent teardown consumes the exact direct-child handle and reaps that child's complete subtree. It does not expose a child inspect/control session and cannot be redirected by a caller-supplied scope.
+- Peer connection is independent: contact-card exchange -> receiver-local invitation -> end-to-end authenticated session -> exact exported I3 routes. Parent/child status is neither a guard nor a grant.
 - Reaping any Chamber never mutates either selector.
 
 ### Authority
 
-- Host Agent owns only opaque scope creation/recovery, selector-bound Core start/stop, one volume and network attachment per scope, descendant physical lifecycle, Admission, task evidence, and bounded fallback execution.
+- Host Agent owns only one configured host-root boot slot, opaque direct-child scope creation/recovery, selector-bound Core start/stop, one volume and network attachment per scope, descendant physical lifecycle, exact direct-child teardown handles, Admission, task evidence, and bounded fallback execution.
 - Host Agent does not know or repair individual Core workers, interpret Covenant graphs, choose routes, build images, or expose raw containerd, shell, path, mount, runtime-flag, or caller-selected scope passthrough.
 - Persistence is the sole normal writer of Ark Core and ordinary selections and owns durable desired state and receipts.
 - Gateway owns live authentication, authorization, route projection, fencing, and bounded volatile buffering.
 - Supervisor proposes logical lifecycle work and typed physical/route effects but owns no durable selector or runtime socket.
 - Engine owns transport, registration, dispatch, and semantic readiness. s6 owns required-process mechanics and whole-task fatality; neither is ProcMan application orchestration.
-- A root-capable grant is accepted only for an exact candidate Core profile. ProcMan derives its child scope and never grants ambient host or sibling authority.
+- A child-creation grant is accepted only from an authenticated live Ark scope for an exact accepted Core profile. ProcMan derives the direct parent, never creates a second parentless scope, and grants only the resulting direct-child teardown handle—never ambient host, data, peer-session, or sibling authority.
 - Ordinary and untrusted Chambers remain separate gVisor tasks and receive no Core volume contents or runtime socket; an empty image mountpoint is not an attachment.
 
 ## Lifecycle call table
@@ -209,7 +225,8 @@ results are implied. Names containing `::` are I3 function IDs. Snake-case rows 
 
 | Function | Invocation path | Brief contract |
 | --- | --- | --- |
-| `ark::core::activate` | I3 | Create one child Ark scope for an exact accepted root-capable candidate, with its own selector, non-production volume, private network, Core task, and scope-bound ProcMan registration. |
+| `ark::core::activate` | I3 | Create one direct child Ark scope for an exact accepted Core under the authenticated caller and its child-creation lease, with its own selector, volume policy, private network, Core task, and scope-bound ProcMan registration; return a distinct teardown handle and, after readiness, the child-issued contact card, neither of which grants a peer session. |
+| `ark::child::stop` | I3 | Consume one opaque generation-bound handle to stop and reap the authenticated caller's exact direct child subtree; expose no child data, task handle, route, inspection, policy, or ordinary control surface. |
 | `ark::core::inspect` | I3 | Return capability-scoped evidence for the caller's exact Core scope, selector digest cached at its cold boundary, task, descendants, volume fence, network, readiness, and fallback eligibility. |
 | `ark::core::quiesce` | I3 | Consume one committed scope stop plan and final-reply handoff, stop and reap descendants and the single Core task, and retain unchanged selection and exact OCI closure. |
 | `ark::core::restart` | I3 | Consume an exact selector-commit receipt and final-reply handoff, stop the caller's scope tree, then cold-read once and start one fresh selected Core. |
@@ -218,12 +235,12 @@ results are implied. Names containing `::` are I3 function IDs. Snake-case rows 
 | `chamber::inspect` | I3 | Return a scope-filtered view of one exact Chamber, task, lease, Admission, operation, and receipt evidence. |
 | `chamber::stop` | I3 | Stop and reap one exact ordinary Chamber in the caller's scope under an expected subject fence. |
 | `deliver_final_reply` | **External conventional call (not I3)** | Use a handed-off lower reply capability after terminal evidence is durable and the Core may be stopped. |
-| `install_core_seed` | **External conventional call (not I3)** | Consume one accepted Ark Core Seed on a proved-unenrolled scope, atomically seed exact selection, and request first start. |
+| `install_core_seed` | **External conventional call (not I3)** | Consume one accepted Ark Core Seed on the proved-unenrolled configured host-root scope, atomically seed exact selection, and request its first start; never create another parentless scope. |
 | `recover_ark_tree` | **External conventional call (not I3)** | On Core exit or aggregate-readiness failure, stop/reap that scope's descendants and old Core, release its attachments, and start the exact still-selected Core from the cached plan. |
 | `start_ark_core` | **External conventional call (not I3)** | Encapsulate one selector read, exact content check, Core-only volume and per-task private-network attachment, OCI/task construction, Core start, dual-listener readiness, direct private-port connection, and aggregate result. |
-| `wake_ark_core` | **External conventional call (not I3)** | Ask ProcMan to cold-start one exact Ark scope while no Core exists. |
+| `wake_ark_core` | **External conventional call (not I3)** | Ask ProcMan to cold-start the sole configured host-root scope while no Core exists; child startup originates only from a live parent's authenticated activation request or exact existing-scope recovery. |
 
-After Gateway readiness, ProcMan registers exactly the eight I3 functions above on a session bound to that Ark scope.
+After Gateway readiness, ProcMan registers exactly the nine I3 functions above on a session bound to that Ark scope.
 It exposes no caller-selected scope, arbitrary command, runtime identifier, raw host path, mount, port, or containerd
 option. A child Core gets a new registration bound only to its child scope.
 
@@ -238,6 +255,10 @@ option. A child Core gets a new registration bound only to its child scope.
 | `routing::install` | I3 | Install one ordinary dynamic-job factory or stable resident-service function projection. |
 | `routing::reconcile` | I3 | Register or replace the complete ordinary projection derived from one Persistence snapshot and route epoch. |
 | `routing::reopen` | I3 | Reopen a fenced ordinary route only after selection, owner set, readiness, and route epoch agree. |
+| `ark::peer::contact` | I3 | Return this Ark's signed, expiring PeerId/protocol/address contact card; it contains no bearer authorization, lifecycle handle, or implicit invitation. |
+| `ark::peer::connect` | I3 | Consume one peer contact card plus receiver-issued invitation, dial its direct or mutually selected relay address through ordinary Gateway egress, and request the same authenticated peer session regardless of topology. |
+| `ark::peer::session::open` | I3 | Authenticate one remote Ark PeerId and proof, validate an unexpired receiver-local invitation and policy, and expose only the exact I3 functions or protocol routes admitted for that session. |
+| `ark::peer::disconnect` | I3 | Revoke one exact peer session and its projected routes without changing lifecycle parentage, teardown handles, or any other peer relationship. |
 
 ### Persistence
 
@@ -429,6 +450,7 @@ once at each cold boundary.
 ```text
 scope[scope_id] = {
   parent_scope,
+  direct_child_teardown_handles,
   selected_core,
   selector_digest,
   core_task,
@@ -450,6 +472,10 @@ Physical tasks remain flat host peers with separate per-task network attachments
 the no-forwarding fence are logical, immutable, and enforced by ProcMan. A call cannot provide another `scope_id`;
 the active connection supplies it.
 
+ProcMan's configured root slot is singular. `parent_scope = null` is valid only for that host-root scope; every other
+scope is created by a live parent's authenticated request. Parentage and peer connectivity are separate state:
+the journal records teardown lineage, while Gateway records only independently authorized Ark Interconnect sessions.
+
 ## Overall lifecycle
 
 ```mermaid
@@ -466,7 +492,7 @@ stateDiagram-v2
     JobChamber --> SelectedJob: terminal result + reap
     SelectedService --> ServiceReady: reconcile exact resident Chamber
     ServiceReady --> SelectedService: failure or quiesce
-    CoreReady --> ChildCore: root-capable candidate activation
+    CoreReady --> ChildCore: accepted direct-child activation
     ChildCore --> CoreReady: evidence + reap child scope
     CoreReady --> CoreStarting: Core failure or selected Core restart
     CoreReady --> CoreAbsent: quiesce
@@ -478,9 +504,9 @@ identity.
 
 ## First Ark Core installation
 
-`entry = proved-unenrolled Ark scope + accepted one-use Ark Core Seed`
+`entry = proved-unenrolled configured host-root Ark scope + accepted one-use Ark Core Seed`
 
-`exit = one ready Ark Core Appliance, or no live Core and attributable terminal failure`
+`exit = one ready parentless host-root Ark Core Appliance, or no live Core and attributable terminal failure`
 
 ```mermaid
 sequenceDiagram
@@ -513,7 +539,7 @@ Those subcommands are deliberately absent from this top-level lifecycle diagram.
 
 ## Selected Ark Core cold start
 
-`entry = enrolled Ark scope + durable selector/volume + retained selected/fallback closure + no live Core`
+`entry = enrolled host-root Ark scope, or an already-created child under exact recovery + durable selector/volume + retained selected/fallback closure + no live Core`
 
 `exit = one fresh ready Ark Core Appliance for one selector read, or attributable failure`
 
@@ -589,9 +615,11 @@ the failure cause before shutdown because container exit status alone need not i
 
 ## Host reboot into the selected Ark Core
 
-A host reboot is exactly **Selected Ark Core cold start**. ProcMan repeats one selector read and one
-`start_ark_core` macro per configured root Ark scope. It does not reuse a task, perform role-by-role upgrade logic,
-or expose image-resolution and containerd subcommands in another duplicate sequence.
+A host reboot is exactly **Selected Ark Core cold start** for the sole configured host-root scope. ProcMan performs
+one selector read and one `start_ark_core` macro for that root only. After the root is ready, its durable policy may
+recreate or reconcile child Arks through authenticated child requests. ProcMan does not discover or boot a second
+parentless scope, reuse a task, perform role-by-role upgrade logic, or expose image-resolution and containerd
+subcommands in another duplicate sequence.
 
 ## Whole-appliance crash recovery
 
@@ -627,9 +655,10 @@ an already admitted selected Core restarts that same selection or requires expli
 
 ## Scope-bound child Ark Core activation
 
-The same ProcMan primitive supports several independent Arks on one host and an incumbent Ark rehearsing its next
-Core. Each root or child Core receives a distinct selector, volume, private network, Engine, descendants, and
-scope-bound ProcMan registration.
+ProcMan boots one host-root Ark directly. Every additional Ark on that host is a direct or transitive child created
+by a live Ark's authenticated request. The same primitive supports experiments, Core rehearsal, development, and
+long-lived hosting for another principal. Each child receives a distinct selector, volume policy, private network,
+Engine, descendants, and scope-bound ProcMan registration.
 
 ```mermaid
 sequenceDiagram
@@ -642,20 +671,59 @@ sequenceDiagram
     participant Member as Child ordinary Chamber
 
     Parent->>HostAgent: `ark::core::activate`
-    Note over Parent,HostAgent: Exact accepted root-capable candidate + non-production seed<br/>connection derives immutable parent and target child scope — payload routing fields are rejected
+    Note over Parent,HostAgent: Exact accepted Core + child-creation lease + volume policy<br/>connection derives immutable direct parent and child scope — payload parent/routing fields are rejected
     HostAgent->>Child: `start_ark_core`
-    Note over HostAgent,Child: Allocate a new child scope, private network, test volume, selector,<br/>Core task, and ProcMan session — never attach the parent's ordinary network
+    Note over HostAgent,Child: Allocate a new child scope, private network, volume, selector,<br/>Core task, and ProcMan session — never attach the parent's ordinary network
     Note over HostAgent,Child: Attach each child task through its own netns/veth or CNI equivalent<br/>and deny forwarding to parent and sibling scope networks
     HostAgent->>Gateway: `routing::inspect`
     Supervisor->>HostAgent: `chamber::activate`
     Note over HostAgent,Member: The authenticated child session supplies scope —<br/>the new Chamber can reach only its owning Child Core
-    Note over Parent,Member: Parent may hold explicit test/inspection capability for the child root<br/>child and descendants cannot see parent siblings, another root Ark, or Ark-volume contents
-    Note over HostAgent,Member: Bounded runsc proof created the descendant through the child-bound host function<br/>and denied recursive activation, cross-scope routes, runtime handles, and caller-selected scope
+    Note over Parent,Member: Parenthood grants no inspection, data, route, policy, or ordinary-control capability<br/>any such access requires the child's ordinary Ark Interconnect invitation and receiver-local policy
+    Note over HostAgent,Member: Bounded runsc proof created an ordinary descendant through the child-bound host function<br/>and denied cross-scope routes, runtime handles, and caller-selected scope; nested child-Ark proof remains required
+    opt Parent exercises its sole child-specific authority
+        Parent->>HostAgent: `ark::child::stop`
+        Note over Parent,HostAgent: Consume the opaque direct-child handle, reap the complete child subtree,<br/>and revoke the handle without exposing child state or redirecting to another scope
+    end
 ```
 
 Physical tasks remain flat host peers. Logical parentage, scope-derived lifecycle authority, separate networks, and
-filtered inspection create the tree. An arbitrary Chamber cannot request root capability; only an exact accepted
-root-capable Core profile can receive a child scope.
+filtered evidence create the tree. Every ready Ark may request a direct child only under its explicit child-creation
+lease and host resource policy; an ordinary Chamber cannot do so. The lifecycle parent may terminate that direct
+child subtree but cannot thereby inspect, administer, impersonate, or communicate with it.
+
+## Ark-to-Ark peer interconnect
+
+Every Ark uses the same peer mechanism, independent of lifecycle topology and physical placement. The minimum
+transport is outbound-capable and relay/rendezvous tolerant so isolated same-host scopes do not need host port
+mappings or pair-specific ProcMan routes. Direct paths are optional optimizations and must preserve the same Ark
+PeerIds, receiver-local authorization, session namespace, and revocation behavior.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant CallingPolicy as Calling Ark policy
+    participant CallingGateway as Calling Ark Gateway
+    participant ReceivingGateway as Receiving Ark Gateway
+    participant ReceivingPolicy as Receiving Ark policy
+
+    ReceivingPolicy->>ReceivingGateway: `ark::peer::contact`
+    Note over CallingPolicy,ReceivingPolicy: Transfer the signed contact card and a receiver-issued invitation<br/>through an activation receipt, Oath/registry exchange, or any authorized out-of-band path
+    CallingPolicy->>CallingGateway: `ark::peer::connect`
+    Note over CallingGateway,ReceivingGateway: Dial a direct or mutually selected relay address through ordinary egress —<br/>same-host, parent/child, sibling, and remote peers use the same end-to-end protocol
+    CallingGateway->>ReceivingGateway: `ark::peer::session::open`
+    Note over CallingGateway,ReceivingGateway: Authenticate both Ark PeerIds, validate the receiver's invitation and policy,<br/>then project only the exact admitted I3 functions or protocol routes into this session
+    Note over CallingPolicy,ReceivingPolicy: Application calls use those relationship-specific exports —<br/>the scope-private Worker Manager address and ProcMan lifecycle channel are never exposed
+    opt Either Ark revokes or the session expires
+        CallingPolicy->>CallingGateway: `ark::peer::disconnect`
+        Note over CallingGateway,ReceivingGateway: Remove only this session and its projected routes;<br/>lifecycle parentage, teardown handles, and other peer sessions remain unchanged
+    end
+```
+
+A child activation receipt may carry the child's self-signed contact card so the lifecycle parent can locate it, but
+the card is not an invitation. The child must authorize that parent exactly as it would any unrelated Ark. Conversely,
+a hosted child's principal may authorize remote Arks without granting its lifecycle parent access. Each Ark may
+choose direct addresses, its own relay, shared relays, or no reachable peer path; unavailable routing fails closed
+rather than creating a private-network shortcut or a mandatory global service.
 
 ## Ordinary Chamber activation kernel
 
@@ -1129,7 +1197,7 @@ There is no role-specific live handover or member reuse.
 
 Before promotion, the preferred proof is a real cold boot and crash/reboot rehearsal of the exact candidate as a
 child Ark scope. It receives a private test network and volume and no production effect authority. The same
-root-capable activation mechanism also proves that the candidate can create only its own descendants.
+child-activation mechanism also proves that the candidate can create only its own direct descendants.
 
 `entry = ready predecessor scope + accepted exact successor Core + staged fallback closure + compatibility proof`
 
@@ -1296,13 +1364,20 @@ broken; execution fails closed and rebuilding is candidate work.
 - `last-known-good liveness alone -> insufficient`; future fallback eligibility needs distinct operational acceptance, exact retention, and compatibility evidence.
 - `selected/fallback Core image, manifest, acceptance, ABI, worker registration, volume/network/schema contract, selector digest, or permit missing/corrupt -> cold start fails closed`.
 - `proved-unenrolled scope + accepted one-use Ark Core Seed -> installer may atomically seed first selector`; absence alone grants no write authority.
+- `ProcMan host boot or wake -> exactly one configured parentless host-root scope`; any request to boot a second parentless scope fails closed.
 - `staged Core + stale generation, evidence, closure receipt, or permit -> persistence::core::commit rejects before rename`.
 - `required worker set, volume fence, Engine/route epoch, Gateway hooks, ProcMan registration, or complete route projection fails -> Core is not ready`.
 - `Core task is not proved dead or volume generation mismatches -> no new RW attachment`; authoritative writer overlap is forbidden.
-- `ProcMan request arrives on scope A -> every activation/inspect/stop effect remains in scope A`; payload cannot select scope B.
-- `root-capable candidate activates -> new child scope + private network + non-production volume + exact Core -> child ProcMan session can create only child descendants`.
+- `ProcMan request arrives on scope A -> ordinary effects remain in scope A`; the sole cross-scope lifecycle effect is `ark::child::stop` consuming A's opaque exact direct-child handle, never a payload-selected scope.
+- `accepted child activation from scope A -> new direct child scope + private network + declared volume policy + exact Core + teardown handle -> child ProcMan session can create only child descendants`.
+- `parent creates child -> no implicit inspect, data, route, task, policy, identity, application, or peer-session authority`; only the exact teardown handle is parent-specific.
+- `child teardown handle is valid + parent connection and generation match -> reap exact child subtree`; mismatch, reuse, sibling target, or caller-selected target fails closed.
 - `ordinary descendant starts -> per-task attachment to owning Ark-private network + no Ark-volume contents`; an empty image mountpoint is not a volume attachment.
-- `no route, Engine address, mount, task handle, registration namespace, or capability crosses sibling Ark scopes`.
+- `no private route, Engine address, mount, task handle, or registration namespace crosses Ark scopes`.
+- `signed contact card alone -> no session`; receiver-issued invitation + fresh PeerId proof + receiver-local policy are all required.
+- `Ark peer session opens -> same Gateway-mediated direct/relay protocol for parent, child, sibling, same-host, or remote peer -> only receiver-admitted exports are projected`.
+- `Ark peer route unavailable, invitation invalid, or policy unavailable -> fail closed`; never fall back to ProcMan wiring or scope-private Worker Manager reachability.
+- `peer session revoked or expires -> remove only that session projection`; lifecycle parentage, teardown authority, and unrelated sessions are unchanged.
 - `admitted ordinary call snapshots Current revision S and Realization R -> Chamber remains pinned to (S, R)` despite later selection change.
 - `ordinary Chamber lease expires or work terminates -> chamber::stop exact Chamber`; siblings and both selectors are unchanged.
 - `ordinary resident successor passes tests + ordinary CAS succeeds -> Gateway may install and reopen exact route`; predecessor drains independently.
@@ -1323,7 +1398,7 @@ broken; execution fails closed and rebuilding is candidate work.
 
 - exact Chambers proof source `17543edafb53c007582886032df07af8297f4f5a` and III candidate `56c4304aa368efdc925b69baaf6356cc723ba0ca`;
 - 22/22 independently verified checks on `runsc release-20260706.0`, real task network namespaces/veths, Linux bridges, nftables forwarding fences, and private container addresses;
-- proof of independent selectors/LKG permits and directory-backed volume fences for two roots, child-scope activation, ordinary descendant isolation, the superseded Engine-owned essential-worker fatality path, whole-scope reaping, exact same-selection restart, cleanup, and ephemeral credential redaction;
+- historical proof of independent selectors/LKG permits and directory-backed volume fences for two parentless roots, plus child-scope activation, ordinary descendant isolation, the superseded Engine-owned essential-worker fatality path, whole-scope reaping, exact same-selection restart, cleanup, and ephemeral credential redaction; the two-root result remains isolation evidence but no longer defines the accepted host topology;
 - evidence receipt SHA-256 `184d6a2ff7237e9bc286f5164cf1c8b2d4060ad0eb13b94d908c2183c85c901b` in the Chambers runtime-proof report;
 - bounded mechanism acceptance only — production containerd/CNI-plugin, storage driver, packaging, deployment, and operational policy integration remain required.
 
@@ -1336,18 +1411,20 @@ broken; execution fails closed and rebuilding is candidate work.
 - one Ark Core selector `boot-control/selected.json` per scope, atomically written by Persistence under expected generation and a distinct promotion permit;
 - exact immutable Core manifests and one pre-authorized compatibility-qualified fallback selector in the durable boot-control slice;
 - one-use accepted Ark Core Seed and selector genesis on a proved-unenrolled scope;
-- one mechanism-only ProcMan with containerd socket, selector boundary read, one volume and Ark-private network attachment per scope, exact cached plan, activation journal, Admissions, descendant task index, cgroups, logs, reaping, and bounded fallback execution;
+- one mechanism-only ProcMan with exactly one configured host-root slot, containerd socket, selector boundary read, one volume and Ark-private network attachment per scope, exact cached plan, activation journal, Admissions, direct-child teardown handles, descendant task index, cgroups, logs, reaping, and bounded fallback execution;
 - standard `Host Agent -> containerd -> containerd-shim-runsc-v1 -> runsc -> gVisor` actuation encapsulated by `start_ark_core` and ordinary typed operations rather than drawn as top-level sequence chatter;
 - direct ProcMan connection to the Core's private container IP and Ark-private Worker Manager port `49134`, with no host port mapping, host networking, UDS relay, or TCP fallback;
 - loopback-only Worker Manager `127.0.0.1:49133` for exact required workers and Gateway default-deny hooks before Ark-private admission;
-- one CNI/bridge-backed private network per Ark scope, one attachment per task, an explicit inter-scope forwarding-deny fence, and ordinary descendants attached only to their owning scope;
+- one CNI/bridge-backed private network per Ark scope, one attachment per task, an explicit inter-scope forwarding-deny fence, ordinary descendants attached only to their owning scope, and ordinary accepted Gateway egress for topology-neutral Ark Interconnect transport;
 - Core-only Ark-volume attachment with Persistence-specific ownership; ordinary descendants receive no Ark-volume contents;
 - loopback managed-worker bootstrap with no host-donated Persistence descriptor/session;
 - scope derived from the authenticated ProcMan/Engine connection rather than caller payload;
 - narrow ordinary Host Agent I3 surface `chamber::activate`, `chamber::inspect`, and `chamber::stop`;
-- narrow Core surface `ark::core::activate`, `ark::core::stage`, `ark::core::inspect`, `ark::core::restart`, and `ark::core::quiesce`;
-- root-capable candidate activation creating a child selector, non-production volume, private network, Core task, and ProcMan session authorized only for that subtree;
-- several root Ark scopes on one host using the same primitive, each with independent selector, volume, Engine, network, LKG, task tree, and receipts;
+- narrow Core surface `ark::core::activate`, `ark::child::stop`, `ark::core::stage`, `ark::core::inspect`, `ark::core::restart`, and `ark::core::quiesce`;
+- one host-root Ark booted directly, with every additional Ark created as its direct or transitive child and no second parentless ProcMan scope;
+- accepted child activation creating a child selector, declared-purpose volume, private network, Core task, ProcMan session authorized only for that subtree, opaque direct-child teardown handle, and child-signed contact card that grants no communication;
+- lifecycle-parent authority limited to teardown of the exact direct-child subtree, with hosted-principal identity, policy, data, peer relationships, and ordinary administration remaining inside the child;
+- Gateway-owned Ark Interconnect contact, connect, session-open, and disconnect functions using end-to-end Ark PeerId authentication, receiver-local invitation/policy, exact session export projection, and topology-neutral direct or relay transport;
 - complete scope-tree replacement on Core selection change or Core failure, with no live Core route handover and no independently mutable role tag;
 - one-attempt LKG fallback restricted to pre-admission, pre-effect, compatibility-qualified successor activation failure;
 - candidate Core rehearsal as a real child scope that cold boots, crash/reboots, creates descendants, and proves no sibling-scope reachability;
@@ -1374,7 +1451,7 @@ broken; execution fails closed and rebuilding is candidate work.
 - host-level blue/green replacement and outer ingress cutover after child-scope Core rehearsal;
 - durable ingress queueing if product requirements exceed volatile Gateway buffering and caller retry;
 - shared ordinary Chamber pools, prewarm controllers, and service traffic balancing;
-- explicit inter-Ark federation through authenticated product contracts; never implicit sibling-scope host routing;
+- optional direct-path optimization, richer discovery, relay selection automation, and additional inter-Ark application protocols after the baseline topology-neutral authenticated Ark Interconnect; never implicit scope routing or a mandatory global relay;
 - lower-platform automation that stops, wakes, and replaces ProcMan;
 - independently accepted replacement of ProcMan, containerd, runsc shim, runsc, kernel, CNI boundary, and boot-control format;
 - process-memory or rootfs checkpoint recovery.
@@ -1382,12 +1459,12 @@ broken; execution fails closed and rebuilding is candidate work.
 ### Required downstream reconciliation to this sequence authority
 
 - cross-stack architecture vocabulary and narrative, replacing historical four-member core assumptions with one Ark Core Appliance;
-- Covenant schema/Gherkin for one Core image with plural required workers and root-capable child execution profile;
-- Chambers owner Gherkin for one-task Core, whole-appliance recovery, atomic selector, bounded fallback, Ark-private networks, scope-derived authority, multi-root isolation, child-Core rehearsal, Gateway buffering, and ordinary routed cutover;
+- Covenant schema/Gherkin for one Core image with plural required workers and a child-creation execution profile;
+- Chambers owner Gherkin for one-task Core, whole-appliance recovery, atomic selector, bounded fallback, Ark-private networks, one host-root topology, scope-derived direct-child teardown authority, child-Core rehearsal/hosting, topology-neutral Ark Interconnect, Gateway buffering, and ordinary routed cutover;
 - Chambers runtime implementation of typed ProcMan operations over standard containerd/runsc and per-scope CNI/network policy;
 - package and production-integrate the accepted s6 graph and whole-task failure notifier; non-Core availability profiles may retain distinct restart behavior outside the Ark Core Appliance;
 - production-integrate the proven loopback/Ark-private dual-listener shape, stable identity injection, fixed auth/registration hooks, owner-safe cleanup, and ordinary PeerId admission;
 - Persistence Core/ordinary selection, Realization/build/Prepared/Hold/resource/provider, seed, flush, desired-route, fallback compatibility, and schema contracts;
 - installer and recovery tooling for Core Seed import, durable selector, selected/fallback closure retention, atomic write/readback, and one-attempt recovery rewrite;
-- ProcMan scope journal, direct private-container-port connection, per-task CNI attachments, explicit no-forwarding policy, descendant indexing, child-root grants, Core-only volume fencing, complete restart, task receipts, and runtime-namespace invalidation;
+- ProcMan singular host-root journal, direct private-container-port connection, per-task CNI attachments, explicit no-forwarding policy, descendant indexing, child-creation leases, opaque direct-child teardown handles, Core-only volume fencing, complete restart, task receipts, and runtime-namespace invalidation;
 - generated traceability and registered Lifecycle Atlas after authoritative inputs change.

@@ -61,7 +61,8 @@ The registration surfaces of record are:
    diagrams must not expose containerd, selector-filesystem, volume, CNI, or runsc lanes/calls; those mechanics
    remain encapsulated by `start_ark_core` and typed ordinary Host Agent operations. The public order starts with
    **First Ark Core installation**, **Selected Ark Core cold start**, **Ark Core bootstrap**,
-   **Whole-appliance crash recovery**, **Scope-bound child Ark Core activation**, then **Ordinary activation**.
+   **Whole-appliance crash recovery**, **Scope-bound child Ark Core activation**, **Ark-to-Ark peer interconnect**,
+   then **Ordinary activation**.
    Preserve existing IDs where semantics persist (`core-installation`, `host-activation`, `core-bootstrap`,
    `boot-crash-repair`, `activation-kernel`, and `core-cutover`); allocate a new ID only for a genuinely new sequence.
 
@@ -88,12 +89,19 @@ The registration surfaces of record are:
    reconstruction, and a context-preserving failure branch. Automatic fallback remains one exact monotonic,
    compatibility-qualified recovery selector before ordinary admission or irreversible effects.
 
-   Scope-bound child activation must show `ark::core::activate` creating a separate selector, test volume, private
-   network, Core task, and ProcMan registration. The authenticated child connection supplies scope and caller-supplied
-   routing fields are rejected. The child may create only its own descendants, each with a separate task attachment
-   to the child network. Never project cross-scope forwarding, caller-selected scope, sibling task handle, shared Ark
-   volume contents, or generic containerd authority. The same primitive supports candidate Core rehearsal and several
-   independent root Arks on one physical host.
+   ProcMan must boot exactly one configured parentless host-root Ark. Scope-bound child activation must show
+   `ark::core::activate` creating a separate selector, test volume, private network, Core task, and ProcMan
+   registration from a live Ark's authenticated direct-child request. The authenticated connection supplies scope;
+   caller-supplied routing fields are rejected. The parent receives only one exact direct-child subtree teardown
+   handle. A child may create only its own descendants, each with a separate task attachment to the child network.
+   Never project a second host root, cross-scope forwarding, caller-selected scope, sibling task handle, shared Ark
+   volume contents, or generic containerd authority.
+
+   Ark-to-Ark communication must remain a separate topology-neutral Gateway path. Preserve the signed contact card,
+   ordinary direct or relay route, end-to-end Ark identity, receiver-local invitation/policy, exact admitted exports,
+   and revocation flow. Parent/child, sibling, same-host, and remote peers use the same session semantics. Never project
+   a contact card as bearer authority, an implicit parent session, a private Engine address, a ProcMan-wired pair route,
+   a mandatory global relay, or lifecycle teardown as communication access.
 
    Preserve the source's proof distinction: 22/22 checks establish bounded mechanisms on real runsc/Linux networking,
    selector/LKG fixtures, directory-backed volume fences, and the superseded Engine-owned fatality mechanism. They do

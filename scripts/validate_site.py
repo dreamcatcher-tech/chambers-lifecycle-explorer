@@ -67,7 +67,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     documents = payload.get("documents", [])
     if [document.get("id") for document in documents] != ["chambers", "cardflow"]:
         fail("bundle must contain Chambers and Cardflow in that order")
-    expected_stats = {"documents": 2, "sequences": 25, "calls": 207, "functions": 85, "dictionaryTerms": 82}
+    expected_stats = {"documents": 2, "sequences": 26, "calls": 212, "functions": 90, "dictionaryTerms": 87}
     if payload.get("stats") != expected_stats:
         fail(f"unexpected combined stats: {payload.get('stats')}")
 
@@ -103,8 +103,8 @@ def validate_manifest_and_bundle(payload: dict) -> None:
 
     chambers, cardflow = documents
     expected_chambers = {
-        "sequences": 16, "actors": 43, "calls": 141, "i3Calls": 130,
-        "hostCalls": 11, "functions": 52, "usedFunctions": 52, "dictionaryTerms": 52,
+        "sequences": 17, "actors": 47, "calls": 146, "i3Calls": 135,
+        "hostCalls": 11, "functions": 57, "usedFunctions": 57, "dictionaryTerms": 57,
     }
     if chambers["stats"] != expected_chambers:
         fail(f"unexpected Chambers stats: {chambers['stats']}")
@@ -117,14 +117,14 @@ def validate_manifest_and_bundle(payload: dict) -> None:
 
     expected_startup = [
         "core-installation", "host-activation", "core-bootstrap", "boot-crash-repair",
-        "scope-bound-child-core", "activation-kernel",
+        "scope-bound-child-core", "ark-peer-interconnect", "activation-kernel",
     ]
-    if [sequence["id"] for sequence in chambers["sequences"][:6]] != expected_startup:
-        fail("Chambers must present install, cold start, bootstrap, whole recovery, child Core, then ordinary activation")
+    if [sequence["id"] for sequence in chambers["sequences"][:7]] != expected_startup:
+        fail("Chambers must present install, cold start, bootstrap, whole recovery, child Core, Ark peer interconnect, then ordinary activation")
 
     host_i3 = {
         "ark::core::activate", "ark::core::inspect", "ark::core::quiesce",
-        "ark::core::restart", "ark::core::stage",
+        "ark::core::restart", "ark::core::stage", "ark::child::stop",
         "chamber::activate", "chamber::inspect", "chamber::stop",
     }
     worker_order = ["Engine", "Persistence", "Gateway", "Supervisor"]
@@ -132,6 +132,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     forbidden_function_prefixes = ("containerd_", "persistence_volume_", "bootset_")
     for sequence in chambers["sequences"]:
         participants = [participant["id"] for participant in sequence["participants"]]
+        participant_roles = {participant["id"]: participant["role"] for participant in sequence["participants"]}
         if "HostAgent" in participants and participants[0] != "HostAgent":
             fail(f"{sequence['id']} does not keep Host Agent leftmost")
         present_forbidden = forbidden_lanes.intersection(participants)
@@ -146,6 +147,8 @@ def validate_manifest_and_bundle(payload: dict) -> None:
                 fail(f"{sequence['id']} exposes low-level host call {call['function']}")
             if call["function"] in host_i3 and call["to"] != "HostAgent":
                 fail(f"{sequence['id']} aims a Host Agent I3 function at {call['to']}")
+            if call["function"].startswith("ark::peer::") and participant_roles.get(call["to"]) != "control":
+                fail(f"{sequence['id']} aims an Ark Interconnect function at non-Gateway actor {call['to']}")
 
     sequence_by_id = {sequence["id"]: sequence for sequence in chambers["sequences"]}
     host_activation = sequence_by_id["host-activation"]
@@ -171,6 +174,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
             fail("Engine may invoke only fixed Gateway authentication and registration hooks")
         if call["function"].startswith("routing::") and call["to"] != "Gateway":
             fail("every routing function must target Gateway")
+
         if call["function"].startswith("persistence::") and call["to"] != "Persistence":
             fail("every persistence function must target Persistence")
         if call["from"] == "HostAgent" and call["function"] in {
@@ -198,7 +202,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
         "s6 as container PID 1, with one-shot bootstrap seeding accepted runtime bytes into private `/run/iii` tmpfs",
         "127.0.0.1:49133",
         "Ark-private scope listener at port `49134`",
-        "explicit forwarding-deny fence separates sibling CIDRs",
+        "explicit inter-scope forwarding-deny fence",
         "ordinary descendants receive no Ark-volume contents",
         "22/22 independently verified checks",
         "s6 whole-appliance fatality, production containerd/CNI-plugin, and storage-driver integration require their own acceptance evidence",
@@ -262,15 +266,35 @@ def validate_manifest_and_bundle(payload: dict) -> None:
         fail("same-selection whole-appliance recovery must not mutate Core selection")
 
     child_calls = [call["function"] for call in sequence_by_id["scope-bound-child-core"]["calls"]]
-    for required in ("ark::core::activate", "start_ark_core", "chamber::activate"):
+    for required in ("ark::core::activate", "start_ark_core", "chamber::activate", "ark::child::stop"):
         if required not in child_calls:
             fail(f"scope-bound child Core sequence is missing {required}")
     child_notes = " ".join(
         note["text"] for call in sequence_by_id["scope-bound-child-core"]["calls"] for note in call["notes"]
     )
-    for required in ("payload routing fields are rejected", "deny forwarding to parent and sibling scope networks", "Ark-volume contents"):
+    for required in (
+        "payload parent/routing fields are rejected",
+        "deny forwarding to parent and sibling scope networks",
+        "Parenthood grants no inspection, data, route, policy, or ordinary-control capability",
+    ):
         if required not in child_notes:
             fail(f"scope-bound child Core projection is missing {required}")
+
+    peer_calls = [call["function"] for call in sequence_by_id["ark-peer-interconnect"]["calls"]]
+    if set(peer_calls) != {
+        "ark::peer::contact", "ark::peer::connect", "ark::peer::session::open", "ark::peer::disconnect",
+    }:
+        fail(f"Ark peer interconnect has an unexpected function surface: {peer_calls}")
+    peer_notes = " ".join(
+        note["text"] for call in sequence_by_id["ark-peer-interconnect"]["calls"] for note in call["notes"]
+    )
+    for required in (
+        "receiver-issued invitation",
+        "same-host, parent/child, sibling, and remote peers use the same end-to-end protocol",
+        "ProcMan lifecycle channel are never exposed",
+    ):
+        if required not in peer_notes:
+            fail(f"Ark peer interconnect projection is missing {required}")
 
     retired_functions = [
         function["id"] for function in chambers["functions"]
