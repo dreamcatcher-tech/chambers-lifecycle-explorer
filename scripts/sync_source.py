@@ -21,7 +21,7 @@ DOCUMENTS = (
         "id": "chambers",
         "path": "docs/chambers-lifecycle-sequences.md",
         "snapshotPath": "chambers-lifecycle-sequences.md",
-        "role": "downstream_projection_of_chambers_formal_specification_v1.0.0",
+        "role": "downstream_projection_of_chambers_formal_specification",
     },
     {
         "id": "cardflow",

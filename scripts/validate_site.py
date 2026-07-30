@@ -68,10 +68,18 @@ def validate_manifest_and_bundle(payload: dict) -> None:
         fail("browser bundle formal authority does not match source manifest")
     if formal_authority.get("repository") != "dreamcatcher-tech/chambers-temporal-model":
         fail("Chambers formal authority repository is wrong")
-    if formal_authority.get("git_tag") != "formal-spec-v1.0.0":
+    if formal_authority.get("release") != "chambers-formal-specification/v1.0.1":
+        fail("Chambers formal authority release drifted")
+    if formal_authority.get("git_tag") != "formal-spec-v1.0.1":
         fail("Chambers formal authority tag drifted")
-    if formal_authority.get("commit") != "72f7dc531392b71cd210163649b4944a38b5edaa":
+    if formal_authority.get("commit") != "71d80f84680391236e5234eb4d2bf525f0edde92":
         fail("Chambers formal authority commit drifted")
+    if formal_authority.get("manifest_sha256") != "4b2ce9f0f22d032b775630fe6ffe24d5e1075138b11bfe2fded52b18817c2fef":
+        fail("Chambers formal authority manifest drifted")
+    if formal_authority.get("release_kind") != "documentation_only":
+        fail("Chambers formal authority release kind drifted")
+    if formal_authority.get("semantic_base") != "chambers-formal-specification/v1.0.0":
+        fail("Chambers formal authority semantic base drifted")
 
     documents = payload.get("documents", [])
     if [document.get("id") for document in documents] != ["chambers", "cardflow"]:
@@ -82,7 +90,7 @@ def validate_manifest_and_bundle(payload: dict) -> None:
 
     entries = {entry["id"]: entry for entry in manifest["documents"]}
     expected_roles = {
-        "chambers": "downstream_projection_of_chambers_formal_specification_v1.0.0",
+        "chambers": "downstream_projection_of_chambers_formal_specification",
         "cardflow": "cardflow_design_source_with_chambers_formal_release_binding",
     }
     for document in documents:

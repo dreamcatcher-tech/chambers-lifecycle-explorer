@@ -26,13 +26,15 @@ A polished, playable public projection of the Chambers lifecycle and Cardflow fi
 Modeled Chambers semantics are governed by the exact tagged release in the private temporal-model repository. The Atlas also snapshots two committed private Fundamentals documents; the Chambers document is a downstream projection of that release.
 
 ```text
-dreamcatcher-tech/chambers-temporal-model @ formal-spec-v1.0.0
+dreamcatcher-tech/chambers-temporal-model @ formal-spec-v1.0.1
 └── release/specification.json + manifest + model/config/evidence bundle
 
 dreamcatcher-tech/fundamentals
 ├── docs/chambers-lifecycle-sequences.md  # downstream Chambers projection
 └── docs/cardflow-filesystem-lease-sequences.md
 ```
+
+`formal-spec-v1.0.1` is a documentation-only lineage correction over `v1.0.0`: it adds exact changelog entries for every prior model commit while preserving the model/configuration bytes and checker outcomes.
 
 This public repository contains intentional committed snapshots. The synchronization path is fail-closed: every registered document must be committed, the Fundamentals checkout must be clean and synchronized with its upstream, every diagram call must resolve to that document's function table, and the generated browser bundle must exactly match the copied sources.
 

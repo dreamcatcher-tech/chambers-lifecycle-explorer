@@ -28,10 +28,22 @@ class TlaVisualizationContractTests(unittest.TestCase):
             source["authority"]["repository"],
             "dreamcatcher-tech/chambers-temporal-model",
         )
-        self.assertEqual(source["authority"]["release"], "chambers-formal-specification/v1.0.0")
-        self.assertEqual(source["authority"]["gitTag"], "formal-spec-v1.0.0")
+        self.assertEqual(source["authority"]["release"], "chambers-formal-specification/v1.0.1")
+        self.assertEqual(source["authority"]["gitTag"], "formal-spec-v1.0.1")
         self.assertEqual(source["authority"]["commit"], source["commit"])
-        self.assertRegex(source["authority"]["manifestSha256"], r"^[0-9a-f]{64}$")
+        self.assertEqual(source["authority"]["releaseKind"], "documentation_only")
+        self.assertEqual(
+            source["authority"]["semanticDelta"],
+            "none; completes commit-by-commit changelog accounting through formal-spec-v1.0.0",
+        )
+        self.assertEqual(
+            source["authority"]["supersedes"],
+            "chambers-formal-specification/v1.0.0",
+        )
+        self.assertEqual(
+            source["authority"]["manifestSha256"],
+            "4b2ce9f0f22d032b775630fe6ffe24d5e1075138b11bfe2fded52b18817c2fef",
+        )
         self.assertEqual(
             source["architectureSynthesis"]["role"], "provenance_only_not_authority"
         )

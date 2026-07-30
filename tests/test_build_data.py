@@ -355,14 +355,19 @@ class BuildDataTests(unittest.TestCase):
         manifest = json.loads((ROOT / "source" / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["schemaVersion"], 3)
         self.assertEqual(
-            manifest["formalAuthority"]["git_tag"], "formal-spec-v1.0.0"
+            manifest["formalAuthority"]["git_tag"], "formal-spec-v1.0.1"
+        )
+        self.assertEqual(manifest["formalAuthority"]["release_kind"], "documentation_only")
+        self.assertEqual(
+            manifest["formalAuthority"]["semantic_base"],
+            "chambers-formal-specification/v1.0.0",
         )
         self.assertEqual(
             self.payload["formalAuthority"], manifest["formalAuthority"]
         )
         manifest_documents = {document["id"]: document for document in manifest["documents"]}
         expected_roles = {
-            "chambers": "downstream_projection_of_chambers_formal_specification_v1.0.0",
+            "chambers": "downstream_projection_of_chambers_formal_specification",
             "cardflow": "cardflow_design_source_with_chambers_formal_release_binding",
         }
         for document_id, document in self.documents.items():

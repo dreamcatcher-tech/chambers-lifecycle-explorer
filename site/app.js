@@ -273,13 +273,16 @@
     elements.sourceCallCount.textContent = data.stats.calls;
     elements.sourceFunctionCount.textContent = data.stats.functions;
     elements.sourceDictionaryCount.textContent = data.stats.dictionaryTerms;
-    const sourceRole = source.role === "downstream_projection_of_chambers_formal_specification_v1.0.0"
+    const sourceRole = source.role === "downstream_projection_of_chambers_formal_specification"
       ? "Downstream formal-release projection"
       : "Registered source with Chambers release binding";
     elements.sourceMode.textContent = `${sourceRole} · SHA-256 ${source.documentSha256.slice(0, 8)}`;
     elements.formalAuthorityLink.href = formalAuthority.release_url;
-    elements.formalAuthorityLink.title = `${formalAuthority.release} at ${formalAuthority.commit}`;
-    elements.formalAuthorityLink.firstChild.textContent = `Modeled Chambers semantics · ${formalAuthority.release} `;
+    const releaseKind = formalAuthority.release_kind === "documentation_only"
+      ? "documentation-only lineage correction"
+      : "semantic release";
+    elements.formalAuthorityLink.title = `${formalAuthority.release} at ${formalAuthority.commit} · ${releaseKind}`;
+    elements.formalAuthorityLink.firstChild.textContent = `Modeled Chambers semantics · ${formalAuthority.release} · ${releaseKind} `;
     elements.sourceDocumentLink.href = source.url;
     elements.sourceDocumentLink.title = `Open ${source.path} at ${commit}`;
     elements.mobileSceneCount.textContent = `${data.stats.sequences} sequences`;

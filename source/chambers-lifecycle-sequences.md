@@ -1,8 +1,8 @@
 # Chambers lifecycle sequence reference
 
-Status: **Downstream lifecycle/interface projection of Chambers Formal Specification v1.0.0; bounded runsc mechanism proof accepted; production integration pending**
+Status: **Downstream lifecycle/interface projection of Chambers Formal Specification v1.0.1 (documentation-only lineage correction over v1.0.0); bounded runsc mechanism proof accepted; production integration pending**
 
-Governing release: [`chambers-formal-specification/v1.0.0`](https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.0.0), tag `formal-spec-v1.0.0`, commit `72f7dc531392b71cd210163649b4944a38b5edaa`
+Governing release: [`chambers-formal-specification/v1.0.1`](https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.0.1), tag `formal-spec-v1.0.1`, commit `71d80f84680391236e5234eb4d2bf525f0edde92`; modeled semantics and checker outcomes are unchanged from v1.0.0
 
 Local binding: [`chambers-formal-specification.json`](chambers-formal-specification.json)
 

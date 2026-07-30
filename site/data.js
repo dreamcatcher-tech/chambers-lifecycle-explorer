@@ -8,13 +8,16 @@ window.LIFECYCLE_ATLAS_DATA = {
   "defaultDocumentId": "chambers",
   "formalAuthority": {
     "repository": "dreamcatcher-tech/chambers-temporal-model",
-    "release": "chambers-formal-specification/v1.0.0",
-    "git_tag": "formal-spec-v1.0.0",
-    "commit": "72f7dc531392b71cd210163649b4944a38b5edaa",
-    "release_url": "https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.0.0",
+    "release": "chambers-formal-specification/v1.0.1",
+    "git_tag": "formal-spec-v1.0.1",
+    "commit": "71d80f84680391236e5234eb4d2bf525f0edde92",
+    "tree": "f8b2477031251eae68d33934f7d22286036d62bd",
+    "release_url": "https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.0.1",
     "specification_path": "release/specification.json",
     "manifest_path": "release/manifest.json",
-    "manifest_sha256": "69abdf4d3728a8b14457c8b6653c74a0ca964f5ad0f7782049df301496cf5e6d"
+    "manifest_sha256": "4b2ce9f0f22d032b775630fe6ffe24d5e1075138b11bfe2fded52b18817c2fef",
+    "release_kind": "documentation_only",
+    "semantic_base": "chambers-formal-specification/v1.0.0"
   },
   "stats": {
     "documents": 2,
@@ -35,16 +38,16 @@ window.LIFECYCLE_ATLAS_DATA = {
       "statusLabel": "Current architecture",
       "source": {
         "id": "chambers",
-        "role": "downstream_projection_of_chambers_formal_specification_v1.0.0",
+        "role": "downstream_projection_of_chambers_formal_specification",
         "path": "docs/chambers-lifecycle-sequences.md",
         "snapshotPath": "chambers-lifecycle-sequences.md",
-        "sourceCommit": "4daab27f7dcdfc95d32641cea2873c53d093acca",
-        "sourceTimestamp": "2026-07-30T09:51:18Z",
-        "documentSha256": "a5523beb075e829a7d536eb113137352f9f05b4af7e2de4bdeb104d3edc42e77",
-        "documentBytes": 114521,
+        "sourceCommit": "f82cbcdbe6b055ae4dca0920e75d010ed8cc0f0a",
+        "sourceTimestamp": "2026-07-30T10:51:11Z",
+        "documentSha256": "74a44df574f6502fc9ab4e7a177400a89b4bdb9e74d9f7ae654446db06401894",
+        "documentBytes": 114639,
         "repository": "dreamcatcher-tech/fundamentals",
-        "repositoryHead": "4daab27f7dcdfc95d32641cea2873c53d093acca",
-        "url": "https://github.com/dreamcatcher-tech/fundamentals/blob/4daab27f7dcdfc95d32641cea2873c53d093acca/docs/chambers-lifecycle-sequences.md"
+        "repositoryHead": "5f19ae5e8598173ec0bee658b34adb4b3052648e",
+        "url": "https://github.com/dreamcatcher-tech/fundamentals/blob/f82cbcdbe6b055ae4dca0920e75d010ed8cc0f0a/docs/chambers-lifecycle-sequences.md"
       },
       "stats": {
         "sequences": 17,
@@ -7243,13 +7246,13 @@ window.LIFECYCLE_ATLAS_DATA = {
         "role": "cardflow_design_source_with_chambers_formal_release_binding",
         "path": "docs/cardflow-filesystem-lease-sequences.md",
         "snapshotPath": "cardflow-filesystem-lease-sequences.md",
-        "sourceCommit": "4daab27f7dcdfc95d32641cea2873c53d093acca",
-        "sourceTimestamp": "2026-07-30T09:51:18Z",
-        "documentSha256": "2ae69cd2f83eacaf8daa4e9453449e7ff92481958220b927cbb178e9d84331a4",
-        "documentBytes": 63995,
+        "sourceCommit": "f82cbcdbe6b055ae4dca0920e75d010ed8cc0f0a",
+        "sourceTimestamp": "2026-07-30T10:51:11Z",
+        "documentSha256": "c310d518648bba3b8d70ae53126e28c08c5370754d83955916d078368d1f9450",
+        "documentBytes": 64047,
         "repository": "dreamcatcher-tech/fundamentals",
-        "repositoryHead": "4daab27f7dcdfc95d32641cea2873c53d093acca",
-        "url": "https://github.com/dreamcatcher-tech/fundamentals/blob/4daab27f7dcdfc95d32641cea2873c53d093acca/docs/cardflow-filesystem-lease-sequences.md"
+        "repositoryHead": "5f19ae5e8598173ec0bee658b34adb4b3052648e",
+        "url": "https://github.com/dreamcatcher-tech/fundamentals/blob/f82cbcdbe6b055ae4dca0920e75d010ed8cc0f0a/docs/cardflow-filesystem-lease-sequences.md"
       },
       "stats": {
         "sequences": 9,
