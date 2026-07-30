@@ -1,15 +1,15 @@
 {
   "schemaVersion": 3,
   "repository": "dreamcatcher-tech/fundamentals",
-  "repositoryHead": "5f19ae5e8598173ec0bee658b34adb4b3052648e",
-  "repositoryHeadTimestamp": "2026-07-30T10:58:04Z",
+  "repositoryHead": "4a83d95a3f28239ad080611ff7818b060acdd7bc",
+  "repositoryHeadTimestamp": "2026-07-30T15:25:40Z",
   "projectionMode": "exact committed registered-source snapshots; generated browser data",
   "formalAuthority": {
     "repository": "dreamcatcher-tech/chambers-temporal-model",
     "release": "chambers-formal-specification/v1.0.1",
     "git_tag": "formal-spec-v1.0.1",
     "commit": "71d80f84680391236e5234eb4d2bf525f0edde92",
-    "tree": "f8b2477031251eae68d33934f7d22286036d62bd",
+    "tree": "a9075a84267d52c3f2bfe9e064a9ee663cd27bb6",
     "release_url": "https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.0.1",
     "specification_path": "release/specification.json",
     "manifest_path": "release/manifest.json",
