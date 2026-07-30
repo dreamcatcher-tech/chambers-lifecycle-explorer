@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Copy the exact Chambers and Cardflow authorities and rebuild the public projection."""
+"""Copy exact registered sequence sources and rebuild the public projection."""
 
 from __future__ import annotations
 
@@ -21,11 +21,13 @@ DOCUMENTS = (
         "id": "chambers",
         "path": "docs/chambers-lifecycle-sequences.md",
         "snapshotPath": "chambers-lifecycle-sequences.md",
+        "role": "downstream_projection_of_chambers_formal_specification_v1.0.0",
     },
     {
         "id": "cardflow",
         "path": "docs/cardflow-filesystem-lease-sequences.md",
         "snapshotPath": "cardflow-filesystem-lease-sequences.md",
+        "role": "cardflow_design_source_with_chambers_formal_release_binding",
     },
 )
 
@@ -72,7 +74,7 @@ def assert_safe_source_repo(repo: Path) -> None:
 def source_entry(repo: Path, document: dict[str, str]) -> tuple[dict[str, object], Path]:
     source_path = repo / document["path"]
     if not source_path.exists():
-        raise FileNotFoundError(f"Missing authoritative source document: {source_path}")
+        raise FileNotFoundError(f"Missing registered source document: {source_path}")
     tracked = run(repo, "ls-files", "--error-unmatch", document["path"])
     if tracked != document["path"]:
         raise ValueError(f"Source document is not tracked exactly: {document['path']}")
@@ -82,6 +84,7 @@ def source_entry(repo: Path, document: dict[str, str]) -> tuple[dict[str, object
     return (
         {
             "id": document["id"],
+            "role": document["role"],
             "path": document["path"],
             "snapshotPath": document["snapshotPath"],
             "sourceCommit": source_commit,
@@ -115,8 +118,12 @@ def main(argv: list[str] | None = None) -> int:
         repository = repository_slug(remote_url)
         repository_head = run(repo, "rev-parse", "HEAD")
         repository_head_timestamp = run(repo, "show", "-s", "--format=%cI", "HEAD")
+        binding = json.loads(
+            (repo / "docs" / "chambers-formal-specification.json").read_text(encoding="utf-8")
+        )
+        formal_authority = binding["authority_source"]
         entries_and_paths = [source_entry(repo, document) for document in DOCUMENTS]
-    except (OSError, ValueError, subprocess.CalledProcessError) as exc:
+    except (OSError, ValueError, KeyError, json.JSONDecodeError, subprocess.CalledProcessError) as exc:
         detail = exc.stderr.strip() if isinstance(exc, subprocess.CalledProcessError) else str(exc)
         print(f"ERROR: {detail}", file=sys.stderr)
         return 1
@@ -126,11 +133,12 @@ def main(argv: list[str] | None = None) -> int:
         shutil.copyfile(source_path, SOURCE_DIR / str(entry["snapshotPath"]))
 
     manifest = {
-        "schemaVersion": 2,
+        "schemaVersion": 3,
         "repository": repository,
         "repositoryHead": repository_head,
         "repositoryHeadTimestamp": repository_head_timestamp,
-        "projectionMode": "exact committed document snapshots; generated browser data",
+        "projectionMode": "exact committed registered-source snapshots; generated browser data",
+        "formalAuthority": formal_authority,
         "documents": [entry for entry, _ in entries_and_paths],
     }
     MANIFEST_PATH.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
@@ -152,7 +160,7 @@ def main(argv: list[str] | None = None) -> int:
             return completed.returncode
 
     print(
-        f"Synced {len(DOCUMENTS)} authorities from {repository}@{repository_head[:12]}"
+        f"Synced {len(DOCUMENTS)} registered sources from {repository}@{repository_head[:12]}"
     )
     return 0
 

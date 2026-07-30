@@ -12,7 +12,7 @@ The page deliberately separates three kinds of information:
 
 1. **Explain** — a curated, human-readable state/action or scope-topology map. Layout, descriptions, and walkthrough paths live in `scripts/tla_model_annotations.json`. The synchronization script fails if an annotated action or property name no longer resolves in the exact TLA+ module. This view explains the model but is **not** claimed to be a complete semantic derivation.
 2. **TLC state space** — an automatically generated aggregation of complete Graphviz DOT state graphs emitted reproducibly by `tlc2.TLC -seed 1 -dump dot,actionlabels,colorize`. Every parsed concrete state and transition must be accounted for, and its count must agree with the checked evidence receipt. Raw private state labels and raw DOT files are not published.
-3. **Properties** — configured safety/liveness operators and the real TLC receipts for seven deliberately weakened controls. A passing bounded check is model evidence, not implementation conformance.
+3. **Properties** — configured safety/liveness operators and the real TLC receipts for eight deliberately weakened controls in the published subset. A passing bounded check is model evidence, not implementation conformance.
 
 This distinction is a publication contract. Do not merge the curated and generated labels or describe the Explain view as “generated from all TLA+ semantics.”
 
@@ -26,7 +26,7 @@ The explorer therefore keeps the exact complete graph as a private build interme
 - `MultiArk`: 284 states grouped into 43 reachable `Root / Child / Grandchild` phase tuples and shown as a matrix;
 - `HostCutover`: 11 exact states grouped into 9 incumbent/candidate phase tuples, with the Explain view retaining the 11-step action chain.
 
-Compact authority models do not retain an observer-only `lastAction` variable. The projection therefore takes concrete transition labels directly from TLC's `actionlabels` DOT edges, requires every emitted operator to have a source-resolving annotation, and still accounts for every checked state and transition. Because TLC DOT bytes contain opaque JVM graph identifiers that are not byte-stable across equivalent runs, projection schema v2 publishes `aggregateSha256`: a canonical SHA-256 over the complete parsed aggregate nodes and transitions, rather than a misleading raw-DOT byte hash.
+Compact authority models do not retain an observer-only `lastAction` variable. The projection therefore takes concrete transition labels directly from TLC's `actionlabels` DOT edges, requires every emitted operator to have a source-resolving annotation, and still accounts for every checked state and transition. Because TLC DOT bytes contain opaque JVM graph identifiers that are not byte-stable across equivalent runs, projection schema v3 publishes `aggregateSha256`: a canonical SHA-256 over the complete parsed aggregate nodes and transitions, rather than a misleading raw-DOT byte hash. The formal release contains seven kernels; this public page deliberately projects three and labels that coverage boundary explicitly.
 
 References:
 
@@ -36,10 +36,11 @@ References:
 ## Data flow and disclosure boundary
 
 ```text
-private chambers-temporal-model @ exact clean upstream commit
+private chambers-temporal-model @ exact ratified release tag/commit
   ├─ model/*.tla + principal *.cfg
+  ├─ release/specification.json + release/manifest.json + CHANGELOG.md
   ├─ evidence/model-check-summary.json
-  └─ source/baseline.json
+  └─ source/provenance.json (lineage only, never authority)
           │
           │ fresh official Java/TLC run + complete DOT parse
           ▼
@@ -73,7 +74,7 @@ git -C ../chambers-temporal-model pull --ff-only
 git -C ../chambers-temporal-model status --short --branch
 ```
 
-The source checkout must be clean and `HEAD` must equal its upstream. The generator refuses a dirty, unpublished, or detached source by default.
+The source checkout must be clean and `HEAD` must equal its upstream. Its `release/specification.json` must declare a ratified release whose exact Git tag resolves to `HEAD`, and the manifest must bind the committed evidence. The generator refuses a dirty, unpublished, untagged, or mismatched source by default.
 
 Run the temporal repository's own evidence/check process first. Its official Java-based SANY/TLC checks remain the authority for the receipt; this site does not replace them.
 
@@ -89,13 +90,14 @@ make sync-tla
 The synchronization script:
 
 1. verifies source cleanliness and upstream equality;
-2. verifies the TLA+ tools jar SHA-256 against committed evidence;
-3. verifies current module/config hashes against the evidence receipt;
-4. runs each principal configuration through official `tlc2.TLC` with deterministic DOT seed `1`;
-5. parses the complete DOT graph without publishing it;
-6. cross-checks DOT state and transition counts against committed evidence;
-7. validates every curated action and invariant name against the live module;
-8. writes `source/tla-model-projection.json` and then `site/tla/model-data.js`.
+2. verifies that the ratified release tag resolves to the exact source commit and that its manifest binds the evidence;
+3. verifies the TLA+ tools jar SHA-256 against committed evidence;
+4. verifies current module/config hashes against the evidence receipt;
+5. runs each published principal configuration through official `tlc2.TLC` with deterministic DOT seed `1`;
+6. parses the complete DOT graph without publishing it;
+7. cross-checks DOT state and transition counts against committed evidence;
+8. validates every curated action and invariant name against the live module;
+9. writes `source/tla-model-projection.json` and then `site/tla/model-data.js`.
 
 ### 3. Review the disclosure diff
 
@@ -154,4 +156,4 @@ If the model adds a new state variable or topology that does not fit the current
 
 ## Canonical-source boundary
 
-This repository remains a public projection. Do not edit canonical Fundamentals diagrams, the private temporal model, or architecture-synthesis sources from the visualization refresh. A visualization can expose a discrepancy, but authority/model changes must occur in their owning repository and then be rechecked before this projection advances.
+This repository remains a public projection. Do not edit the tagged private formal model, downstream Fundamentals diagrams, or architecture-synthesis provenance from the visualization refresh. A visualization can expose a discrepancy, but a modeled semantic change starts as a candidate formal release; downstream source corrections occur in Fundamentals only after the release exists. Both must be rechecked before this projection advances.

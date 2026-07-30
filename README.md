@@ -1,6 +1,6 @@
 # Lifecycle Atlas
 
-A polished, playable explorer for the authoritative Chambers lifecycle and Cardflow filesystem-lease sequence documents.
+A polished, playable public projection of the Chambers lifecycle and Cardflow filesystem-lease sequence documents, plus a bounded view of the authoritative Chambers formal specification.
 
 **Live site:** <https://dreamcatcher-tech.github.io/chambers-lifecycle-explorer/>
 
@@ -14,20 +14,23 @@ A polished, playable explorer for the authoritative Chambers lifecycle and Cardf
 - **Browser navigation** — meaningful document, sequence, view, call, and function changes populate browser history, so Back and Forward restore the corresponding app state and primary-page position. A continuous scrub creates one navigable entry rather than corrupting the entry it started from.
 - **Map** — an actor relationship graph with directed, frequency-weighted connections and call drill-down.
 - **Functions** — the complete function table for the selected document, including implementation status and diagram usage.
-- **Dictionary** — every canonical term and relationship is generated from the selected document's authoritative `## Dictionary` section, with searchable definitions, related-term navigation, exact-line source links, and document-aware deep links.
-- **Cross-document search** — find a sequence, function, or dictionary term in either authority and move directly into its document workspace.
+- **Dictionary** — every document-local term and relationship is generated from the selected document's `## Dictionary` section, with searchable definitions, related-term navigation, exact-line source links, and document-aware deep links. A projected dictionary never creates cross-document semantic authority.
+- **Cross-document search** — find a sequence, function, or dictionary term in either registered source and move directly into its document workspace.
 - **Exact provenance** — every generated call resolves to a function-table row and every dictionary term resolves to its exact source line; each snapshot is bound to its Fundamentals source commit and SHA-256.
-- **Checked TLA+ model explorer** — the companion page separates a curated lifecycle/topology explanation from complete TLC-derived state-space aggregates and genuine safety/liveness/counterexample receipts. It covers the monolithic Ark Core appliance, Multi-Ark noninterference, and replacement-host cutover without publishing raw private model source or concrete state labels.
+- **Checked TLA+ model explorer** — the companion page binds the exact ratified formal release and separates a curated lifecycle/topology explanation from complete TLC-derived state-space aggregates and genuine safety/liveness/counterexample receipts. Its public view deliberately covers three of the release's seven kernels without publishing raw private model source or concrete state labels.
 - **Source jump** — the snapshot card and footer open the exact private GitHub source document in a new page for viewers with repository access.
 - **No runtime dependencies** — the published artifact is plain HTML, CSS, JavaScript, and generated data. No CDN or Mermaid runtime is needed.
 
 ## Source and update model
 
-The authoritative sources are the private Fundamentals checkout:
+Modeled Chambers semantics are governed by the exact tagged release in the private temporal-model repository. The Atlas also snapshots two committed private Fundamentals documents; the Chambers document is a downstream projection of that release.
 
 ```text
+dreamcatcher-tech/chambers-temporal-model @ formal-spec-v1.0.0
+└── release/specification.json + manifest + model/config/evidence bundle
+
 dreamcatcher-tech/fundamentals
-├── docs/chambers-lifecycle-sequences.md
+├── docs/chambers-lifecycle-sequences.md  # downstream Chambers projection
 └── docs/cardflow-filesystem-lease-sequences.md
 ```
 
@@ -49,9 +52,9 @@ git push
 # wait for Pages, then inspect the cache-busted public URL in a managed external browser
 ```
 
-`sync_source.py` copies every deliberately registered authority, writes `source/manifest.json`, rebuilds `site/data.js`, and validates the publication. Public sequence order follows the explicit metadata registry while stable sequence IDs preserve deep links. A push to `main` repeats validation and republishes GitHub Pages.
+`sync_source.py` copies every deliberately registered source, writes `source/manifest.json`, rebuilds `site/data.js`, and validates the publication. Public sequence order follows the explicit metadata registry while stable sequence IDs preserve deep links. A push to `main` repeats validation and republishes GitHub Pages.
 
-### Adding another Fundamentals sequence authority
+### Adding another Fundamentals sequence source
 
 New documents are not auto-discovered, because registration copies private source bytes into a public repository and browser payload. Add the source explicitly to `scripts/sync_source.py::DOCUMENTS`, add its workspace and sequence metadata to `scripts/build_data.py::DOCUMENT_CONFIGS`, then generalize the exact document/count checks, UI theme/wording, tests, and QA fixtures described in the runbook. If the source uses a new Markdown/Mermaid shape, extend the parser with exact semantic fixtures rather than hand-authoring browser data.
 
@@ -92,7 +95,7 @@ source/manifest.json
 source/chambers-lifecycle-sequences.md ─┐
                                         ├─> scripts/build_data.py
 source/cardflow-filesystem-lease-sequences.md ─┘   ├─ parses each function table
-                                                    ├─ parses each authoritative Dictionary table
+                                                    ├─ parses each document-local Dictionary table
                                                     ├─ parses every sequence arrow
                                                     ├─ preserves phases, branches, and notes
                                                     └─ rejects unknown function labels

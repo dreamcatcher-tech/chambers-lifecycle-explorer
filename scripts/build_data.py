@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the static Lifecycle Atlas bundle from exact authoritative Markdown snapshots."""
+"""Build the static Lifecycle Atlas bundle from exact registered Markdown snapshots."""
 
 from __future__ import annotations
 
@@ -288,7 +288,7 @@ def slugify(value: str) -> str:
 
 
 def parse_dictionary(lines: list[str]) -> list[dict[str, Any]]:
-    """Parse the one authoritative ``## Dictionary`` table in a source document."""
+    """Parse the one document-local ``## Dictionary`` table in a source document."""
     heading_indexes = [index for index, line in enumerate(lines) if line == "## Dictionary"]
     if len(heading_indexes) != 1:
         raise ValueError(f"Expected exactly one ## Dictionary section; found {len(heading_indexes)}")
@@ -782,8 +782,8 @@ def build_payload() -> dict[str, Any]:
     if not MANIFEST_PATH.exists():
         raise FileNotFoundError(f"Missing source manifest: {MANIFEST_PATH}")
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
-    if manifest.get("schemaVersion") != 2:
-        raise ValueError("source/manifest.json must use schemaVersion 2")
+    if manifest.get("schemaVersion") != 3:
+        raise ValueError("source/manifest.json must use schemaVersion 3")
 
     entries = {entry["id"]: entry for entry in manifest.get("documents", [])}
     if set(entries) != set(DOCUMENT_CONFIGS):
@@ -808,6 +808,7 @@ def build_payload() -> dict[str, Any]:
             "subtitle": "Chambers and Cardflow sequence explorer",
         },
         "defaultDocumentId": "chambers",
+        "formalAuthority": manifest["formalAuthority"],
         "stats": combined,
         "documents": documents,
     }

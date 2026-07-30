@@ -6,6 +6,7 @@
     "stop_without_fence": {"model": "ark_core_appliance", "title": "Stop before authority fence", "description": "Allow selected-Core replacement to stop before route and effect authority are fenced."},
     "fallback_after_effect": {"model": "ark_core_appliance", "title": "Fallback after irreversible effect", "description": "Allow LKG consumption after the pre-effect safety boundary."},
     "caller_selected_scope": {"model": "multi_ark", "title": "Payload-selected child parent", "description": "Trust caller-selected lifecycle parentage instead of deriving the child parent from the authenticated Ark connection."},
+    "transitive_teardown": {"model": "multi_ark", "title": "Transitive teardown authority", "description": "Leak a grandchild teardown edge to the root ancestor instead of granting it only to the direct lifecycle parent."},
     "second_root_boot": {"model": "multi_ark", "title": "Second parentless host Ark", "description": "Allow ProcMan to boot a second local Ark without lifecycle parentage."},
     "implicit_parent_peer": {"model": "multi_ark", "title": "Implicit parent peer session", "description": "Treat lifecycle parentage as receiver authority for a peer session."},
     "volume_before_release": {"model": "host_cutover", "title": "Candidate writer before release", "description": "Attach the candidate writer while the incumbent writer is still authoritative."}

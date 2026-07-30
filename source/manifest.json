@@ -1,27 +1,39 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "repository": "dreamcatcher-tech/fundamentals",
-  "repositoryHead": "aa06cbc22da380e137e4942541e4ea6f1f177477",
-  "repositoryHeadTimestamp": "2026-07-29T22:05:13Z",
-  "projectionMode": "exact committed document snapshots; generated browser data",
+  "repositoryHead": "4daab27f7dcdfc95d32641cea2873c53d093acca",
+  "repositoryHeadTimestamp": "2026-07-30T09:51:18Z",
+  "projectionMode": "exact committed registered-source snapshots; generated browser data",
+  "formalAuthority": {
+    "repository": "dreamcatcher-tech/chambers-temporal-model",
+    "release": "chambers-formal-specification/v1.0.0",
+    "git_tag": "formal-spec-v1.0.0",
+    "commit": "72f7dc531392b71cd210163649b4944a38b5edaa",
+    "release_url": "https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.0.0",
+    "specification_path": "release/specification.json",
+    "manifest_path": "release/manifest.json",
+    "manifest_sha256": "69abdf4d3728a8b14457c8b6653c74a0ca964f5ad0f7782049df301496cf5e6d"
+  },
   "documents": [
     {
       "id": "chambers",
+      "role": "downstream_projection_of_chambers_formal_specification_v1.0.0",
       "path": "docs/chambers-lifecycle-sequences.md",
       "snapshotPath": "chambers-lifecycle-sequences.md",
-      "sourceCommit": "ca12fe479665bd1fdde05b9bc164f7e18828c0f4",
-      "sourceTimestamp": "2026-07-29T21:44:12Z",
-      "documentSha256": "29a6ef1155c7ffdc64ff13f0b67fa7b3a056785b61158e73a837327ce2bf0f9d",
-      "documentBytes": 113933
+      "sourceCommit": "4daab27f7dcdfc95d32641cea2873c53d093acca",
+      "sourceTimestamp": "2026-07-30T09:51:18Z",
+      "documentSha256": "a5523beb075e829a7d536eb113137352f9f05b4af7e2de4bdeb104d3edc42e77",
+      "documentBytes": 114521
     },
     {
       "id": "cardflow",
+      "role": "cardflow_design_source_with_chambers_formal_release_binding",
       "path": "docs/cardflow-filesystem-lease-sequences.md",
       "snapshotPath": "cardflow-filesystem-lease-sequences.md",
-      "sourceCommit": "a10fe03af4cbce32ad5326e82aec3da20f59f44c",
-      "sourceTimestamp": "2026-07-26T22:42:29Z",
-      "documentSha256": "651bd009b0872a53c3d413a32815dade5bf31ef45d8eae744fe0cf3fb033a391",
-      "documentBytes": 63770
+      "sourceCommit": "4daab27f7dcdfc95d32641cea2873c53d093acca",
+      "sourceTimestamp": "2026-07-30T09:51:18Z",
+      "documentSha256": "2ae69cd2f83eacaf8daa4e9453449e7ff92481958220b927cbb178e9d84331a4",
+      "documentBytes": 63995
     }
   ]
 }

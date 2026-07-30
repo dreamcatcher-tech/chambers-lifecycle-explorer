@@ -15,7 +15,7 @@ OUTPUT = ROOT / "site" / "tla" / "model-data.js"
 
 def render() -> tuple[str, dict]:
     data = json.loads(SOURCE.read_text(encoding="utf-8"))
-    if data.get("schema") != "dreamcatcher.chambers-tla-model-projection/v2":
+    if data.get("schema") != "dreamcatcher.chambers-tla-model-projection/v3":
         raise ValueError("unsupported TLA+ projection schema")
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     return (

@@ -1,21 +1,27 @@
 {
-  "schema": "dreamcatcher.chambers-tla-model-projection/v2",
+  "schema": "dreamcatcher.chambers-tla-model-projection/v3",
   "source": {
     "repository": "dreamcatcher-tech/chambers-temporal-model",
     "visibility": "private",
-    "commit": "8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e",
-    "committedAt": "2026-07-29T22:33:23Z",
-    "commitUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/tree/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e",
+    "commit": "72f7dc531392b71cd210163649b4944a38b5edaa",
+    "committedAt": "2026-07-30T09:43:35Z",
+    "commitUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/tree/72f7dc531392b71cd210163649b4944a38b5edaa",
     "evidencePath": "evidence/model-check-summary.json",
-    "evidenceSha256": "59467caca1b921dd9dc1343470f9425b8a1f5ec1e7aed1277296f1a3478b93d9",
-    "evidenceGeneratedAtUtc": "2026-07-29T22:24:39Z",
+    "evidenceSha256": "8ca0d7e28d7a8ddd7a3d667e3767bf17c7a86bc1b3746b04dfa64b211064eb3f",
+    "evidenceGeneratedAtUtc": "2026-07-30T09:41:08Z",
     "authority": {
-      "repository": "dreamcatcher-tech/fundamentals",
-      "commit": "aa06cbc22da380e137e4942541e4ea6f1f177477",
-      "path": "docs/chambers-lifecycle-sequences.md",
-      "sha256": "29a6ef1155c7ffdc64ff13f0b67fa7b3a056785b61158e73a837327ce2bf0f9d"
+      "repository": "dreamcatcher-tech/chambers-temporal-model",
+      "release": "chambers-formal-specification/v1.0.0",
+      "version": "1.0.0",
+      "gitTag": "formal-spec-v1.0.0",
+      "commit": "72f7dc531392b71cd210163649b4944a38b5edaa",
+      "manifestPath": "release/manifest.json",
+      "manifestSha256": "69abdf4d3728a8b14457c8b6653c74a0ca964f5ad0f7782049df301496cf5e6d",
+      "changelogPath": "CHANGELOG.md",
+      "releaseUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.0.0"
     },
     "architectureSynthesis": {
+      "role": "provenance_only_not_authority",
       "name": "Chambers Ark Core architecture synthesis v3",
       "schema": "dreamcatcher.chambers-architecture-synthesis/v3",
       "digest": "b1e2a9b07dc2474b86c2709899da6f7f9571d6bdc84bf2bbebc6b5d80a052f0f",
@@ -25,9 +31,26 @@
   },
   "projection": {
     "annotationsSchema": "dreamcatcher.chambers-tla-visualization-annotations/v1",
-    "annotationsSha256": "d72e630d20d518af1daa8034e7a0a6f12a4ae606add04b9cf30ff5ff1d28a0f5",
+    "annotationsSha256": "cafb29f1f02f9c5ab7e5b5c2737ea9200c78c3ee43ea1d13179ba254e30476d8",
     "disclosure": "Curated explanatory labels and layout only. Action, variable, property, source-line, state-space, and transition data are regenerated from the pinned TLA+ modules, TLC configurations, checked evidence, and TLC DOT dumps.",
-    "boundary": "Public-safe projection only: exact names, line anchors, hashes, bounded state/transition aggregates, and TLC receipts. It excludes raw private TLA+ source, concrete state labels, and raw DOT graphs."
+    "boundary": "Public-safe projection only: exact names, line anchors, hashes, bounded state/transition aggregates, and TLC receipts. It excludes raw private TLA+ source, concrete state labels, and raw DOT graphs.",
+    "coverage": {
+      "releaseKernels": [
+        "ark_core_appliance",
+        "workspace_persistence",
+        "artifact_build_materialization",
+        "development_to_runnable",
+        "ordinary_chamber_materialization",
+        "multi_ark",
+        "host_cutover"
+      ],
+      "publishedModels": [
+        "ark_core_appliance",
+        "multi_ark",
+        "host_cutover"
+      ],
+      "status": "deliberately_bounded_public_subset"
+    }
   },
   "tooling": {
     "sany": [
@@ -46,7 +69,7 @@
     "generatedStates": 2596,
     "distinctStates": 797,
     "dotTransitions": 2593,
-    "expectedCounterexamples": 7
+    "expectedCounterexamples": 8
   },
   "models": [
     {
@@ -60,10 +83,10 @@
       "source": {
         "modulePath": "model/ArkCoreAppliance.tla",
         "moduleSha256": "9e29c1a55b12a1a3b118917220766517ddd3e278359d17ff8d7eae1e38563453",
-        "moduleUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla",
+        "moduleUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla",
         "configPath": "model/ArkCoreAppliance.cfg",
         "configSha256": "f5b2ed07884c5a94ef72c24e0ee38971896106a6bd6c19ccac539f2044bf0d52",
-        "configUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.cfg"
+        "configUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.cfg"
       },
       "variables": [
         {
@@ -167,7 +190,7 @@
           "category": "boundary",
           "description": "At an Off boundary, cold-read the selected Core, cache that plan, and acquire the task's scope attachments.",
           "sourceLine": 112,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L112",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L112",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 6,
           "concreteLabels": [
@@ -179,7 +202,7 @@
           "category": "startup",
           "description": "Start the next required role in the fixed Engine, Persistence, Gateway, Supervisor order.",
           "sourceLine": 133,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L133",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L133",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 48,
           "concreteLabels": [
@@ -191,7 +214,7 @@
           "category": "readiness",
           "description": "Bind ProcMan registration and route evidence to the current task epoch once every required role is ready.",
           "sourceLine": 151,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L151",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L151",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 16,
           "concreteLabels": [
@@ -203,7 +226,7 @@
           "category": "authority",
           "description": "Open admission and effect authority only when all aggregate readiness evidence agrees.",
           "sourceLine": 166,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L166",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L166",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 16,
           "concreteLabels": [
@@ -215,7 +238,7 @@
           "category": "authority",
           "description": "Create ordinary descendant work only while the appliance is Ready and admission is open.",
           "sourceLine": 179,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L179",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L179",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 9,
           "concreteLabels": [
@@ -227,7 +250,7 @@
           "category": "selection",
           "description": "Durably select the successor Core without changing the already cached running plan.",
           "sourceLine": 190,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L190",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L190",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 4,
           "concreteLabels": [
@@ -239,7 +262,7 @@
           "category": "boundary",
           "description": "Close route, admission, and effect authority before replacing the cached Core.",
           "sourceLine": 206,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L206",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L206",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 6,
           "concreteLabels": [
@@ -251,7 +274,7 @@
           "category": "boundary",
           "description": "Stop and release the fenced appliance so the next Off boundary can cold-read the successor.",
           "sourceLine": 219,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L219",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L219",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 6,
           "concreteLabels": [
@@ -263,7 +286,7 @@
           "category": "failure",
           "description": "A required-role process exit or semantic readiness loss stops the whole appliance, closes authority, and records the failed role and source.",
           "sourceLine": 240,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L240",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L240",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 128,
           "concreteLabels": [
@@ -275,7 +298,7 @@
           "category": "negative",
           "description": "Deliberately unsafe control reachable only when whole-appliance failure handling is disabled; the checked production configuration makes it unreachable.",
           "sourceLine": 265,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L265",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L265",
           "reachableInPrincipal": false,
           "concreteTransitionCount": 0,
           "concreteLabels": []
@@ -285,7 +308,7 @@
           "category": "failure",
           "description": "An activation-time role failure exits the whole appliance before admission.",
           "sourceLine": 291,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L291",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L291",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 189,
           "concreteLabels": [
@@ -297,7 +320,7 @@
           "category": "boundary",
           "description": "Record the point after which an activation failure is no longer safe for automatic LKG fallback.",
           "sourceLine": 280,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L280",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L280",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 32,
           "concreteLabels": [
@@ -309,7 +332,7 @@
           "category": "recovery",
           "description": "Reap descendants and release route, network, and volume ownership from the crashed epoch.",
           "sourceLine": 309,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L309",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L309",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 184,
           "concreteLabels": [
@@ -321,7 +344,7 @@
           "category": "recovery",
           "description": "Restart the exact cached plan after a crash, even if a newer durable selector is pending.",
           "sourceLine": 323,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L323",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L323",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 24,
           "concreteLabels": [
@@ -333,7 +356,7 @@
           "category": "recovery",
           "description": "Consume the one-use LKG permit only before admission and irreversible effects.",
           "sourceLine": 353,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L353",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L353",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 8,
           "concreteLabels": [
@@ -345,7 +368,7 @@
           "category": "recovery",
           "description": "Stop with inspectable terminal evidence when fallback is unsafe or retries are exhausted.",
           "sourceLine": 375,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L375",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L375",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 88,
           "concreteLabels": [
@@ -578,61 +601,61 @@
       "safety": {
         "configuredInvariant": "Safety",
         "sourceLine": 484,
-        "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L484",
+        "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L484",
         "components": [
           {
             "id": "TypeOK",
             "description": "Every model variable remains inside its declared bounded domain.",
             "sourceLine": 428,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L428"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L428"
           },
           {
             "id": "S6StartupOrder",
             "description": "Persistence follows Engine; Gateway follows Persistence; Supervisor follows Gateway.",
             "sourceLine": 450,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L450"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L450"
           },
           {
             "id": "SingleAuthoritativeVolumeWriter",
             "description": "At most one task epoch holds the authoritative volume.",
             "sourceLine": 456,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L456"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L456"
           },
           {
             "id": "LiveTaskOwnsOneScopeAttachment",
             "description": "A live task has exactly its own volume/network attachment and a cached Core.",
             "sourceLine": 458,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L458"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L458"
           },
           {
             "id": "AdmissionRequiresAggregateReadiness",
             "description": "Admission implies one live, fully ready, generation-aligned appliance.",
             "sourceLine": 463,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L463"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L463"
           },
           {
             "id": "EffectsRequireReadyAppliance",
             "description": "Effect authority implies Ready, admitted, all-role evidence for the current epoch.",
             "sourceLine": 468,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L468"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L468"
           },
           {
             "id": "RequiredRoleFailureStopsWholeAppliance",
             "description": "Required-role loss leaves no live member, admission, or effect owner behind.",
             "sourceLine": 473,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L473"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L473"
           },
           {
             "id": "FallbackIsPreAdmissionPreEffect",
             "description": "Consumed LKG fallback is proven to be before admission and irreversible effects.",
             "sourceLine": 479,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L479"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L479"
           },
           {
             "id": "DescendantsStayWithinScopeLifetime",
             "description": "Ordinary descendants remain bounded by the live or failed scope lifetime.",
             "sourceLine": 481,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L481"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L481"
           }
         ]
       },
@@ -640,7 +663,7 @@
         "configuredProperty": "LifecycleConverges",
         "description": "Under weak fairness for deterministic lifecycle actions, every Off, Starting, Fenced, Crashed, or Recovery state eventually reaches Ready or Terminal.",
         "sourceLine": 495,
-        "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/ArkCoreAppliance.tla#L495"
+        "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/ArkCoreAppliance.tla#L495"
       },
       "check": {
         "status": "pass",
@@ -847,44 +870,44 @@
       "question": "Can one host root create isolated descendants and communicate across every topology without turning connectivity into administration?",
       "source": {
         "modulePath": "model/MultiArk.tla",
-        "moduleSha256": "2c0ff5689f3aa3ecd3e4986d452448a6a4f7ebb1105daf3cd0965d6a848fe534",
-        "moduleUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla",
+        "moduleSha256": "692c7e4c014d8eb8d468a8258add6b5892b98c23e729c0af681c88ea3190fe93",
+        "moduleUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla",
         "configPath": "model/MultiArk.cfg",
-        "configSha256": "b30ecfbfeb0645809fd960d9f235fab4bec35600c110a4626b696cc4d888d0a7",
-        "configUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.cfg"
+        "configSha256": "1bf9371b3085b9cb981008cebdf55c27ed1f173a0f32f309afac203663841e70",
+        "configUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.cfg"
       },
       "variables": [
         {
           "name": "phase",
-          "sourceLine": 69
-        },
-        {
-          "name": "parentScope",
           "sourceLine": 70
         },
         {
-          "name": "volumeAttachment",
+          "name": "parentScope",
           "sourceLine": 71
         },
         {
-          "name": "networkAttachment",
+          "name": "volumeAttachment",
           "sourceLine": 72
         },
         {
-          "name": "localRoutes",
+          "name": "networkAttachment",
           "sourceLine": 73
         },
         {
-          "name": "teardownEdges",
+          "name": "localRoutes",
           "sourceLine": 74
         },
         {
-          "name": "peerInvite",
+          "name": "teardownEdges",
           "sourceLine": 75
         },
         {
-          "name": "peerSession",
+          "name": "peerInvite",
           "sourceLine": 76
+        },
+        {
+          "name": "peerSession",
+          "sourceLine": 77
         }
       ],
       "constants": {
@@ -907,15 +930,16 @@
         "EndpointRemote": "EndpointRemote",
         "AllowSecondRootBoot": "FALSE",
         "DeriveChildParentFromConnection": "TRUE",
-        "RequirePeerInvitation": "TRUE"
+        "RequirePeerInvitation": "TRUE",
+        "GrantTeardownOnlyToDirectParent": "TRUE"
       },
       "actions": [
         {
           "id": "BootDirect",
           "category": "startup",
           "description": "Boot the sole parentless host root; the unsafe control separately demonstrates why no other local Ark may boot directly.",
-          "sourceLine": 113,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L113",
+          "sourceLine": 114,
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L114",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 5,
           "concreteLabels": [
@@ -926,8 +950,8 @@
           "id": "CreateChild",
           "category": "startup",
           "description": "Create an isolated child whose lifecycle parent comes from the authenticated live Ark caller.",
-          "sourceLine": 128,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L128",
+          "sourceLine": 129,
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L129",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 158,
           "concreteLabels": [
@@ -938,8 +962,8 @@
           "id": "MarkScopeReady",
           "category": "readiness",
           "description": "Mark one scope Ready and create only that scope's local route.",
-          "sourceLine": 149,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L149",
+          "sourceLine": 156,
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L156",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 83,
           "concreteLabels": [
@@ -950,8 +974,8 @@
           "id": "IssuePeerInvite",
           "category": "peer",
           "description": "The receiver issues an identity-bound invitation to one calling Ark, independent of lifecycle topology.",
-          "sourceLine": 160,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L160",
+          "sourceLine": 167,
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L167",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 118,
           "concreteLabels": [
@@ -962,8 +986,8 @@
           "id": "RevokePeerInvite",
           "category": "peer",
           "description": "Revoke the outstanding receiver invitation without granting or changing lifecycle authority.",
-          "sourceLine": 187,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L187",
+          "sourceLine": 194,
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L194",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 236,
           "concreteLabels": [
@@ -974,8 +998,8 @@
           "id": "OpenPeerSession",
           "category": "peer",
           "description": "Open one ordinary Ark peer session only against the receiver's matching invitation.",
-          "sourceLine": 170,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L170",
+          "sourceLine": 177,
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L177",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 118,
           "concreteLabels": [
@@ -986,8 +1010,8 @@
           "id": "ClosePeerSession",
           "category": "peer",
           "description": "Close the peer session without changing lifecycle or attachment authority.",
-          "sourceLine": 181,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L181",
+          "sourceLine": 188,
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L188",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 118,
           "concreteLabels": [
@@ -998,8 +1022,8 @@
           "id": "StopDirectChild",
           "category": "authority",
           "description": "Exercise the one parent-specific power: stop an exact direct child's active subtree.",
-          "sourceLine": 233,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L233",
+          "sourceLine": 240,
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L240",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 393,
           "concreteLabels": [
@@ -1010,8 +1034,8 @@
           "id": "CrashScope",
           "category": "failure",
           "description": "Crash one scope and its active descendants, revoking their routes and peer state.",
-          "sourceLine": 194,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L194",
+          "sourceLine": 201,
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L201",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 495,
           "concreteLabels": [
@@ -1022,8 +1046,8 @@
           "id": "ReapScope",
           "category": "recovery",
           "description": "Release a crashed leaf scope's attachments and exact teardown edge before reuse.",
-          "sourceLine": 214,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L214",
+          "sourceLine": 221,
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L221",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 95,
           "concreteLabels": [
@@ -1157,82 +1181,82 @@
       ],
       "safety": {
         "configuredInvariant": "ScopeSafety",
-        "sourceLine": 377,
-        "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L377",
+        "sourceLine": 384,
+        "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L384",
         "components": [
           {
             "id": "TypeOK",
             "description": "Every per-scope variable remains inside its bounded domain.",
-            "sourceLine": 285,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L285"
+            "sourceLine": 292,
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L292"
           },
           {
             "id": "EachScopeKeepsItsOwnAttachments",
             "description": "Every active scope has its expected private volume and network.",
-            "sourceLine": 316,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L316"
+            "sourceLine": 323,
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L323"
           },
           {
             "id": "DistinctActiveScopeAttachments",
             "description": "Different active scopes never share a volume or private network.",
-            "sourceLine": 322,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L322"
+            "sourceLine": 329,
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L329"
           },
           {
             "id": "OnlyScopeLocalRoutes",
             "description": "Every stable route begins and ends in the same scope.",
-            "sourceLine": 329,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L329"
+            "sourceLine": 336,
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L336"
           },
           {
             "id": "OneHostRoot",
             "description": "Only RootArk may be active without lifecycle parentage.",
-            "sourceLine": 300,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L300"
+            "sourceLine": 307,
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L307"
           },
           {
             "id": "EveryActiveChildDescendsFromRoot",
             "description": "Every active child has a valid active parent and therefore descends from the host root.",
-            "sourceLine": 312,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L312"
+            "sourceLine": 319,
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L319"
           },
           {
             "id": "ChildCreationComesFromAuthenticatedCaller",
             "description": "The child parent and teardown edge agree with the authenticated creating caller.",
-            "sourceLine": 340,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L340"
+            "sourceLine": 347,
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L347"
           },
           {
             "id": "DirectChildTeardownOnly",
             "description": "Every teardown edge is exact, immediate-parent scoped, and targets an active child.",
-            "sourceLine": 338,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L338"
+            "sourceLine": 345,
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L345"
           },
           {
             "id": "PeerSessionRequiresReceiverInvite",
             "description": "A peer session exists only for the receiver's matching invitation.",
-            "sourceLine": 348,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L348"
+            "sourceLine": 355,
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L355"
           },
           {
             "id": "PeerSessionCreatesNoPrivateRoute",
             "description": "Peer connectivity never creates a private scope route.",
-            "sourceLine": 356,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L356"
+            "sourceLine": 363,
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L363"
           },
           {
             "id": "ReapedScopesAreDetached",
             "description": "A reaped scope retains no attachments, routes, teardown edge, or peer session.",
-            "sourceLine": 364,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L364"
+            "sourceLine": 371,
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L371"
           }
         ]
       },
       "liveness": {
         "configuredProperty": "ScopeLifecycleConverges",
         "description": "Under weak fairness, every starting scope becomes Ready and every crashed scope is reaped while root uniqueness, direct-child teardown, attachment isolation, and receiver-authorized peer sessions remain invariant.",
-        "sourceLine": 392,
-        "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/MultiArk.tla#L392"
+        "sourceLine": 399,
+        "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/MultiArk.tla#L399"
       },
       "check": {
         "status": "pass",
@@ -3324,10 +3348,10 @@
       "source": {
         "modulePath": "model/HostCutover.tla",
         "moduleSha256": "f21832ddd7c7d9d1ac6803111a10439b11c66f462bc14d8c8f45eeac68a74534",
-        "moduleUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla",
+        "moduleUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla",
         "configPath": "model/HostCutover.cfg",
         "configSha256": "45743b4145827120a233a5bb58c57d1f3478eb388c511cbd04a8510862287dfe",
-        "configUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.cfg"
+        "configUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.cfg"
       },
       "variables": [
         {
@@ -3380,7 +3404,7 @@
           "category": "validation",
           "description": "Start the candidate on non-authoritative private resources.",
           "sourceLine": 59,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L59",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L59",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 1,
           "concreteLabels": [
@@ -3392,7 +3416,7 @@
           "category": "validation",
           "description": "Mark private candidate validation without granting any production ownership.",
           "sourceLine": 71,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L71",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L71",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 1,
           "concreteLabels": [
@@ -3404,7 +3428,7 @@
           "category": "validation",
           "description": "Prove a private crash/reboot cycle before cutover may begin.",
           "sourceLine": 80,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L80",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L80",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 1,
           "concreteLabels": [
@@ -3416,7 +3440,7 @@
           "category": "cutover",
           "description": "Arm the cutover only after private validation and rehearsal.",
           "sourceLine": 90,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L90",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L90",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 1,
           "concreteLabels": [
@@ -3428,7 +3452,7 @@
           "category": "boundary",
           "description": "Remove incumbent route, effect, and outer-ingress authority.",
           "sourceLine": 100,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L100",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L100",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 1,
           "concreteLabels": [
@@ -3440,7 +3464,7 @@
           "category": "boundary",
           "description": "Release the incumbent's production writer after authority is fenced.",
           "sourceLine": 113,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L113",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L113",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 1,
           "concreteLabels": [
@@ -3452,7 +3476,7 @@
           "category": "cutover",
           "description": "Attach the candidate writer only after the incumbent writer is gone.",
           "sourceLine": 126,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L126",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L126",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 1,
           "concreteLabels": [
@@ -3464,7 +3488,7 @@
           "category": "readiness",
           "description": "Prove candidate readiness for the exact attached writer generation.",
           "sourceLine": 143,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L143",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L143",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 1,
           "concreteLabels": [
@@ -3476,7 +3500,7 @@
           "category": "authority",
           "description": "Grant route, effect, and outer-ingress ownership together to the candidate.",
           "sourceLine": 152,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L152",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L152",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 1,
           "concreteLabels": [
@@ -3488,7 +3512,7 @@
           "category": "cutover",
           "description": "Retire the stopped incumbent after authority has moved.",
           "sourceLine": 167,
-          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L167",
+          "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L167",
           "reachableInPrincipal": true,
           "concreteTransitionCount": 1,
           "concreteLabels": [
@@ -3695,61 +3719,61 @@
       "safety": {
         "configuredInvariant": "CutoverSafety",
         "sourceLine": 239,
-        "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L239",
+        "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L239",
         "components": [
           {
             "id": "TypeOK",
             "description": "Every host, phase, owner, and generation remains inside its bounded domain.",
             "sourceLine": 198,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L198"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L198"
           },
           {
             "id": "SingleAuthoritativeWriter",
             "description": "At most one production writer exists.",
             "sourceLine": 209,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L209"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L209"
           },
           {
             "id": "SingleRouteOwner",
             "description": "At most one production route owner exists.",
             "sourceLine": 210,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L210"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L210"
           },
           {
             "id": "SingleEffectOwner",
             "description": "At most one effect owner exists.",
             "sourceLine": 211,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L211"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L211"
           },
           {
             "id": "AuthorityOwnersAgree",
             "description": "Route, effect, and outer-ingress ownership move as one authority set.",
             "sourceLine": 213,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L213"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L213"
           },
           {
             "id": "AuthorityRequiresReadyWriter",
             "description": "Production authority requires a ready host on the exact writer generation.",
             "sourceLine": 218,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L218"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L218"
           },
           {
             "id": "PrivateCandidateHasNoProductionAuthority",
             "description": "Private validation never grants writer, route, effect, or ingress ownership.",
             "sourceLine": 223,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L223"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L223"
           },
           {
             "id": "CandidateAuthorityRequiresProof",
             "description": "Candidate authority requires validation, rehearsal, and exclusive writer ownership.",
             "sourceLine": 227,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L227"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L227"
           },
           {
             "id": "FencedIncumbentCannotRegainAuthority",
             "description": "After fencing begins, the incumbent cannot regain production authority.",
             "sourceLine": 233,
-            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L233"
+            "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L233"
           }
         ]
       },
@@ -3757,7 +3781,7 @@
         "configuredProperty": "CutoverConverges",
         "description": "Once an authorized cutover starts, weak fairness over fence, release, attach, readiness, and grant reaches candidate ProductionReady.",
         "sourceLine": 250,
-        "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/8e5f17a1866ebffbcedf0d79c719dac89f4e1f6e/model/HostCutover.tla#L250"
+        "sourceUrl": "https://github.com/dreamcatcher-tech/chambers-temporal-model/blob/72f7dc531392b71cd210163649b4944a38b5edaa/model/HostCutover.tla#L250"
       },
       "check": {
         "status": "pass",
@@ -3999,6 +4023,17 @@
       "traceDepth": 6
     },
     {
+      "id": "transitive_teardown",
+      "model": "multi_ark",
+      "title": "Transitive teardown authority",
+      "description": "Leak a grandchild teardown edge to the root ancestor instead of granting it only to the direct lifecycle parent.",
+      "status": "expected_counterexample",
+      "violatedInvariant": "DirectChildTeardownOnly",
+      "generatedStates": 40,
+      "distinctStates": 30,
+      "traceDepth": 6
+    },
+    {
       "id": "second_root_boot",
       "model": "multi_ark",
       "title": "Second parentless host Ark",
@@ -4035,6 +4070,6 @@
   "explanation": {
     "curated": "The Explain view is a deliberately curated map whose action and property names are checked against the pinned modules. It explains intent; it is not a full semantic derivation.",
     "derived": "The TLC State Space view is automatically aggregated from complete DOT dumps produced by a fresh TLC run and cross-checked against committed evidence counts.",
-    "proof": "PASS receipts mean TLC found no violation within the configured finite bounds. Expected counterexamples prove that seven deliberately weakened guards are observable. Neither result proves deployment conformance."
+    "proof": "PASS receipts mean TLC found no violation within the configured finite bounds. Expected counterexamples prove that eight deliberately weakened guards in the public subset are observable. Neither result proves deployment conformance."
   }
 }

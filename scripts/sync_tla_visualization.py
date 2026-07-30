@@ -559,9 +559,31 @@ def build_projection(args: argparse.Namespace) -> dict[str, Any]:
     annotations = json.loads(ANNOTATIONS_PATH.read_text(encoding="utf-8"))
     evidence_path = temporal_repo / "evidence" / "model-check-summary.json"
     evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
-    baseline = json.loads(
-        (temporal_repo / "source" / "baseline.json").read_text(encoding="utf-8")
-    )
+    specification_path = temporal_repo / "release" / "specification.json"
+    manifest_path = temporal_repo / "release" / "manifest.json"
+    provenance_path = temporal_repo / "source" / "provenance.json"
+    specification = json.loads(specification_path.read_text(encoding="utf-8"))
+    release_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    provenance = json.loads(provenance_path.read_text(encoding="utf-8"))
+    release = specification["release"]
+    if release["status"] != "ratified":
+        raise RuntimeError("temporal-model release is not ratified")
+    try:
+        tag_commit = git_value(
+            temporal_repo, "rev-parse", f"refs/tags/{release['git_tag']}^{{commit}}"
+        )
+    except RuntimeError as error:
+        raise RuntimeError(f"missing formal release tag: {release['git_tag']}") from error
+    if tag_commit != head:
+        raise RuntimeError(
+            f"formal release tag {release['git_tag']} names {tag_commit}, not HEAD {head}"
+        )
+    evidence_sha = sha256_path(evidence_path)
+    if (
+        release_manifest["bundle"]["authoritative_files"]["evidence/model-check-summary.json"]["sha256"]
+        != evidence_sha
+    ):
+        raise RuntimeError("release manifest does not bind the committed model evidence")
 
     java_value = str(args.java)
     java = Path(shutil.which(java_value) or java_value).resolve()
@@ -619,7 +641,7 @@ def build_projection(args: argparse.Namespace) -> dict[str, Any]:
         )
 
     return {
-        "schema": "dreamcatcher.chambers-tla-model-projection/v2",
+        "schema": "dreamcatcher.chambers-tla-model-projection/v3",
         "source": {
             "repository": EXPECTED_REPOSITORY,
             "visibility": "private",
@@ -627,24 +649,29 @@ def build_projection(args: argparse.Namespace) -> dict[str, Any]:
             "committedAt": committed_at,
             "commitUrl": f"https://github.com/{EXPECTED_REPOSITORY}/tree/{head}",
             "evidencePath": "evidence/model-check-summary.json",
-            "evidenceSha256": sha256_path(evidence_path),
+            "evidenceSha256": evidence_sha,
             "evidenceGeneratedAtUtc": evidence["generated_at_utc"],
             "authority": {
-                "repository": baseline["source"]["repository"],
-                "commit": baseline["source"]["commit"],
-                "path": baseline["source"]["path"],
-                "sha256": baseline["source"]["sha256"],
+                "repository": specification["authority"]["repository"],
+                "release": release["id"],
+                "version": release["version"],
+                "gitTag": release["git_tag"],
+                "commit": head,
+                "manifestPath": "release/manifest.json",
+                "manifestSha256": sha256_path(manifest_path),
+                "changelogPath": specification["authority"]["human_interface"],
+                "releaseUrl": (
+                    f"https://github.com/{EXPECTED_REPOSITORY}/releases/tag/"
+                    f"{release['git_tag']}"
+                ),
             },
             "architectureSynthesis": {
-                "name": baseline["architecture_synthesis"]["final_name"],
-                "schema": baseline["architecture_synthesis"]["schema"],
-                "digest": baseline["architecture_synthesis"]["model_digest"],
-                "acceptedPartition": baseline["architecture_synthesis"][
-                    "accepted_partition"
-                ],
-                "candidates": baseline["architecture_synthesis"]["bound"][
-                    "candidates"
-                ],
+                "role": "provenance_only_not_authority",
+                "name": provenance["historical_inputs"]["architecture_synthesis"]["final_name"],
+                "schema": provenance["historical_inputs"]["architecture_synthesis"]["schema"],
+                "digest": provenance["historical_inputs"]["architecture_synthesis"]["model_digest"],
+                "acceptedPartition": provenance["historical_inputs"]["architecture_synthesis"]["accepted_partition_input"],
+                "candidates": provenance["historical_inputs"]["architecture_synthesis"]["enumerated_candidates"],
             },
         },
         "projection": {
@@ -656,6 +683,11 @@ def build_projection(args: argparse.Namespace) -> dict[str, Any]:
                 "state/transition aggregates, and TLC receipts. It excludes raw private "
                 "TLA+ source, concrete state labels, and raw DOT graphs."
             ),
+            "coverage": {
+                "releaseKernels": [kernel["id"] for kernel in specification["kernels"]],
+                "publishedModels": list(MODEL_ORDER),
+                "status": "deliberately_bounded_public_subset",
+            },
         },
         "tooling": {
             "sany": evidence["tooling"]["sany"],
@@ -688,7 +720,7 @@ def build_projection(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "proof": (
                 "PASS receipts mean TLC found no violation within the configured finite bounds. "
-                "Expected counterexamples prove that seven deliberately weakened guards are "
+                "Expected counterexamples prove that eight deliberately weakened guards in the public subset are "
                 "observable. Neither result proves deployment conformance."
             ),
         },

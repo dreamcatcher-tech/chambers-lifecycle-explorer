@@ -18,18 +18,30 @@ class TlaVisualizationContractTests(unittest.TestCase):
         cls.models = {model["id"]: model for model in cls.projection["models"]}
 
     def test_projection_is_exactly_bound_to_checked_temporal_commit(self) -> None:
-        self.assertEqual(self.projection["schema"], "dreamcatcher.chambers-tla-model-projection/v2")
+        self.assertEqual(self.projection["schema"], "dreamcatcher.chambers-tla-model-projection/v3")
         source = self.projection["source"]
         self.assertEqual(source["repository"], "dreamcatcher-tech/chambers-temporal-model")
         self.assertEqual(source["visibility"], "private")
         self.assertRegex(source["commit"], r"^[0-9a-f]{40}$")
         self.assertRegex(source["evidenceSha256"], r"^[0-9a-f]{64}$")
         self.assertEqual(
-            source["authority"]["repository"], "dreamcatcher-tech/fundamentals"
+            source["authority"]["repository"],
+            "dreamcatcher-tech/chambers-temporal-model",
+        )
+        self.assertEqual(source["authority"]["release"], "chambers-formal-specification/v1.0.0")
+        self.assertEqual(source["authority"]["gitTag"], "formal-spec-v1.0.0")
+        self.assertEqual(source["authority"]["commit"], source["commit"])
+        self.assertRegex(source["authority"]["manifestSha256"], r"^[0-9a-f]{64}$")
+        self.assertEqual(
+            source["architectureSynthesis"]["role"], "provenance_only_not_authority"
         )
         self.assertEqual(
             source["architectureSynthesis"]["acceptedPartition"], "E+A+R+P+S"
         )
+        coverage = self.projection["projection"]["coverage"]
+        self.assertEqual(coverage["status"], "deliberately_bounded_public_subset")
+        self.assertEqual(len(coverage["releaseKernels"]), 7)
+        self.assertEqual(len(coverage["publishedModels"]), 3)
 
     def test_complete_dot_aggregates_cover_every_checked_state_and_transition(self) -> None:
         for model in self.models.values():
@@ -89,9 +101,9 @@ class TlaVisualizationContractTests(unittest.TestCase):
             for edge in generated["curated"]["edges"]:
                 self.assertTrue(set(edge.get("actions", [])) <= actions)
 
-    def test_all_seven_weakened_controls_have_real_counterexample_receipts(self) -> None:
+    def test_all_eight_published_weakened_controls_have_real_counterexample_receipts(self) -> None:
         controls = self.projection["negativeControls"]
-        self.assertEqual(len(controls), 7)
+        self.assertEqual(len(controls), 8)
         self.assertEqual(
             {control["id"] for control in controls},
             set(self.annotations["negative_controls"]),

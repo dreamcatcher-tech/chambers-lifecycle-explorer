@@ -19,7 +19,7 @@ class BuildDataTests(unittest.TestCase):
         cls.payload = build_data.build_payload()
         cls.documents = {document["id"]: document for document in cls.payload["documents"]}
 
-    def test_both_authoritative_documents_are_present(self) -> None:
+    def test_both_registered_documents_are_present(self) -> None:
         self.assertEqual({"chambers", "cardflow"}, set(self.documents))
         self.assertEqual("chambers", self.payload["defaultDocumentId"])
 
@@ -353,10 +353,23 @@ class BuildDataTests(unittest.TestCase):
 
     def test_source_manifest_binds_both_exact_document_bytes(self) -> None:
         manifest = json.loads((ROOT / "source" / "manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["schemaVersion"], 3)
+        self.assertEqual(
+            manifest["formalAuthority"]["git_tag"], "formal-spec-v1.0.0"
+        )
+        self.assertEqual(
+            self.payload["formalAuthority"], manifest["formalAuthority"]
+        )
         manifest_documents = {document["id"]: document for document in manifest["documents"]}
+        expected_roles = {
+            "chambers": "downstream_projection_of_chambers_formal_specification_v1.0.0",
+            "cardflow": "cardflow_design_source_with_chambers_formal_release_binding",
+        }
         for document_id, document in self.documents.items():
             source = document["source"]
             manifest_source = manifest_documents[document_id]
+            self.assertEqual(source["role"], expected_roles[document_id])
+            self.assertEqual(manifest_source["role"], expected_roles[document_id])
             source_path = ROOT / "source" / manifest_source["snapshotPath"]
             digest = hashlib.sha256(source_path.read_bytes()).hexdigest()
             self.assertEqual(manifest_source["documentSha256"], digest)

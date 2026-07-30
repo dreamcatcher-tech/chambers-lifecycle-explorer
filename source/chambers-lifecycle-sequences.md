@@ -1,18 +1,22 @@
 # Chambers lifecycle sequence reference
 
-Status: **Current working architecture authority; bounded runsc mechanism proof accepted; production integration pending**
+Status: **Downstream lifecycle/interface projection of Chambers Formal Specification v1.0.0; bounded runsc mechanism proof accepted; production integration pending**
 
-Architecture classification: `architecture_delta_accepted`
+Governing release: [`chambers-formal-specification/v1.0.0`](https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.0.0), tag `formal-spec-v1.0.0`, commit `72f7dc531392b71cd210163649b4944a38b5edaa`
+
+Local binding: [`chambers-formal-specification.json`](chambers-formal-specification.json)
+
+Projection classification: `formal_release_reconciled_downstream_projection`
 
 Design-lineage baseline: `96bc5f7f5d97641a0a33e8a98636d38dcfee8d51`
 
-This document is the current Chambers lifecycle architecture authority. It owns the working design for lifecycle
-identity, state, sequencing, authority boundaries, image preparation and custody, dynamic-job versus
-resident-service execution, routing, verification, selection, quiescence, and recovery until explicitly superseded.
-The broader [`ark-agent-architecture.md`](ark-agent-architecture.md), owning Gherkin, schemas, implementation, and
-generated projections are downstream reconciliation targets and may temporarily lag. This status establishes
-design authority plus the bounded mechanism evidence named below; it does not claim production containerd/CNI,
-storage-driver, or deployment acceptance.
+This document projects the pinned formal release into lifecycle vocabulary, I3/interface names, sequence diagrams,
+and implementation obligations. For every question inside that release's declared jurisdiction, the exact tagged
+release governs this document, the broader [`ark-agent-architecture.md`](ark-agent-architecture.md), owning Gherkin,
+schemas, tests, implementation, and generated projections. A conflict returns to a candidate formal-model delta;
+an omission is **undecided / out of scope** and may not be filled by this prose. This document may choose downstream
+implementation detail only where the release deliberately leaves the choice open. Its bounded mechanism evidence
+does not claim production containerd/CNI, storage-driver, or deployment acceptance.
 
 The selected initial core is one **Ark Core Appliance**: one exact OCI image, one gVisor task, one s6 PID 1,
 one III Engine, and required Persistence, Gateway, and Supervisor processes. It has one selection, upgrade, crash,
@@ -57,9 +61,10 @@ containerd/CNI-plugin, and storage-driver integration require their own acceptan
 
 ## Dictionary
 
-This section is the terminology source of truth for this document and every generated projection of it. Other
+This section is the terminology source for this downstream projection and every generated projection of it. Other
 sections state relationships and invariants between these terms; they do not create aliases or alternate meanings.
-Each term is unique in this table. **Definition** is normative; **Related terms** is navigational only.
+Each term is unique in this table. **Definition** is normative for downstream interface vocabulary only; it cannot
+add, remove, weaken, or infer modeled semantics. **Related terms** is navigational only.
 
 | Term | Definition | Related terms |
 | --- | --- | --- |
@@ -1456,7 +1461,7 @@ broken; execution fails closed and rebuilding is candidate work.
 - independently accepted replacement of ProcMan, containerd, runsc shim, runsc, kernel, CNI boundary, and boot-control format;
 - process-memory or rootfs checkpoint recovery.
 
-### Required downstream reconciliation to this sequence authority
+### Required downstream reconciliation to the governing formal release
 
 - cross-stack architecture vocabulary and narrative, replacing historical four-member core assumptions with one Ark Core Appliance;
 - Covenant schema/Gherkin for one Core image with plural required workers and a child-creation execution profile;
@@ -1467,4 +1472,4 @@ broken; execution fails closed and rebuilding is candidate work.
 - Persistence Core/ordinary selection, Realization/build/Prepared/Hold/resource/provider, seed, flush, desired-route, fallback compatibility, and schema contracts;
 - installer and recovery tooling for Core Seed import, durable selector, selected/fallback closure retention, atomic write/readback, and one-attempt recovery rewrite;
 - ProcMan singular host-root journal, direct private-container-port connection, per-task CNI attachments, explicit no-forwarding policy, descendant indexing, child-creation leases, opaque direct-child teardown handles, Core-only volume fencing, complete restart, task receipts, and runtime-namespace invalidation;
-- generated traceability and registered Lifecycle Atlas after authoritative inputs change.
+- generated traceability and registered Lifecycle Atlas after the formal release or registered projection inputs change.

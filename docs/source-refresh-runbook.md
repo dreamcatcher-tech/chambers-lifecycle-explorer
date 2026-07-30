@@ -1,30 +1,31 @@
-# Fundamentals sequence source refresh runbook
+# Registered sequence projection refresh runbook
 
-Use this runbook whenever a registered Fundamentals sequence authority changes, or when a new Fundamentals sequence-document family must become a Lifecycle Atlas workspace.
+Use this runbook whenever a registered Fundamentals source document changes, or when a new sequence-document family must become a Lifecycle Atlas workspace.
 
 ## Authority and publication boundary
 
-- `/opt/data/repos/fundamentals` is the private architecture authority.
+- `/opt/data/repos/chambers-temporal-model` supplies the tagged private authority for modeled Chambers semantics.
+- `/opt/data/repos/fundamentals` supplies registered private source documents. Its Chambers document is a downstream lifecycle/interface projection; other documents retain only the authority declared by their own jurisdiction.
 - `/opt/data/repos/chambers-lifecycle-explorer` is a public generated projection.
 - Files under `source/` are exact committed snapshots, not editable authority.
 - `source/manifest.json` and `site/data.js` are generated outputs. Never repair either by hand.
 - Publication is deliberate. Do **not** discover and publish every matching Fundamentals file automatically: registering a document copies its bytes into a public repository and browser payload.
 
-The current registered authorities are:
+The current registered sources are:
 
-| Workspace | Fundamentals authority | Public snapshot |
+| Workspace | Private source role | Public snapshot |
 | --- | --- | --- |
-| Chambers | `docs/chambers-lifecycle-sequences.md` | `source/chambers-lifecycle-sequences.md` |
-| Cardflow | `docs/cardflow-filesystem-lease-sequences.md` | `source/cardflow-filesystem-lease-sequences.md` |
+| Chambers | `docs/chambers-lifecycle-sequences.md` — downstream projection of the bound formal release | `source/chambers-lifecycle-sequences.md` |
+| Cardflow | `docs/cardflow-filesystem-lease-sequences.md` — Cardflow-side source that binds the Chambers formal release for Chambers concerns | `source/cardflow-filesystem-lease-sequences.md` |
 
 The registration surfaces of record are:
 
 - `scripts/sync_source.py::DOCUMENTS` — private source path and public snapshot name.
 - `scripts/build_data.py::DOCUMENT_CONFIGS` — workspace copy, function-table heading, sequence metadata, ordering, and theme.
-- each registered source's single `## Dictionary` table — canonical term, definition, and document-local related-term edges.
+- each registered source's single `## Dictionary` table — document-local term, definition, and related-term edges; a dictionary does not create cross-document semantic authority.
 - `source/manifest.json` — generated provenance for the registered set; it is not an authoring registry.
 
-## Refresh an already registered authority
+## Refresh an already registered projection
 
 1. Read `fundamentals/AGENTS.md`, this repository's `AGENTS.md`, this runbook, and the changed source document.
 2. Synchronize both repositories before trusting local state. Do not overwrite dirty work.
@@ -38,24 +39,24 @@ The registration surfaces of record are:
    git pull --ff-only
    ```
 
-3. Require the Fundamentals checkout to be clean, on a branch, and exactly synchronized with its tracking branch. Commit and push authoritative changes in Fundamentals before projecting them.
+3. Require the Fundamentals checkout to be clean, on a branch, and exactly synchronized with its tracking branch. Commit and push source changes in Fundamentals before projecting them. For Chambers, also verify that its local binding names an existing ratified formal release.
 4. Run the one supported refresh command from the Atlas repository:
 
    ```bash
    python3 scripts/sync_source.py ../fundamentals
    ```
 
-   It copies every registered authority, regenerates `source/manifest.json` and `site/data.js`, and runs parser/static validation. If it fails, fix the source/parser/config contract; never hand-edit generated output to make it pass.
+   It copies every registered source, regenerates `source/manifest.json` and `site/data.js`, and runs parser/static validation. If it fails, fix the source/parser/config contract; never hand-edit generated output to make it pass.
 
 5. Inspect the generated diff. For each document, verify:
-   - snapshot bytes equal the authoritative file;
+   - snapshot bytes equal the registered private source file;
    - manifest `path`, `sourceCommit`, `sourceTimestamp`, `documentSha256`, and `documentBytes` describe those exact bytes;
    - the source URL names that document's last-touch commit and private repository path;
    - every Mermaid call resolves to exactly one row in that document's function table;
    - the one `## Dictionary` table parses exactly, keeps unique alphabetized terms, resolves every related term within that document, and preserves exact source-line coordinates;
    - participant order, message direction, branches, loops/options, notes, implementation markers, and document-level caveats retain their source meaning;
    - public sequence order follows the deliberate `sequenceMeta` registry order while every published sequence ID remains stable;
-   - document navigation, search, function and Dictionary catalogs, actor roles, and provenance remain scoped to the selected authority.
+   - document navigation, search, function and Dictionary catalogs, actor roles, and provenance remain scoped to the selected document.
 
    For Chambers specifically, verify that `HostAgent` is the leftmost lane wherever present. Top-level
    diagrams must not expose containerd, selector-filesystem, volume, CNI, or runsc lanes/calls; those mechanics
@@ -132,7 +133,7 @@ New documents are deliberately onboarded; they are not auto-published by filenam
 
 ### 1. Qualify the source contract
 
-The authoritative document must be committed in Fundamentals and have a stable structure the deterministic parser can support:
+The registered source document must be committed in Fundamentals and have a stable structure the deterministic parser can support:
 
 - displayed sequence sections use `##` headings;
 - each displayed sequence contains a fenced Mermaid `sequenceDiagram`;
@@ -142,7 +143,7 @@ The authoritative document must be committed in Fundamentals and have a stable s
 - one `## Dictionary` section contains exactly one `Term | Definition | Related terms` table; terms are unique and alphabetized, and semicolon-separated related terms resolve within that document;
 - status markers and document-level maturity/runtime caveats have explicit source semantics.
 
-If a new authority uses a different structure, generalize the parser with exact fixtures and fail-closed tests. Do not introduce hand-authored browser data as a fallback.
+If a new registered source uses a different structure, generalize the parser with exact fixtures and fail-closed tests. Do not introduce hand-authored browser data as a fallback.
 
 ### 2. Register source and workspace metadata
 
@@ -180,4 +181,4 @@ Do not publish until all are true:
 
 ## Publication report
 
-Report the authoritative source commit(s), Atlas commit, registered document/sequence/call/function counts, validation commands, Pages workflow URL, live workspace URL, and any remaining semantic limitation. Never claim that a passing static validator establishes architecture or runtime acceptance.
+Report the formal-release identity where applicable, registered source commit(s), Atlas commit, document/sequence/call/function counts, validation commands, Pages workflow URL, live workspace URL, and any remaining semantic limitation. Never claim that a passing static validator establishes architecture or runtime acceptance.

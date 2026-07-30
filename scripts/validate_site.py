@@ -57,12 +57,21 @@ def validate_required_files() -> None:
 
 def validate_manifest_and_bundle(payload: dict) -> None:
     manifest = json.loads((SOURCE / "manifest.json").read_text(encoding="utf-8"))
-    if manifest.get("schemaVersion") != 2:
-        fail("source manifest schemaVersion must be 2")
+    if manifest.get("schemaVersion") != 3:
+        fail("source manifest schemaVersion must be 3")
     if payload.get("schemaVersion") != 2:
         fail("browser bundle schemaVersion must be 2")
     if payload.get("defaultDocumentId") != "chambers":
         fail("default document must remain Chambers")
+    formal_authority = manifest.get("formalAuthority", {})
+    if payload.get("formalAuthority") != formal_authority:
+        fail("browser bundle formal authority does not match source manifest")
+    if formal_authority.get("repository") != "dreamcatcher-tech/chambers-temporal-model":
+        fail("Chambers formal authority repository is wrong")
+    if formal_authority.get("git_tag") != "formal-spec-v1.0.0":
+        fail("Chambers formal authority tag drifted")
+    if formal_authority.get("commit") != "72f7dc531392b71cd210163649b4944a38b5edaa":
+        fail("Chambers formal authority commit drifted")
 
     documents = payload.get("documents", [])
     if [document.get("id") for document in documents] != ["chambers", "cardflow"]:
@@ -71,12 +80,19 @@ def validate_manifest_and_bundle(payload: dict) -> None:
     if payload.get("stats") != expected_stats:
         fail(f"unexpected combined stats: {payload.get('stats')}")
 
-    manifest_by_id = {entry["id"]: entry for entry in manifest.get("documents", [])}
+    entries = {entry["id"]: entry for entry in manifest["documents"]}
+    expected_roles = {
+        "chambers": "downstream_projection_of_chambers_formal_specification_v1.0.0",
+        "cardflow": "cardflow_design_source_with_chambers_formal_release_binding",
+    }
     for document in documents:
-        source = document.get("source", {})
-        entry = manifest_by_id.get(document["id"])
+        entry = entries.get(document["id"])
+        source = document["source"]
         if not entry:
             fail(f"manifest is missing {document['id']}")
+        assert entry is not None
+        if entry.get("role") != expected_roles[document["id"]] or source.get("role") != expected_roles[document["id"]]:
+            fail(f"{document['id']} registered-source role is wrong")
         snapshot = SOURCE / entry["snapshotPath"]
         digest = hashlib.sha256(snapshot.read_bytes()).hexdigest()
         if digest != entry.get("documentSha256") or digest != source.get("documentSha256"):
@@ -419,7 +435,7 @@ def validate_source_refresh_contract() -> None:
         ),
         ROOT / "README.md": (
             "docs/source-refresh-runbook.md",
-            "Adding another Fundamentals sequence authority",
+            "Adding another Fundamentals sequence source",
             "python3 scripts/sync_source.py ../fundamentals",
             "Selected Ark Core cold start",
             "First Ark Core installation",
@@ -427,7 +443,7 @@ def validate_source_refresh_contract() -> None:
             "Whole-appliance crash recovery",
         ),
         RUNBOOK: (
-            "Refresh an already registered authority",
+            "Refresh an already registered projection",
             "Register a new sequence-document family",
             "managed external browser",
             "note-only `alt`/`else` branches",
@@ -455,7 +471,7 @@ def run_build_check() -> None:
     if result.returncode:
         sys.stderr.write(result.stdout)
         sys.stderr.write(result.stderr)
-        fail("generated data does not match the authoritative snapshots")
+        fail("generated data does not match the registered source snapshots")
 
 
 def main() -> None:

@@ -4,16 +4,18 @@ Status: **Current working architecture companion; downstream specification and i
 
 Architecture classification: `architecture_delta_required`
 
-Chambers authority baseline: [`chambers-lifecycle-sequences.md`](chambers-lifecycle-sequences.md) at
-`eb49c29c81db787a0c0353d97a206bd7cd7cb8e2` with SHA-256
-`26ab97e41bd47a4eddb8fbe22065fe363aefe250b8ffad78775d5fad83322769`.
+Chambers formal authority: [`chambers-formal-specification/v1.0.0`](https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.0.0),
+tag `formal-spec-v1.0.0`, commit `72f7dc531392b71cd210163649b4944a38b5edaa`, bound locally by
+[`chambers-formal-specification.json`](chambers-formal-specification.json).
+
+Chambers lifecycle/interface projection: [`chambers-lifecycle-sequences.md`](chambers-lifecycle-sequences.md).
 
 Cardflow implementation comparison baseline:
 [`dreamcatcher-tech/cardflow@57775eed19c9b62ccf3d48b9192d977e12ec9c30`](https://github.com/dreamcatcher-tech/cardflow/commit/57775eed19c9b62ccf3d48b9192d977e12ec9c30).
 
 This document owns the working Cardflow-side design for logical filesystem-resource leases, queues,
-waits, and their use of Chambers-scoped workspace attachments. The Chambers sequence authority still
-owns physical Chamber identity, leases, admission, activation, attachment, reaping, and provider
+waits, and their use of Chambers-scoped workspace attachments. The pinned Chambers formal release owns
+modeled physical Chamber identity, leases, admission, activation, attachment, reaping, and provider
 custody. Cardflow owner Gherkin, Chambers owner Gherkin, schemas, implementation, and generated
 projections are downstream reconciliation targets and may temporarily lag this design. This status
 establishes a design target; it does not claim implementation or runtime acceptance.
