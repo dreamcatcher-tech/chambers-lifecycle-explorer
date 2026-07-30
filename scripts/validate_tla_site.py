@@ -70,7 +70,7 @@ def validate_required_files() -> None:
 
 
 def validate_projection(payload: dict) -> None:
-    if payload.get("schema") != "dreamcatcher.chambers-tla-model-projection/v1":
+    if payload.get("schema") != "dreamcatcher.chambers-tla-model-projection/v2":
         fail("unexpected TLA+ projection schema")
     source = payload.get("source", {})
     if source.get("repository") != "dreamcatcher-tech/chambers-temporal-model":
@@ -134,15 +134,18 @@ def validate_projection(payload: dict) -> None:
             fail(f"{model_id} aggregate nodes do not cover every concrete state")
         if sum(row["concreteTransitions"] for row in space["transitions"]) != space["concreteTransitions"]:
             fail(f"{model_id} aggregate transitions do not cover every TLC transition")
-        if not re.fullmatch(r"[0-9a-f]{64}", space.get("dotSha256", "")):
-            fail(f"{model_id} DOT receipt is invalid")
+        if not re.fullmatch(r"[0-9a-f]{64}", space.get("aggregateSha256", "")):
+            fail(f"{model_id} aggregate receipt is invalid")
         transition_total += space["concreteTransitions"]
 
         curated = model["curated"]
         curated_ids = {node["id"] for node in curated["nodes"]}
         if len(curated_ids) != len(curated["nodes"]):
             fail(f"{model_id} curated nodes are duplicated")
-        if curated["kind"] == "state_action":
+        if (
+            curated["kind"] == "state_action"
+            and space["aggregation"]["kind"] == "scalar"
+        ):
             aggregate_ids = {node["id"] for node in space["nodes"]}
             if not curated_ids <= aggregate_ids:
                 fail(f"{model_id} curated state has no TLC aggregate")
@@ -176,7 +179,7 @@ def validate_projection(payload: dict) -> None:
         fail(f"projection totals drifted: expected {expected_totals}, got {totals}")
 
     controls = payload["negativeControls"]
-    if len(controls) != 5 or any(control.get("status") != "expected_counterexample" for control in controls):
+    if len(controls) != 7 or any(control.get("status") != "expected_counterexample" for control in controls):
         fail("expected-counterexample receipt set is incomplete")
     for control in controls:
         if control["violatedInvariant"] not in properties_by_model[control["model"]]:

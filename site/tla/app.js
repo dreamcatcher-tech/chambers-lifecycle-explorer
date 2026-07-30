@@ -461,10 +461,13 @@
     const aggregation = model.stateSpace.aggregation;
     const values = aggregation.values;
     const dimensions = aggregation.dimensions;
+    const markerDimension = dimensions[2] || null;
     const left = 142;
     const top = 96;
-    const cellWidth = 196;
-    const cellHeight = 118;
+    const gridWidth = 820;
+    const gridHeight = 470;
+    const cellWidth = gridWidth / values.length;
+    const cellHeight = gridHeight / values.length;
     const selected = state.selectedNode;
     const related = new Set();
     if (selected) {
@@ -497,19 +500,19 @@
       }
     }
 
-    const childOffsets = [
-      { x: 63, y: 49 }, { x: 127, y: 49 }, { x: 63, y: 88 }, { x: 127, y: 88 },
-    ];
     for (const aggregate of model.stateSpace.nodes) {
-      const rootA = aggregate.values[dimensions[0]];
-      const rootB = aggregate.values[dimensions[1]];
-      const child = aggregate.values[dimensions[2]];
-      const column = values.indexOf(rootA);
-      const row = values.indexOf(rootB);
-      const childIndex = values.indexOf(child);
-      const offset = childOffsets[childIndex];
-      const x = left + column * cellWidth + offset.x;
-      const y = top + row * cellHeight + offset.y;
+      const columnValue = aggregate.values[dimensions[0]];
+      const rowValue = aggregate.values[dimensions[1]];
+      const markerValue = markerDimension ? aggregate.values[markerDimension] : null;
+      const column = values.indexOf(columnValue);
+      const row = values.indexOf(rowValue);
+      const markerIndex = markerDimension ? values.indexOf(markerValue) : 0;
+      const markerCount = markerDimension ? values.length : 1;
+      const angle = -Math.PI / 2 + (2 * Math.PI * markerIndex) / markerCount;
+      const orbitX = markerDimension ? Math.min(32, cellWidth * 0.27) : 0;
+      const orbitY = markerDimension ? Math.min(24, cellHeight * 0.24) : 0;
+      const x = left + column * cellWidth + cellWidth / 2 + Math.cos(angle) * orbitX;
+      const y = top + row * cellHeight + cellHeight / 2 + Math.sin(angle) * orbitY;
       const radius = Math.min(18, 6 + Math.sqrt(aggregate.concreteStates) * 0.75);
       const isRelated = !selected || related.has(aggregate.id);
       const group = svg("g", {
@@ -523,11 +526,16 @@
         tabindex: 0,
         role: "button",
         "aria-label": `${aggregate.label}; ${aggregate.concreteStates} concrete TLC states`,
-        style: `--node-color:${toneColors[{ Off: "quiet", Starting: "blue", Ready: "green", Crashed: "rose" }[child]]}`,
+        style: `--node-color:${toneColors[{
+          Off: "quiet", Starting: "blue", Ready: "green", Crashed: "rose",
+          Reaped: "violet", Fenced: "amber", Stopped: "rose", Retired: "quiet",
+          PrivateStarting: "blue", PrivateReady: "blue", ProductionReady: "green",
+          ProductionStarting: "amber", ReadyForAuthority: "blue",
+        }[markerValue || rowValue] || "blue"]}`,
       });
       group.append(
         svg("circle", { r: radius }),
-        svg("text", { x: 0, y: 2.5, "text-anchor": "middle" }, child.slice(0, 1)),
+        svg("text", { x: 0, y: 2.5, "text-anchor": "middle" }, markerValue ? markerValue.slice(0, 1) : number.format(aggregate.concreteStates)),
       );
       const activate = () => selectNode(aggregate.id);
       group.addEventListener("click", activate);
@@ -539,9 +547,13 @@
       });
       elements.modelSvg.append(group);
     }
+    const tupleLabel = dimensions.join(" / ");
+    const markerNote = markerDimension
+      ? `Dot area is collapsed-state count; letter/color is ${markerDimension} phase.`
+      : "Dot area and label show the number of complete TLC states collapsed into that tuple.";
     elements.modelSvg.append(
-      svg("text", { class: "matrix-note", x: 142, y: 601 }, "Each dot is one reachable RootA / RootB / ChildA phase tuple."),
-      svg("text", { class: "matrix-note", x: 142, y: 620 }, "Dot area reflects the number of complete TLC states collapsed into that tuple; letter/color is ChildA phase."),
+      svg("text", { class: "matrix-note", x: 142, y: 601 }, `Each dot is one reachable ${tupleLabel} phase tuple.`),
+      svg("text", { class: "matrix-note", x: 142, y: 620 }, markerNote),
     );
   }
 
@@ -637,10 +649,8 @@
         ]
       : state.view === "state-space" && model.stateSpace.aggregation.kind === "tuple"
         ? [
-            ["#91a8b3", "ChildA Off"],
-            ["#77baff", "ChildA Starting"],
-            ["#75dba4", "ChildA Ready"],
-            ["#ff91b2", "ChildA Crashed"],
+            ["#64e7ef", "Generated from complete TLC DOT"],
+            ["#77baff", `${model.stateSpace.aggregation.dimensions.join(" / ")} phase tuple`],
             ["#ffb866", "Dot size = collapsed TLC states"],
           ]
         : state.view === "state-space"
@@ -671,7 +681,9 @@
     if (!state.selectedNode || !validIds.has(state.selectedNode)) {
       if (state.view === "explain") state.selectedNode = model.curated.nodes[0]?.id || null;
       else if (model.stateSpace.aggregation.kind === "tuple") {
-        state.selectedNode = model.stateSpace.nodes.find((node) => node.id === "Off|Off|Off")?.id
+        const initialTuple = model.stateSpace.aggregation.dimensions
+          .map(() => model.stateSpace.aggregation.values[0]).join("|");
+        state.selectedNode = model.stateSpace.nodes.find((node) => node.id === initialTuple)?.id
           || model.stateSpace.nodes[0]?.id || null;
       } else state.selectedNode = model.stateSpace.nodes[0]?.id || null;
     }

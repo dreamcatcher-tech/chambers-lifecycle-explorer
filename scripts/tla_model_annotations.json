@@ -5,7 +5,9 @@
     "member_local_restart": {"model": "ark_core_appliance", "title": "Independent member respawn", "description": "Disable whole-appliance exit after required-role loss."},
     "stop_without_fence": {"model": "ark_core_appliance", "title": "Stop before authority fence", "description": "Allow selected-Core replacement to stop before route and effect authority are fenced."},
     "fallback_after_effect": {"model": "ark_core_appliance", "title": "Fallback after irreversible effect", "description": "Allow LKG consumption after the pre-effect safety boundary."},
-    "caller_selected_scope": {"model": "multi_ark", "title": "Payload-selected sibling scope", "description": "Trust a caller-supplied target scope instead of deriving authority from the authenticated connection."},
+    "caller_selected_scope": {"model": "multi_ark", "title": "Payload-selected child parent", "description": "Trust caller-selected lifecycle parentage instead of deriving the child parent from the authenticated Ark connection."},
+    "second_root_boot": {"model": "multi_ark", "title": "Second parentless host Ark", "description": "Allow ProcMan to boot a second local Ark without lifecycle parentage."},
+    "implicit_parent_peer": {"model": "multi_ark", "title": "Implicit parent peer session", "description": "Treat lifecycle parentage as receiver authority for a peer session."},
     "volume_before_release": {"model": "host_cutover", "title": "Candidate writer before release", "description": "Attach the candidate writer while the incumbent writer is still authoritative."}
   },
   "models": {
@@ -33,17 +35,14 @@
       },
       "actions": {
         "ColdReadAndStartTask": {"category": "boundary", "description": "At an Off boundary, cold-read the selected Core, cache that plan, and acquire the task's scope attachments."},
-        "StartEngine": {"category": "startup", "description": "Start Engine first; it is the appliance's internal PID 1."},
-        "StartPersistence": {"category": "startup", "description": "Start Persistence only after Engine is ready."},
-        "StartGateway": {"category": "startup", "description": "Start Gateway only after Engine and Persistence are ready."},
-        "StartSupervisor": {"category": "startup", "description": "Start Supervisor after Engine, Persistence, and Gateway are ready."},
+        "StartRole": {"category": "startup", "description": "Start the next required role in the fixed Engine, Persistence, Gateway, Supervisor order."},
         "InstallAggregateReadiness": {"category": "readiness", "description": "Bind ProcMan registration and route evidence to the current task epoch once every required role is ready."},
         "OpenAdmission": {"category": "authority", "description": "Open admission and effect authority only when all aggregate readiness evidence agrees."},
         "CreateOrdinaryDescendant": {"category": "authority", "description": "Create ordinary descendant work only while the appliance is Ready and admission is open."},
         "CommitSuccessorSelection": {"category": "selection", "description": "Durably select the successor Core without changing the already cached running plan."},
         "FenceForSelectionChange": {"category": "boundary", "description": "Close route, admission, and effect authority before replacing the cached Core."},
         "StopScopeForSelectionChange": {"category": "boundary", "description": "Stop and release the fenced appliance so the next Off boundary can cold-read the successor."},
-        "RequiredRoleFailure": {"category": "failure", "description": "Any required-role loss exits the whole appliance, closes authority, and marks a crash failure."},
+        "RequiredRoleFailure": {"category": "failure", "description": "A required-role process exit or semantic readiness loss stops the whole appliance, closes authority, and records the failed role and source."},
         "MemberLocalRespawn": {"category": "negative", "description": "Deliberately unsafe control reachable only when whole-appliance failure handling is disabled; the checked production configuration makes it unreachable."},
         "FailStartingRole": {"category": "failure", "description": "An activation-time role failure exits the whole appliance before admission."},
         "MarkIrreversibleActivationEffect": {"category": "boundary", "description": "Record the point after which an activation failure is no longer safe for automatic LKG fallback."},
@@ -54,84 +53,95 @@
       },
       "invariants": {
         "TypeOK": "Every model variable remains inside its declared bounded domain.",
-        "InternalStartupOrder": "Persistence follows Engine; Gateway follows Persistence; Supervisor follows Gateway.",
+        "S6StartupOrder": "Persistence follows Engine; Gateway follows Persistence; Supervisor follows Gateway.",
         "SingleAuthoritativeVolumeWriter": "At most one task epoch holds the authoritative volume.",
         "LiveTaskOwnsOneScopeAttachment": "A live task has exactly its own volume/network attachment and a cached Core.",
         "AdmissionRequiresAggregateReadiness": "Admission implies one live, fully ready, generation-aligned appliance.",
         "EffectsRequireReadyAppliance": "Effect authority implies Ready, admitted, all-role evidence for the current epoch.",
         "RequiredRoleFailureStopsWholeAppliance": "Required-role loss leaves no live member, admission, or effect owner behind.",
         "FallbackIsPreAdmissionPreEffect": "Consumed LKG fallback is proven to be before admission and irreversible effects.",
-        "TerminalStateIsInspectable": "Terminal recovery always records inspectable evidence."
+        "DescendantsStayWithinScopeLifetime": "Ordinary descendants remain bounded by the live or failed scope lifetime."
       },
       "curated_edges": [
         {"from": "Off", "to": "Starting", "label": "cold read", "actions": ["ColdReadAndStartTask"]},
-        {"from": "Starting", "to": "Starting", "label": "ordered startup", "actions": ["StartEngine", "StartPersistence", "StartGateway", "StartSupervisor", "InstallAggregateReadiness", "MarkIrreversibleActivationEffect"]},
+        {"from": "Starting", "to": "Starting", "label": "ordered startup", "actions": ["StartRole", "InstallAggregateReadiness", "MarkIrreversibleActivationEffect"]},
         {"from": "Starting", "to": "Ready", "label": "admit", "actions": ["OpenAdmission"]},
         {"from": "Ready", "to": "Ready", "label": "local work / select", "actions": ["CreateOrdinaryDescendant", "CommitSuccessorSelection"]},
         {"from": "Ready", "to": "Fenced", "label": "fence", "actions": ["FenceForSelectionChange"]},
         {"from": "Fenced", "to": "Off", "label": "stop", "actions": ["StopScopeForSelectionChange"]},
         {"from": "Starting", "to": "Crashed", "label": "startup failure", "actions": ["FailStartingRole"]},
-        {"from": "Ready", "to": "Crashed", "label": "role failure", "actions": ["RequiredRoleFailure"]},
+        {"from": "Ready", "to": "Crashed", "label": "required-role loss", "actions": ["RequiredRoleFailure"]},
         {"from": "Crashed", "to": "Recovery", "label": "reap", "actions": ["ReapCrashedScope"]},
         {"from": "Recovery", "to": "Starting", "label": "restart / LKG", "actions": ["RestartCachedSelection", "ApplyAuthorizedLKG"]},
         {"from": "Recovery", "to": "Terminal", "label": "terminalize", "actions": ["TerminalizeRecovery"]}
       ],
       "scenarios": [
-        {"id": "cold-start", "title": "Cold start to admission", "description": "One cold read, ordered required roles, aggregate evidence, then authority.", "steps": ["ColdReadAndStartTask", "StartEngine", "StartPersistence", "StartGateway", "StartSupervisor", "InstallAggregateReadiness", "OpenAdmission"]},
-        {"id": "cached-crash-recovery", "title": "Whole-appliance crash recovery", "description": "Required-role loss closes the whole scope; recovery reuses the cached plan.", "steps": ["RequiredRoleFailure", "ReapCrashedScope", "RestartCachedSelection", "StartEngine", "StartPersistence", "StartGateway", "StartSupervisor", "InstallAggregateReadiness", "OpenAdmission"]},
-        {"id": "successor-replacement", "title": "Selected-Core replacement", "description": "A committed successor waits behind an explicit fence, stop, and next cold read.", "steps": ["CommitSuccessorSelection", "FenceForSelectionChange", "StopScopeForSelectionChange", "ColdReadAndStartTask", "StartEngine", "StartPersistence", "StartGateway", "StartSupervisor", "InstallAggregateReadiness", "OpenAdmission"]},
-        {"id": "safe-lkg", "title": "Pre-effect LKG fallback", "description": "An activation failure can consume LKG only before admission or irreversible effects.", "steps": ["FailStartingRole", "ReapCrashedScope", "ApplyAuthorizedLKG", "StartEngine", "StartPersistence", "StartGateway", "StartSupervisor", "InstallAggregateReadiness", "OpenAdmission"]}
+        {"id": "cold-start", "title": "Cold start to admission", "description": "One cold read, four ordered StartRole transitions, aggregate evidence, then authority.", "steps": ["ColdReadAndStartTask", "StartRole", "StartRole", "StartRole", "StartRole", "InstallAggregateReadiness", "OpenAdmission"]},
+        {"id": "cached-crash-recovery", "title": "Whole-appliance crash recovery", "description": "Required-role loss closes the whole scope; recovery reuses the cached plan.", "steps": ["RequiredRoleFailure", "ReapCrashedScope", "RestartCachedSelection", "StartRole", "StartRole", "StartRole", "StartRole", "InstallAggregateReadiness", "OpenAdmission"]},
+        {"id": "successor-replacement", "title": "Selected-Core replacement", "description": "A committed successor waits behind an explicit fence, stop, and next cold read.", "steps": ["CommitSuccessorSelection", "FenceForSelectionChange", "StopScopeForSelectionChange", "ColdReadAndStartTask", "StartRole", "StartRole", "StartRole", "StartRole", "InstallAggregateReadiness", "OpenAdmission"]},
+        {"id": "safe-lkg", "title": "Pre-effect LKG fallback", "description": "An activation failure can consume LKG only before admission or irreversible effects.", "steps": ["FailStartingRole", "ReapCrashedScope", "ApplyAuthorizedLKG", "StartRole", "StartRole", "StartRole", "StartRole", "InstallAggregateReadiness", "OpenAdmission"]}
       ]
     },
     "multi_ark": {
       "module": "MultiArk",
-      "title": "Multi-Ark Isolation",
+      "title": "Single-root Multi-Ark",
       "short_title": "Multi-Ark",
-      "eyebrow": "Three scopes · no cross-scope authority",
-      "summary": "Two roots and one authenticated child share host ProcMan supervision while retaining separate Core, task, volume, network, route, descendant, and failure state.",
-      "question": "Can one scope start, fail, recover, or create descendants without gaining authority over a sibling?",
-      "property_description": "Under weak fairness, every started scope reaches Ready and every crashed scope reaches Off independently of its siblings.",
+      "eyebrow": "One host root · explicit descendants · ordinary peers",
+      "summary": "ProcMan boots one parentless host-root Ark. Authenticated Arks may create isolated descendants; direct parentage grants teardown only, while local and remote communication uses one receiver-authorized peer session mechanism.",
+      "question": "Can one host root create isolated descendants and communicate across every topology without turning connectivity into administration?",
+      "property_description": "Under weak fairness, every starting scope becomes Ready and every crashed scope is reaped while root uniqueness, direct-child teardown, attachment isolation, and receiver-authorized peer sessions remain invariant.",
       "aggregation": {
         "kind": "tuple",
         "variable": "phase",
-        "dimensions": ["RootA", "RootB", "ChildA"],
-        "values": ["Off", "Starting", "Ready", "Crashed"],
-        "label": "TLC states grouped by RootA / RootB / ChildA phase tuple"
+        "dimensions": ["Root", "Child", "Grandchild"],
+        "values": ["Off", "Starting", "Ready", "Crashed", "Reaped"],
+        "label": "TLC states grouped by host root / child / grandchild phase tuple"
       },
       "states": {},
       "actions": {
-        "StartRoot": {"category": "startup", "description": "Start one named root with only its expected Core, volume, and private network."},
-        "StartChildFromAuthenticatedParent": {"category": "startup", "description": "Start ChildA only through its authenticated RootA parent and assign ChildA's own attachments."},
+        "BootDirect": {"category": "startup", "description": "Boot the sole parentless host root; the unsafe control separately demonstrates why no other local Ark may boot directly."},
+        "CreateChild": {"category": "startup", "description": "Create an isolated child whose lifecycle parent comes from the authenticated live Ark caller."},
         "MarkScopeReady": {"category": "readiness", "description": "Mark one scope Ready and create only that scope's local route."},
-        "CreateOrdinaryDescendant": {"category": "authority", "description": "Derive ordinary descendant authority from the authenticated caller scope, never a requested payload scope."},
-        "CrashScope": {"category": "failure", "description": "Crash one scope and remove only routes owned by that scope."},
-        "ReapScope": {"category": "recovery", "description": "Release only the crashed scope's attachments, authority edges, routes, and descendants."},
-        "RestartReapedScope": {"category": "recovery", "description": "Restart a reaped scope with its own next epoch and expected attachments."}
+        "IssuePeerInvite": {"category": "peer", "description": "The receiver issues an identity-bound invitation to one calling Ark, independent of lifecycle topology."},
+        "RevokePeerInvite": {"category": "peer", "description": "Revoke the outstanding receiver invitation without granting or changing lifecycle authority."},
+        "OpenPeerSession": {"category": "peer", "description": "Open one ordinary Ark peer session only against the receiver's matching invitation."},
+        "ClosePeerSession": {"category": "peer", "description": "Close the peer session without changing lifecycle or attachment authority."},
+        "StopDirectChild": {"category": "authority", "description": "Exercise the one parent-specific power: stop an exact direct child's active subtree."},
+        "CrashScope": {"category": "failure", "description": "Crash one scope and its active descendants, revoking their routes and peer state."},
+        "ReapScope": {"category": "recovery", "description": "Release a crashed leaf scope's attachments and exact teardown edge before reuse."}
       },
       "invariants": {
         "TypeOK": "Every per-scope variable remains inside its bounded domain.",
         "EachScopeKeepsItsOwnAttachments": "Every active scope has its expected private volume and network.",
         "DistinctActiveScopeAttachments": "Different active scopes never share a volume or private network.",
         "OnlyScopeLocalRoutes": "Every stable route begins and ends in the same scope.",
-        "NoCrossScopeAuthority": "Ordinary descendant authority never crosses a scope boundary.",
-        "ChildParentIsFixed": "ChildA can only be rooted beneath authenticated RootA.",
-        "RootsRemainIndependent": "RootA and RootB remain independent root scopes."
+        "OneHostRoot": "Only RootArk may be active without lifecycle parentage.",
+        "EveryActiveChildDescendsFromRoot": "Every active child has a valid active parent and therefore descends from the host root.",
+        "ChildCreationComesFromAuthenticatedCaller": "The child parent and teardown edge agree with the authenticated creating caller.",
+        "DirectChildTeardownOnly": "Every teardown edge is exact, immediate-parent scoped, and targets an active child.",
+        "PeerSessionRequiresReceiverInvite": "A peer session exists only for the receiver's matching invitation.",
+        "PeerSessionCreatesNoPrivateRoute": "Peer connectivity never creates a private scope route.",
+        "ReapedScopesAreDetached": "A reaped scope retains no attachments, routes, teardown edge, or peer session."
       },
       "structure_nodes": [
-        {"id": "procman", "label": "Host ProcMan", "kicker": "Shared supervision only", "description": "Tracks scope selectors and lifecycle ownership without merging scope authority.", "tone": "violet", "x": 500, "y": 92},
-        {"id": "root-a", "label": "Root A", "kicker": "CoreA · VolumeA · NetworkA", "description": "Independent root scope and authenticated parent of Child A.", "tone": "blue", "x": 260, "y": 270},
-        {"id": "root-b", "label": "Root B", "kicker": "CoreB · VolumeB · NetworkB", "description": "Independent sibling root; no ordinary authority edge to Root A or Child A.", "tone": "green", "x": 740, "y": 270},
-        {"id": "child-a", "label": "Child A", "kicker": "CandidateCore · VolumeChild · NetworkChild", "description": "Separate child-root scope admitted only through authenticated Root A.", "tone": "amber", "x": 260, "y": 470}
+        {"id": "procman", "label": "Host ProcMan", "kicker": "One direct boot", "description": "Boots exactly one configured parentless host-root Ark and provisions child contexts only on authenticated Ark requests.", "tone": "violet", "x": 500, "y": 70},
+        {"id": "root", "label": "Host root", "kicker": "Root Core · private attachments", "description": "The sole parentless local Ark and an ordinary peer participant.", "tone": "blue", "x": 500, "y": 220},
+        {"id": "child", "label": "Child Ark", "kicker": "Isolated scope · direct teardown handle", "description": "Lifecycle provenance grants its direct parent only exact subtree teardown, not observation or connectivity.", "tone": "amber", "x": 245, "y": 405},
+        {"id": "grandchild", "label": "Second descendant", "kicker": "Sibling or transitive child", "description": "The bounded model explores both a second root child and a child of Child Ark.", "tone": "green", "x": 500, "y": 535},
+        {"id": "remote", "label": "Remote Ark", "kicker": "No host attachments", "description": "Uses the same receiver-authorized peer mechanism as parent/child and sibling pairs.", "tone": "violet", "x": 755, "y": 405}
       ],
       "structure_edges": [
-        {"from": "procman", "to": "root-a", "label": "supervise scope"},
-        {"from": "procman", "to": "root-b", "label": "supervise scope"},
-        {"from": "root-a", "to": "child-a", "label": "authenticated parent"}
+        {"from": "procman", "to": "root", "label": "boot sole root"},
+        {"from": "root", "to": "child", "label": "direct-child teardown"},
+        {"from": "root", "to": "grandchild", "label": "possible sibling parent"},
+        {"from": "child", "to": "grandchild", "label": "possible transitive parent"},
+        {"from": "remote", "to": "root", "label": "receiver-authorized peer"}
       ],
       "scenarios": [
-        {"id": "independent-roots", "title": "Independent roots", "description": "Root A and Root B may interleave startup while retaining distinct attachments.", "steps": ["StartRoot", "StartRoot", "MarkScopeReady", "MarkScopeReady"]},
-        {"id": "authenticated-child", "title": "Authenticated child admission", "description": "Root A becomes Ready before it can start Child A in Child A's own scope.", "steps": ["StartRoot", "MarkScopeReady", "StartChildFromAuthenticatedParent", "MarkScopeReady"]},
-        {"id": "scope-local-recovery", "title": "Scope-local recovery", "description": "A named scope crashes, reaps, and restarts without mutating sibling ownership.", "steps": ["CrashScope", "ReapScope", "RestartReapedScope", "MarkScopeReady"]}
+        {"id": "single-root-descendants", "title": "One root creates descendants", "description": "ProcMan boots one host root; live Ark callers create isolated child contexts from authenticated connections.", "steps": ["BootDirect", "MarkScopeReady", "CreateChild", "MarkScopeReady", "CreateChild", "MarkScopeReady"]},
+        {"id": "ordinary-peer-session", "title": "Topology-neutral peer session", "description": "Receiver invitation, session open, and close are identical for parent/child, siblings, and remote Arks.", "steps": ["IssuePeerInvite", "OpenPeerSession", "ClosePeerSession"]},
+        {"id": "parent-teardown", "title": "Exact direct-child teardown", "description": "A parent can stop its direct child's subtree but receives no peer session or private route from parentage.", "steps": ["StopDirectChild", "ReapScope"]},
+        {"id": "scope-tree-recovery", "title": "Scope-tree recovery", "description": "Crash revokes the affected subtree; leaves reap before a child can be created again.", "steps": ["CrashScope", "ReapScope", "CreateChild", "MarkScopeReady"]}
       ]
     },
     "host_cutover": {
@@ -143,9 +153,11 @@
       "question": "Can a replacement host become authoritative without two writers or a private candidate leaking production authority?",
       "property_description": "Once an authorized cutover starts, weak fairness over fence, release, attach, readiness, and grant reaches candidate ProductionReady.",
       "aggregation": {
-        "kind": "last_action",
-        "variable": "lastAction",
-        "label": "Exact TLC state chain keyed by the action that produced each state"
+        "kind": "tuple",
+        "variable": "phase",
+        "dimensions": ["Incumbent", "Candidate"],
+        "values": ["Off", "PrivateStarting", "PrivateReady", "ProductionReady", "Fenced", "Stopped", "ProductionStarting", "ReadyForAuthority", "Retired"],
+        "label": "Exact TLC state chain grouped by incumbent / candidate phase tuple"
       },
       "states": {
         "Init": {"label": "Incumbent live", "description": "The incumbent owns production writer, route, effects, and outer ingress.", "tone": "green", "x": 78, "y": 140},

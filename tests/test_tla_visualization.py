@@ -18,6 +18,7 @@ class TlaVisualizationContractTests(unittest.TestCase):
         cls.models = {model["id"]: model for model in cls.projection["models"]}
 
     def test_projection_is_exactly_bound_to_checked_temporal_commit(self) -> None:
+        self.assertEqual(self.projection["schema"], "dreamcatcher.chambers-tla-model-projection/v2")
         source = self.projection["source"]
         self.assertEqual(source["repository"], "dreamcatcher-tech/chambers-temporal-model")
         self.assertEqual(source["visibility"], "private")
@@ -44,7 +45,7 @@ class TlaVisualizationContractTests(unittest.TestCase):
                 model["check"]["generatedStates"] - 1,
                 model["id"],
             )
-            self.assertRegex(state_space["dotSha256"], r"^[0-9a-f]{64}$")
+            self.assertRegex(state_space["aggregateSha256"], r"^[0-9a-f]{64}$")
 
     def test_ark_core_mode_lens_has_all_seven_modes(self) -> None:
         model = self.models["ark_core_appliance"]
@@ -53,7 +54,7 @@ class TlaVisualizationContractTests(unittest.TestCase):
             set(nodes),
             {"Off", "Starting", "Ready", "Fenced", "Crashed", "Recovery", "Terminal"},
         )
-        self.assertEqual(sum(nodes.values()), 413)
+        self.assertEqual(sum(nodes.values()), 502)
         action = next(item for item in model["actions"] if item["id"] == "MemberLocalRespawn")
         self.assertFalse(action["reachableInPrincipal"])
         self.assertEqual(action["concreteTransitionCount"], 0)
@@ -61,17 +62,17 @@ class TlaVisualizationContractTests(unittest.TestCase):
     def test_multi_ark_lens_contains_all_phase_tuples(self) -> None:
         model = self.models["multi_ark"]
         nodes = model["stateSpace"]["nodes"]
-        self.assertEqual(len(nodes), 64)
-        expected = {"Off", "Starting", "Ready", "Crashed"}
+        self.assertEqual(len(nodes), 43)
+        expected = {"Off", "Starting", "Ready", "Crashed", "Reaped"}
         for node in nodes:
-            self.assertEqual(set(node["values"]), {"RootA", "RootB", "ChildA"})
+            self.assertEqual(set(node["values"]), {"Root", "Child", "Grandchild"})
             self.assertTrue(set(node["values"].values()) <= expected)
-        self.assertEqual(sum(node["concreteStates"] for node in nodes), 2007)
+        self.assertEqual(sum(node["concreteStates"] for node in nodes), 284)
 
     def test_host_cutover_lens_is_the_exact_eleven_state_chain(self) -> None:
         model = self.models["host_cutover"]
         self.assertEqual(model["check"]["distinctStates"], 11)
-        self.assertEqual(model["stateSpace"]["abstractStates"], 11)
+        self.assertEqual(model["stateSpace"]["concreteStates"], 11)
         self.assertEqual(model["stateSpace"]["concreteTransitions"], 10)
         self.assertEqual(
             [edge["actions"][0] for edge in model["curated"]["edges"]],
@@ -88,9 +89,9 @@ class TlaVisualizationContractTests(unittest.TestCase):
             for edge in generated["curated"]["edges"]:
                 self.assertTrue(set(edge.get("actions", [])) <= actions)
 
-    def test_all_five_weakened_controls_have_real_counterexample_receipts(self) -> None:
+    def test_all_seven_weakened_controls_have_real_counterexample_receipts(self) -> None:
         controls = self.projection["negativeControls"]
-        self.assertEqual(len(controls), 5)
+        self.assertEqual(len(controls), 7)
         self.assertEqual(
             {control["id"] for control in controls},
             set(self.annotations["negative_controls"]),
@@ -99,6 +100,16 @@ class TlaVisualizationContractTests(unittest.TestCase):
             self.assertEqual(control["status"], "expected_counterexample")
             self.assertGreater(control["traceDepth"], 0)
             self.assertGreater(control["distinctStates"], 0)
+
+    def test_complete_dot_operator_labels_are_annotated_without_observer_state(self) -> None:
+        for model in self.models.values():
+            action_ids = {action["id"] for action in model["actions"]}
+            operators = {
+                transition["operator"]
+                for transition in model["stateSpace"]["transitions"]
+            }
+            self.assertTrue(operators <= action_ids, model["id"])
+        self.assertNotIn("lastAction", self.models["multi_ark"]["variables"])
 
     def test_projection_does_not_publish_raw_private_tla_or_dot_states(self) -> None:
         text = PROJECTION_PATH.read_text(encoding="utf-8")

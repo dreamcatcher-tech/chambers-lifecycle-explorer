@@ -39,6 +39,11 @@ def sha256_path(path: Path) -> str:
     return digest.hexdigest()
 
 
+def sha256_json(value: Any) -> str:
+    canonical = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
 def run(
     command: list[str],
     *,
@@ -253,7 +258,9 @@ def parse_dot(dot_path: Path, aggregation: dict[str, Any]) -> dict[str, Any]:
 
     transition_counts: Counter[tuple[str, str, str, str]] = Counter()
     for source, target, operator in raw_edges:
-        concrete_action = quoted_value(nodes[target], "lastAction")
+        # Compact authority models intentionally omit observer-only `lastAction`
+        # state. TLC's `actionlabels` DOT edge is the checked transition label.
+        concrete_action = operator
         transition_counts[
             (node_keys[source], node_keys[target], concrete_action, operator)
         ] += 1
@@ -318,6 +325,8 @@ def run_tlc_dump(
         "-cleanup",
         "-deadlock",
         "-nowarning",
+        "-seed",
+        "1",
         "-workers",
         "1",
         "-dump",
@@ -358,12 +367,9 @@ def enrich_model(
     parsed_config = parse_config(config_path)
 
     annotated_actions = set(annotation["actions"])
-    next_actions = set(parsed_module["nextActions"])
-    if annotated_actions != next_actions:
-        raise RuntimeError(
-            f"{module} action annotations drifted; missing={sorted(next_actions - annotated_actions)}, "
-            f"extra={sorted(annotated_actions - next_actions)}"
-        )
+    for action in annotated_actions:
+        if action not in parsed_module["definitions"]:
+            raise RuntimeError(f"{module} is missing annotated action {action}")
     for invariant in annotation["invariants"]:
         if invariant not in parsed_module["definitions"]:
             raise RuntimeError(f"{module} is missing annotated invariant {invariant}")
@@ -374,6 +380,21 @@ def enrich_model(
             raise RuntimeError(f"{module} config references unknown operator {name}")
 
     graph = parse_dot(dot_path, annotation["aggregation"])
+    aggregate_sha256 = sha256_json(graph)
+    concrete_operators = {
+        transition["operator"] for transition in graph["transitions"]
+    }
+    if not concrete_operators <= annotated_actions:
+        raise RuntimeError(
+            f"{module} DOT operators lack annotations: "
+            f"{sorted(concrete_operators - annotated_actions)}"
+        )
+    annotation_sources = set(parsed_module["nextActions"]) | concrete_operators
+    if not annotated_actions <= annotation_sources:
+        raise RuntimeError(
+            f"{module} action annotations are neither direct Next actions nor "
+            f"emitted TLC operators: {sorted(annotated_actions - annotation_sources)}"
+        )
     check = evidence["passing_models"][model_id]
     if graph["concreteStateCount"] != check["distinct_states"]:
         raise RuntimeError(
@@ -404,13 +425,12 @@ def enrich_model(
 
     transition_rows = graph["transitions"]
     actions: list[dict[str, Any]] = []
-    for action_name in parsed_module["nextActions"]:
+    for action_name in annotation["actions"]:
         action_annotation = annotation["actions"][action_name]
         matching = [
             transition
             for transition in transition_rows
-            if transition["action"] == action_name
-            or transition["operator"] == action_name
+            if transition["operator"] == action_name
         ]
         actions.append(
             {
@@ -523,7 +543,7 @@ def enrich_model(
             "abstractStates": len(graph["nodes"]),
             "nodes": graph["nodes"],
             "transitions": transition_rows,
-            "dotSha256": sha256_path(dot_path),
+            "aggregateSha256": aggregate_sha256,
             "disclaimer": (
                 "Counts and transitions are generated from TLC's complete DOT dump. "
                 "States are collapsed only by the named aggregation variable(s); raw "
@@ -599,7 +619,7 @@ def build_projection(args: argparse.Namespace) -> dict[str, Any]:
         )
 
     return {
-        "schema": "dreamcatcher.chambers-tla-model-projection/v1",
+        "schema": "dreamcatcher.chambers-tla-model-projection/v2",
         "source": {
             "repository": EXPECTED_REPOSITORY,
             "visibility": "private",
@@ -642,7 +662,7 @@ def build_projection(args: argparse.Namespace) -> dict[str, Any]:
             "tlc": evidence["tooling"]["tlc"],
             "javaVersion": evidence["tooling"]["java_version"],
             "tla2toolsSha256": evidence["tooling"]["tla2tools_sha256"],
-            "dotExport": "tlc2.TLC -dump dot,actionlabels,colorize",
+            "dotExport": "tlc2.TLC -seed 1 -dump dot,actionlabels,colorize",
             "workers": 1,
         },
         "totals": {
@@ -668,7 +688,7 @@ def build_projection(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "proof": (
                 "PASS receipts mean TLC found no violation within the configured finite bounds. "
-                "Expected counterexamples prove that five deliberately weakened guards are "
+                "Expected counterexamples prove that seven deliberately weakened guards are "
                 "observable. Neither result proves deployment conformance."
             ),
         },

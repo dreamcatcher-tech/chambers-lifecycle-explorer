@@ -11,20 +11,22 @@ The temporal source repository is private. The GitHub Pages repository is public
 The page deliberately separates three kinds of information:
 
 1. **Explain** — a curated, human-readable state/action or scope-topology map. Layout, descriptions, and walkthrough paths live in `scripts/tla_model_annotations.json`. The synchronization script fails if an annotated action or property name no longer resolves in the exact TLA+ module. This view explains the model but is **not** claimed to be a complete semantic derivation.
-2. **TLC state space** — an automatically generated aggregation of complete Graphviz DOT state graphs emitted by `tlc2.TLC -dump dot,actionlabels,colorize`. Every parsed concrete state and transition must be accounted for, and its count must agree with the checked evidence receipt. Raw private state labels and raw DOT files are not published.
-3. **Properties** — configured safety/liveness operators and the real TLC receipts for five deliberately weakened controls. A passing bounded check is model evidence, not implementation conformance.
+2. **TLC state space** — an automatically generated aggregation of complete Graphviz DOT state graphs emitted reproducibly by `tlc2.TLC -seed 1 -dump dot,actionlabels,colorize`. Every parsed concrete state and transition must be accounted for, and its count must agree with the checked evidence receipt. Raw private state labels and raw DOT files are not published.
+3. **Properties** — configured safety/liveness operators and the real TLC receipts for seven deliberately weakened controls. A passing bounded check is model evidence, not implementation conformance.
 
 This distinction is a publication contract. Do not merge the curated and generated labels or describe the Explain view as “generated from all TLA+ semantics.”
 
 ## Why not publish the ordinary TLC graph directly?
 
-TLC and the TLA+ Toolbox can generate a Graphviz state graph. The official TLA+ documentation warns that this is useful only for small state spaces because fully expanded DOT rendering becomes unreadable or times out as models grow. The current checked suite has 2,431 distinct states and 9,641 non-stuttering transitions across three models.
+TLC and the TLA+ Toolbox can generate a Graphviz state graph. The official TLA+ documentation warns that this is useful only for small state spaces because fully expanded DOT rendering becomes unreadable or times out as models grow. The current checked suite has 797 distinct states and 2,593 non-stuttering transitions across three models.
 
 The explorer therefore keeps the exact complete graph as a private build intermediate and publishes bounded aggregates:
 
-- `ArkCoreAppliance`: 413 states grouped by the scalar `mode` variable;
-- `MultiArk`: 2,007 states grouped into all 64 reachable `RootA / RootB / ChildA` phase tuples and shown as a matrix;
-- `HostCutover`: its exact 11-state action chain.
+- `ArkCoreAppliance`: 502 states grouped by the scalar `mode` variable;
+- `MultiArk`: 284 states grouped into 43 reachable `Root / Child / Grandchild` phase tuples and shown as a matrix;
+- `HostCutover`: 11 exact states grouped into 9 incumbent/candidate phase tuples, with the Explain view retaining the 11-step action chain.
+
+Compact authority models do not retain an observer-only `lastAction` variable. The projection therefore takes concrete transition labels directly from TLC's `actionlabels` DOT edges, requires every emitted operator to have a source-resolving annotation, and still accounts for every checked state and transition. Because TLC DOT bytes contain opaque JVM graph identifiers that are not byte-stable across equivalent runs, projection schema v2 publishes `aggregateSha256`: a canonical SHA-256 over the complete parsed aggregate nodes and transitions, rather than a misleading raw-DOT byte hash.
 
 References:
 
@@ -89,7 +91,7 @@ The synchronization script:
 1. verifies source cleanliness and upstream equality;
 2. verifies the TLA+ tools jar SHA-256 against committed evidence;
 3. verifies current module/config hashes against the evidence receipt;
-4. runs each principal configuration through official `tlc2.TLC`;
+4. runs each principal configuration through official `tlc2.TLC` with deterministic DOT seed `1`;
 5. parses the complete DOT graph without publishing it;
 6. cross-checks DOT state and transition counts against committed evidence;
 7. validates every curated action and invariant name against the live module;
@@ -146,7 +148,7 @@ Minimum deployed checks:
 
 ## Changing explanatory annotations
 
-Descriptions and walkthroughs may be edited in `scripts/tla_model_annotations.json`, but they must not invent model behavior. Keep names exact and keep the curated/generated distinction visible. `sync_tla_visualization.py` rejects missing or extra `Next` actions and missing invariant operators.
+Descriptions and walkthroughs may be edited in `scripts/tla_model_annotations.json`, but they must not invent model behavior. Keep names exact and keep the curated/generated distinction visible. TLC may label a transition with a parameterized inner operator rather than the wrapper named directly in `Next`; `sync_tla_visualization.py` therefore rejects every unannotated emitted operator, every annotation that is neither a direct `Next` action nor an emitted operator, and every missing invariant operator.
 
 If the model adds a new state variable or topology that does not fit the current scalar/tuple/action aggregation, add a bounded aggregation mode and tests. Do not introduce an unbounded TLA+ parser or silently drop states to make a diagram look cleaner.
 
