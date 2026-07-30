@@ -327,7 +327,7 @@ def validate_html_and_assets(payload: dict) -> None:
 
     required_ids = {
         "documentSwitcher", "mobileDocumentSelect", "mobileSceneSelect", "journeyList",
-        "sourceDocumentLink", "footerSource", "stickyActorHeader", "stickyActorSvg", "sequenceViewport", "sequenceSvg",
+        "sourceDocumentLink", "formalAuthorityLink", "footerSource", "footerAuthority", "stickyActorHeader", "stickyActorSvg", "sequenceViewport", "sequenceSvg",
         "resetSequence", "playPause", "stepScrubber", "mapViewport", "mapSvg", "functionList",
         "functionDetail", "dictionaryView", "dictionarySearch", "dictionaryList", "dictionaryDetail",
         "searchDialog", "helpDialog",
@@ -340,10 +340,13 @@ def validate_html_and_assets(payload: dict) -> None:
     if missing_ids:
         fail(f"missing interactive ids: {', '.join(missing_ids)}")
 
-    for element_id in ("sourceDocumentLink", "footerSource"):
+    for element_id in ("sourceDocumentLink", "formalAuthorityLink", "footerSource", "footerAuthority"):
         pattern = rf'<a[^>]*id="{element_id}"[^>]*target="_blank"[^>]*rel="noopener noreferrer"'
         if not re.search(pattern, html):
             fail(f"{element_id} must open the exact private source in a safe new page")
+    for marker in ("formalAuthority.release_url", "formalAuthority.git_tag", "Downstream formal-release projection"):
+        if marker not in app:
+            fail(f"app.js is missing visible formal-authority marker: {marker}")
 
     if "window.LIFECYCLE_ATLAS_DATA" not in app or "state.documentId" not in app or "data-document-id" not in app:
         fail("app.js does not implement document-aware state/navigation")

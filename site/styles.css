@@ -322,6 +322,8 @@
     text-decoration: none;
   }
   .source-document-link:hover { border-color: rgba(100, 231, 239, 0.34); background: rgba(100, 231, 239, 0.08); }
+  .formal-authority-link { border-color: rgba(169, 153, 255, 0.24); background: rgba(169, 153, 255, 0.055); color: #c7bcff; }
+  .formal-authority-link:hover { border-color: rgba(169, 153, 255, 0.42); background: rgba(169, 153, 255, 0.1); }
 
   main { min-width: 0; padding: 48px clamp(24px, 3.5vw, 58px) 30px; }
   .scene-heading { display: flex; align-items: end; justify-content: space-between; gap: 36px; min-height: 151px; max-width: 1360px; margin: 0 auto 29px; }

@@ -878,7 +878,7 @@
     setText(elements.curatedExplanation, data.explanation.curated);
     setText(elements.derivedExplanation, data.explanation.derived);
     setText(elements.proofExplanation, data.explanation.proof);
-    setText(elements.receiptCommit, `${data.source.repository}@${shortSha(data.source.commit)}`);
+    setText(elements.receiptCommit, `${data.source.authority.gitTag} · ${data.source.repository}@${shortSha(data.source.commit)}`);
     setText(elements.receiptModule, `${model.source.modulePath} · SHA-256 ${shortSha(model.source.moduleSha256, 12)}`);
     setText(elements.receiptTooling, `${data.tooling.tlc[0]} · SANY ${model.check.sanyStatus}`);
     setText(elements.receiptJar, `tla2tools ${shortSha(data.tooling.tla2toolsSha256, 12)}`);

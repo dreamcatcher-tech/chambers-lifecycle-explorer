@@ -88,7 +88,7 @@
       "roleLegend", "mapIntroTitle", "mapIntroText", "functionHeading", "functionIntro", "functionSearch",
       "functionFilter", "hostFunctionFilter", "functionResultCount", "functionList", "functionDetail", "footerProduct",
       "dictionaryHeading", "dictionaryIntro", "dictionarySearch", "dictionaryResultCount", "dictionaryList", "dictionaryDetail",
-      "footerSource", "searchButton", "shareButton", "helpButton", "footerHelp",
+      "footerSource", "footerAuthority", "formalAuthorityLink", "searchButton", "shareButton", "helpButton", "footerHelp",
       "searchDialog", "globalSearch", "searchResults", "helpDialog", "toast",
     ].map((id) => [id, document.getElementById(id)])
   );
@@ -250,6 +250,7 @@
 
   function populateStaticChrome() {
     const source = data.source;
+    const formalAuthority = atlas.formalAuthority;
     const commit = source.sourceCommit.slice(0, 12);
     document.body.dataset.document = data.id;
 
@@ -272,11 +273,19 @@
     elements.sourceCallCount.textContent = data.stats.calls;
     elements.sourceFunctionCount.textContent = data.stats.functions;
     elements.sourceDictionaryCount.textContent = data.stats.dictionaryTerms;
-    elements.sourceMode.textContent = `Exact committed copy · SHA-256 ${source.documentSha256.slice(0, 8)}`;
+    const sourceRole = source.role === "downstream_projection_of_chambers_formal_specification_v1.0.0"
+      ? "Downstream formal-release projection"
+      : "Registered source with Chambers release binding";
+    elements.sourceMode.textContent = `${sourceRole} · SHA-256 ${source.documentSha256.slice(0, 8)}`;
+    elements.formalAuthorityLink.href = formalAuthority.release_url;
+    elements.formalAuthorityLink.title = `${formalAuthority.release} at ${formalAuthority.commit}`;
+    elements.formalAuthorityLink.firstChild.textContent = `Modeled Chambers semantics · ${formalAuthority.release} `;
     elements.sourceDocumentLink.href = source.url;
     elements.sourceDocumentLink.title = `Open ${source.path} at ${commit}`;
     elements.mobileSceneCount.textContent = `${data.stats.sequences} sequences`;
     elements.footerProduct.textContent = `Lifecycle Atlas · ${data.name}`;
+    elements.footerAuthority.href = formalAuthority.release_url;
+    elements.footerAuthority.textContent = `${formalAuthority.git_tag} · modeled Chambers semantics ↗`;
     elements.footerSource.href = source.url;
     elements.footerSource.textContent = `${source.repository} · ${commit} · open ${data.name} source ↗`;
     elements.hostCallFilter.hidden = data.stats.hostCalls === 0;
@@ -286,7 +295,7 @@
     elements.functionHeading.textContent = `Every named ${data.name} call`;
     elements.functionIntro.textContent = data.functionIntro;
     elements.dictionaryHeading.textContent = `${data.name} dictionary`;
-    elements.dictionaryIntro.textContent = `All ${data.stats.dictionaryTerms} definitions come from this document's authoritative Dictionary section.`;
+    elements.dictionaryIntro.textContent = `All ${data.stats.dictionaryTerms} definitions come from this document's local Dictionary section.`;
 
     elements.journeyList.innerHTML = data.sequences.map((sequence, index) => `
       <button class="journey-item${sequence.id === state.sequenceId ? " is-active" : ""}" type="button" data-sequence-id="${escapeHtml(sequence.id)}" aria-current="${sequence.id === state.sequenceId ? "page" : "false"}">
