@@ -13,7 +13,19 @@
     "composition_wrong_provenance": {"model": "baseline_composition", "title": "Wrong snapshot provenance", "description": "Allow the ordinary Chamber projection to attach a different snapshot than the one sealed."},
     "composition_effect_without_admission": {"model": "baseline_composition", "title": "Effect without current admission", "description": "Allow a base effect without a live admission bound to the current Core epoch."},
     "composition_vault_blocks_base": {"model": "baseline_composition", "title": "Vault-coupled base readiness", "description": "Make ordinary base readiness depend on Vault availability instead of exact admission."},
-    "composition_stale_upgrade_authority": {"model": "baseline_composition", "title": "Stale authority after upgrade", "description": "Allow old-epoch authority to survive the generation cutover."}
+    "composition_stale_upgrade_authority": {"model": "baseline_composition", "title": "Stale authority after upgrade", "description": "Allow old-epoch authority to survive the generation cutover."},
+    "git_wrong_fetch": {"model": "git_remote_synchronization", "title": "Wrong fetched revision", "description": "Retain a fetched revision that differs from the exact observed remote head."},
+    "git_moving_fetch": {"model": "git_remote_synchronization", "title": "Mutable retained fetch", "description": "Allow later remote movement to rewrite the already retained fetched revision."},
+    "git_fetch_publishes": {"model": "git_remote_synchronization", "title": "Fetch promotes authority", "description": "Let fetch mutate the remote or move runtime authority."},
+    "git_wrong_request": {"model": "git_remote_synchronization", "title": "Rebound publication request", "description": "Rebind the immutable request to another destination or principal."},
+    "git_wrong_lease": {"model": "git_remote_synchronization", "title": "Wrong write lease", "description": "Authorize publication with a lease bound to another activation or destination."},
+    "git_non_fast_forward": {"model": "git_remote_synchronization", "title": "Non-fast-forward publication", "description": "Publish a candidate whose parent is not the journaled expected head."},
+    "git_stale_overwrite": {"model": "git_remote_synchronization", "title": "Stale expected-head overwrite", "description": "Overwrite a remote ref after another writer wins the expected-head race."},
+    "git_effect_before_journal": {"model": "git_remote_synchronization", "title": "Effect before durable intent", "description": "Apply the remote update before its immutable operation journal exists."},
+    "git_blind_retry": {"model": "git_remote_synchronization", "title": "Blind retry after uncertainty", "description": "Retry an unknown remote outcome without authoritative readback."},
+    "git_confirm_without_readback": {"model": "git_remote_synchronization", "title": "Confirmation without readback", "description": "Confirm publication without observing the exact candidate at the destination ref."},
+    "git_promotes_runtime": {"model": "git_remote_synchronization", "title": "Publication promotes runtime", "description": "Let remote publication implicitly build, select, or route runtime work."},
+    "git_discards_evidence": {"model": "git_remote_synchronization", "title": "Discarded unsettled evidence", "description": "Drop candidate, snapshot, validation, or journal evidence before explicit disposition."}
   },
   "models": {
     "ark_core_appliance": {
@@ -291,6 +303,89 @@
       "scenarios": [
         {"id": "baseline-no-vault", "title": "Base lifecycle without Vault", "description": "Immutable source provenance reaches admitted effect and successor cutover without requiring a Vault lease.", "steps": ["FenceWorkspace", "SealWorkspace", "AttachSnapshotToOrdinaryChamber", "CreateProviderRevision", "BuildArtifact", "RecordPrepared", "ReserveActivation", "GenerateEphemeralPeer", "AdmitActivation", "MarkBaseReady", "PerformEffect", "PrepareUpgrade", "ReadyUpgrade", "CutoverUpgrade"]},
         {"id": "optional-vault-lease", "title": "Optional exact Vault lease", "description": "Vault may become available and lease to the admitted activation without becoming base readiness authority.", "steps": ["FenceWorkspace", "SealWorkspace", "AttachSnapshotToOrdinaryChamber", "CreateProviderRevision", "BuildArtifact", "RecordPrepared", "ReserveActivation", "GenerateEphemeralPeer", "AdmitActivation", "SetVaultAvailable", "IssueVaultLease", "MarkBaseReady", "PerformEffect", "PrepareUpgrade", "ReadyUpgrade", "CutoverUpgrade"]}
+      ]
+    },
+    "git_remote_synchronization": {
+      "module": "GitRemoteSynchronization",
+      "title": "Ordinary Git Remote Synchronization",
+      "short_title": "Git Remote Sync",
+      "eyebrow": "Observe · journal · compare-and-swap · read back",
+      "summary": "An ordinary Git Chamber retains one exact fetched revision and publishes one accepted candidate through durable intent, activation-scoped authority, fast-forward expected-head compare-and-swap, explicit conflict, exact readback, and crash-safe recovery.",
+      "question": "Can remote Git publication settle without stale overwrite, blind retry, evidence loss, or implicit runtime promotion?",
+      "property_description": "Under the declared fairness assumptions, the bounded immutable publication request eventually confirms by exact readback or reaches explicit conflict.",
+      "aggregation": {
+        "kind": "scalar",
+        "variable": "opState",
+        "label": "TLC states grouped by Git publication operation state"
+      },
+      "states": {
+        "Idle": {"label": "Observe / fetch", "description": "The ordinary Git Chamber may observe and retain one exact remote revision without publication authority.", "tone": "quiet", "x": 90, "y": 120},
+        "Requested": {"label": "Request formed", "description": "One immutable publication request binds repository, ref, expected head, candidate, snapshot, validation, principal, and operation.", "tone": "blue", "x": 295, "y": 120},
+        "Journaled": {"label": "Intent durable", "description": "The exact operation journal exists and remains retained before any remote effect.", "tone": "violet", "x": 500, "y": 120},
+        "Ready": {"label": "Lease ready", "description": "The current activation holds the exact scoped write-lease projection for the journaled operation.", "tone": "cyan", "x": 705, "y": 120},
+        "InFlight": {"label": "Update in flight", "description": "The same immutable request has one bounded send attempt awaiting a remote outcome.", "tone": "amber", "x": 910, "y": 120},
+        "AwaitReadback": {"label": "Await readback", "description": "The update was acknowledged but confirmation still requires authoritative destination-ref equality.", "tone": "blue", "x": 910, "y": 320},
+        "Unknown": {"label": "Outcome unknown", "description": "Transport ended without a trustworthy outcome; retry is forbidden until exact readback.", "tone": "amber", "x": 705, "y": 320},
+        "Confirmed": {"label": "Confirmed", "description": "Authoritative readback names the exact candidate and the terminal receipt binds the original operation.", "tone": "green", "x": 500, "y": 520},
+        "Conflict": {"label": "Explicit conflict", "description": "A revoked lease, raced head, divergent head, or third-value readback stops publication without overwriting evidence.", "tone": "rose", "x": 910, "y": 520}
+      },
+      "actions": {
+        "ObserveRemote": {"category": "observation", "description": "Observe one exact remote head without mutating the destination ref."},
+        "FetchObservedRevision": {"category": "fetch", "description": "Retain the exact observed revision as one immutable source snapshot without runtime promotion."},
+        "FormPushRequest": {"category": "intent", "description": "Form one immutable publication request over exact destination, candidate, provenance, validation, principal, and operation identities."},
+        "WriteOperationJournal": {"category": "journal", "description": "Persist and retain the exact operation intent before any remote effect."},
+        "AcquireWriteLease": {"category": "authority", "description": "Acquire a repository/ref/operation/principal/current-activation scoped write-lease projection."},
+        "RevokeWriteLease": {"category": "authority", "description": "Revoke write authority and terminalize the unsent operation as explicit conflict."},
+        "CompetingWriter": {"category": "conflict", "description": "Move the remote head once to expose stale observation, race, conflict, and immutable-fetch behavior."},
+        "BeginPush": {"category": "publication", "description": "Begin one bounded send only from durable intent and exact live authority."},
+
+        "ApplyAndAcknowledge": {"category": "publication", "description": "Apply the candidate only through the exact expected-head update, then await authoritative readback."},
+        "ApplyWithoutAcknowledgement": {"category": "uncertainty", "description": "Apply the expected-head update while leaving the caller with an unknown outcome that must be read back."},
+        "DisconnectBeforeRemoteDecision": {"category": "uncertainty", "description": "Lose transport before the remote outcome is known without guessing whether an effect occurred."},
+        "RejectStaleExpectedHead": {"category": "conflict", "description": "Reject the update when the destination ref no longer equals the immutable expected head."},
+        "ReadbackOutcome": {"category": "reconciliation", "description": "Read the authoritative destination ref: exact candidate confirms, exact old head permits same-operation retry, and any third value conflicts."},
+        "BlindRetryUnknown": {"category": "negative", "description": "Deliberately unsafe action enabled only when the readback-before-retry guard is disabled."},
+        "CrashGitChamber": {"category": "recovery", "description": "Drop volatile activation and lease authority while preserving the immutable operation and evidence."},
+        "RecoverGitChamber": {"category": "recovery", "description": "Continue the same operation under one fresh ordinary Git Chamber activation."}
+      },
+      "invariants": {
+        "TypeOK": "Every remote, request, lease, operation, receipt, and retained-evidence value remains inside its bounded domain.",
+        "FetchedRevisionMatchesObservation": "The retained fetched revision and snapshot exactly match the observed remote head.",
+        "FetchedSnapshotSurvivesRemoteMovement": "A later remote-ref move cannot rewrite the already retained fetch identity.",
+        "FetchDoesNotPublishOrPromote": "Fetch changes neither the remote ref nor build, route, selection, or runtime authority.",
+        "PublicationRequestIsExact": "Every non-idle operation retains the original repository, ref, expected head, candidate, snapshot, validation, principal, and operation identity.",
+        "WriteLeaseIsExact": "A live write lease binds the exact current activation, destination, operation, principal, and Git-push purpose.",
+        "RemoteEffectRequiresDurableJournal": "Every applied remote update has durable retained intent for the same operation.",
+        "RemoteUpdateUsesExpectedHead": "An applied update's actual prior head equals its immutable expected head.",
+        "PublishedCommitIsFastForward": "An applied candidate names the expected prior head as its modeled parent.",
+        "AppliedUpdateHadExactLease": "Every applied update records a bounded lease and activation for the same operation.",
+        "UnknownOutcomeIsNotRetriedBlindly": "No unknown outcome starts another send before authoritative readback.",
+        "ConfirmationHasExactReadback": "Confirmed state requires the destination ref and receipt readback to equal the exact candidate.",
+        "ConfirmedReceiptIsExact": "The terminal confirmed receipt binds the original operation, destination, old head, and candidate.",
+        "PublicationDoesNotPromoteRuntime": "Remote publication never implicitly builds, selects, routes, or starts runtime work.",
+        "UnsettledWorkRetainsEvidence": "Pending and conflicting work retains candidate, snapshot, validation, and the journal once written."
+      },
+      "curated_edges": [
+        {"from": "Idle", "to": "Idle", "label": "observe / fetch", "actions": ["ObserveRemote", "FetchObservedRevision"]},
+        {"from": "Idle", "to": "Requested", "label": "form request", "actions": ["FormPushRequest"]},
+        {"from": "Requested", "to": "Journaled", "label": "persist intent", "actions": ["WriteOperationJournal"]},
+        {"from": "Journaled", "to": "Ready", "label": "scope lease", "actions": ["AcquireWriteLease"]},
+        {"from": "Ready", "to": "InFlight", "label": "send", "actions": ["BeginPush"]},
+        {"from": "Ready", "to": "Conflict", "label": "lease revoked", "actions": ["RevokeWriteLease"]},
+        {"from": "InFlight", "to": "AwaitReadback", "label": "acknowledged", "actions": ["ApplyAndAcknowledge"]},
+        {"from": "InFlight", "to": "Unknown", "label": "outcome unknown", "actions": ["ApplyWithoutAcknowledgement", "DisconnectBeforeRemoteDecision"]},
+        {"from": "InFlight", "to": "Conflict", "label": "stale head", "actions": ["RejectStaleExpectedHead"]},
+        {"from": "AwaitReadback", "to": "Confirmed", "label": "candidate readback", "actions": ["ReadbackOutcome"]},
+        {"from": "Unknown", "to": "Ready", "label": "old-head readback", "actions": ["ReadbackOutcome"]},
+        {"from": "Unknown", "to": "Journaled", "label": "recover without lease", "actions": ["CrashGitChamber", "RecoverGitChamber", "ReadbackOutcome"]},
+        {"from": "Unknown", "to": "Confirmed", "label": "candidate readback", "actions": ["ReadbackOutcome"]},
+        {"from": "Unknown", "to": "Conflict", "label": "third-value readback", "actions": ["ReadbackOutcome"]}
+      ],
+      "scenarios": [
+        {"id": "confirmed-fast-forward", "title": "Confirmed fast-forward publication", "description": "Observe and retain exact source, journal before effect, acquire exact authority, update only the expected head, and confirm by readback.", "steps": ["ObserveRemote", "FetchObservedRevision", "FormPushRequest", "WriteOperationJournal", "AcquireWriteLease", "BeginPush", "ApplyAndAcknowledge", "ReadbackOutcome"]},
+        {"id": "raced-head-conflict", "title": "Raced head becomes conflict", "description": "A competing writer moves the destination after request formation; the stale expected head is rejected without overwrite.", "steps": ["ObserveRemote", "FetchObservedRevision", "FormPushRequest", "WriteOperationJournal", "AcquireWriteLease", "CompetingWriter", "BeginPush", "RejectStaleExpectedHead"]},
+        {"id": "unknown-old-head-retry", "title": "Unknown outcome read back before retry", "description": "A disconnect before decision reads back the unchanged old head before the same immutable operation may retry.", "steps": ["ObserveRemote", "FetchObservedRevision", "FormPushRequest", "WriteOperationJournal", "AcquireWriteLease", "BeginPush", "DisconnectBeforeRemoteDecision", "ReadbackOutcome", "BeginPush", "ApplyAndAcknowledge", "ReadbackOutcome"]},
+        {"id": "crash-after-uncertain-effect", "title": "Crash-safe uncertain-effect recovery", "description": "An unacknowledged applied update survives activation loss and confirms only after fresh-activation readback of the same operation.", "steps": ["ObserveRemote", "FetchObservedRevision", "FormPushRequest", "WriteOperationJournal", "AcquireWriteLease", "BeginPush", "ApplyWithoutAcknowledgement", "CrashGitChamber", "RecoverGitChamber", "ReadbackOutcome"]}
       ]
     }
   }

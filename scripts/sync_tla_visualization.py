@@ -28,7 +28,13 @@ ROOT = SCRIPT_DIR.parent
 ANNOTATIONS_PATH = SCRIPT_DIR / "tla_model_annotations.json"
 DEFAULT_OUTPUT = ROOT / "source" / "tla-model-projection.json"
 EXPECTED_REPOSITORY = "dreamcatcher-tech/chambers-temporal-model"
-MODEL_ORDER = ("ark_core_appliance", "multi_ark", "host_cutover", "baseline_composition")
+MODEL_ORDER = (
+    "ark_core_appliance",
+    "multi_ark",
+    "host_cutover",
+    "baseline_composition",
+    "git_remote_synchronization",
+)
 
 
 def sha256_path(path: Path) -> str:

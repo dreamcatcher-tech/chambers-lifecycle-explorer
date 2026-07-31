@@ -68,20 +68,24 @@ def validate_manifest_and_bundle(payload: dict) -> None:
         fail("browser bundle formal authority does not match source manifest")
     if formal_authority.get("repository") != "dreamcatcher-tech/chambers-temporal-model":
         fail("Chambers formal authority repository is wrong")
-    if formal_authority.get("release") != "chambers-formal-specification/v1.1.0":
-        fail("Chambers formal authority release drifted")
-    if formal_authority.get("git_tag") != "formal-spec-v1.1.0":
-        fail("Chambers formal authority tag drifted")
-    if formal_authority.get("commit") != "3e3ea838e7ea778d29d5aceb5e0e90f52ae6a8a6":
-        fail("Chambers formal authority commit drifted")
-    if formal_authority.get("manifest_sha256") != "a4e5431c867751692dbe4a5f7395c6b362212b6a6a62bc2bd41e6fdd31fc649f":
-        fail("Chambers formal authority manifest drifted")
-    if formal_authority.get("release_kind") != "semantic_baseline":
-        fail("Chambers formal authority release kind drifted")
-    if formal_authority.get("semantic_base") != "chambers-formal-specification/v1.1.0":
-        fail("Chambers formal authority semantic base drifted")
-    if formal_authority.get("baseline_status") != "baseline_complete":
-        fail("Chambers formal authority baseline status drifted")
+    expected_authority = {
+        "release": "chambers-formal-specification/v1.2.0",
+        "git_tag": "formal-spec-v1.2.0",
+        "tag_object": "e6d7905fa3a2c442b22f2837febee5ad74f19003",
+        "commit": "3f81fc6640141bb27c1e6c167f513a4c54a64d23",
+        "tree": "05054d86894723bfdce6d8e3299faceef1b9a34f",
+        "specification_sha256": "79d8c84c70395432ce30c168731e78ec5397721c61a0b16e5dbb40ecda0ec020",
+        "manifest_sha256": "3fd09a4aa13d3bbf2ccda958b8ca47a2dcc227ba75a4419a4f6acf122c72060d",
+        "evidence_sha256": "c45f21b26daad3224994e4121ed150f1f64341f95c7047357e7277c64aea6ad4",
+        "principal_model_count": 12,
+        "expected_counterexample_count": 68,
+        "release_kind": "semantic_successor",
+        "semantic_base": "chambers-formal-specification/v1.1.0",
+        "baseline_status": "baseline_complete",
+    }
+    for key, value in expected_authority.items():
+        if formal_authority.get(key) != value:
+            fail(f"Chambers formal authority {key} drifted")
 
     documents = payload.get("documents", [])
     if [document.get("id") for document in documents] != ["chambers", "cardflow"]:
@@ -238,7 +242,11 @@ def validate_manifest_and_bundle(payload: dict) -> None:
         "Builder as an ordinary separate sandbox",
         "ordinary Git Chamber",
         "persistent `.git` state",
-        "exact snapshot read projections",
+        "one snapshot read grant -> one exact sealed snapshot",
+        "Remote Git fetch binds one exact observed revision to one immutable retained snapshot",
+        "allowed fast-forward expected-head compare-and-swap",
+        "readback before confirmation or retry",
+        "never promotes runtime implicitly",
         "fresh private identity",
         "Base readiness does not require Vault by default",
         "A successor failure before cutover keeps the predecessor",

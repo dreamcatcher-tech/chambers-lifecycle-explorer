@@ -23,26 +23,29 @@ class TlaVisualizationContractTests(unittest.TestCase):
         self.assertEqual(source["repository"], "dreamcatcher-tech/chambers-temporal-model")
         self.assertEqual(source["visibility"], "private")
         self.assertRegex(source["commit"], r"^[0-9a-f]{40}$")
-        self.assertRegex(source["evidenceSha256"], r"^[0-9a-f]{64}$")
+        self.assertEqual(
+            source["evidenceSha256"],
+            "c45f21b26daad3224994e4121ed150f1f64341f95c7047357e7277c64aea6ad4",
+        )
         self.assertEqual(
             source["authority"]["repository"],
             "dreamcatcher-tech/chambers-temporal-model",
         )
-        self.assertEqual(source["authority"]["release"], "chambers-formal-specification/v1.1.0")
-        self.assertEqual(source["authority"]["gitTag"], "formal-spec-v1.1.0")
+        self.assertEqual(source["authority"]["release"], "chambers-formal-specification/v1.2.0")
+        self.assertEqual(source["authority"]["gitTag"], "formal-spec-v1.2.0")
         self.assertEqual(source["authority"]["commit"], source["commit"])
-        self.assertEqual(source["authority"]["releaseKind"], "semantic_baseline")
+        self.assertEqual(source["authority"]["releaseKind"], "semantic_successor")
         self.assertEqual(
             source["authority"]["semanticDelta"],
-            "adds ordinary snapshot-read authority, ephemeral Chamber identity/admission and minimal Vault seam, ordinary generation upgrades, bounded interface composition, and a baseline-complete jurisdiction finding",
+            "adds fail-closed ordinary Git remote synchronization outcomes: exact fetch binding, immutable fetched revision, durable publication intent, scoped lease, fast-forward expected-head CAS, explicit conflict, unknown-outcome readback, same-operation retry, crash recovery, retained evidence, and separation from runtime promotion",
         )
         self.assertEqual(
             source["authority"]["supersedes"],
-            "chambers-formal-specification/v1.0.1",
+            "chambers-formal-specification/v1.1.0",
         )
         self.assertEqual(
             source["authority"]["manifestSha256"],
-            "a4e5431c867751692dbe4a5f7395c6b362212b6a6a62bc2bd41e6fdd31fc649f",
+            "3fd09a4aa13d3bbf2ccda958b8ca47a2dcc227ba75a4419a4f6acf122c72060d",
         )
         self.assertEqual(
             source["architectureSynthesis"]["role"], "provenance_only_not_authority"
@@ -52,8 +55,17 @@ class TlaVisualizationContractTests(unittest.TestCase):
         )
         coverage = self.projection["projection"]["coverage"]
         self.assertEqual(coverage["status"], "deliberately_bounded_public_subset")
-        self.assertEqual(len(coverage["releaseKernels"]), 11)
-        self.assertEqual(len(coverage["publishedModels"]), 4)
+        self.assertEqual(len(coverage["releaseKernels"]), 12)
+        self.assertEqual(
+            coverage["publishedModels"],
+            [
+                "ark_core_appliance",
+                "multi_ark",
+                "host_cutover",
+                "baseline_composition",
+                "git_remote_synchronization",
+            ],
+        )
 
     def test_complete_dot_aggregates_cover_every_checked_state_and_transition(self) -> None:
         for model in self.models.values():
@@ -135,6 +147,60 @@ class TlaVisualizationContractTests(unittest.TestCase):
             ordered = sorted(columns)
             self.assertTrue(all(right - left >= 170 for left, right in zip(ordered, ordered[1:])))
 
+    def test_git_remote_synchronization_lens_covers_fail_closed_outcomes(self) -> None:
+        model = self.models["git_remote_synchronization"]
+        self.assertEqual(model["check"]["distinctStates"], 72)
+        self.assertEqual(model["stateSpace"]["concreteTransitions"], 108)
+        self.assertEqual(
+            {node["id"] for node in model["stateSpace"]["nodes"]},
+            {
+                "Idle",
+                "Requested",
+                "Journaled",
+                "Ready",
+                "InFlight",
+                "AwaitReadback",
+                "Unknown",
+                "Confirmed",
+                "Conflict",
+            },
+        )
+        self.assertEqual(model["liveness"]["configuredProperty"], "PushEventuallySettles")
+        action_ids = {action["id"] for action in model["actions"]}
+        for action in (
+            "WriteOperationJournal",
+            "AcquireWriteLease",
+            "CompetingWriter",
+            "RejectStaleExpectedHead",
+            "ReadbackOutcome",
+            "CrashGitChamber",
+            "RecoverGitChamber",
+        ):
+            self.assertIn(action, action_ids)
+        self.assertEqual(
+            {scenario["id"] for scenario in model["scenarios"]},
+            {
+                "confirmed-fast-forward",
+                "raced-head-conflict",
+                "unknown-old-head-retry",
+                "crash-after-uncertain-effect",
+            },
+        )
+
+    def test_git_remote_synchronization_layout_has_no_node_overlap(self) -> None:
+        nodes = self.annotations["models"]["git_remote_synchronization"]["states"].values()
+        rows: dict[int, list[int]] = {}
+        for node in nodes:
+            self.assertGreaterEqual(node["x"], 79)
+            self.assertLessEqual(node["x"], 921)
+            self.assertGreaterEqual(node["y"], 38)
+            self.assertLessEqual(node["y"], 562)
+            rows.setdefault(node["y"], []).append(node["x"])
+        self.assertEqual(sorted(len(columns) for columns in rows.values()), [2, 2, 5])
+        for columns in rows.values():
+            ordered = sorted(columns)
+            self.assertTrue(all(right - left >= 170 for left, right in zip(ordered, ordered[1:])))
+
     def test_curated_names_are_all_resolved_in_generated_operator_registry(self) -> None:
         for model_id, annotation in self.annotations["models"].items():
             generated = self.models[model_id]
@@ -145,9 +211,9 @@ class TlaVisualizationContractTests(unittest.TestCase):
             for edge in generated["curated"]["edges"]:
                 self.assertTrue(set(edge.get("actions", [])) <= actions)
 
-    def test_all_twelve_published_weakened_controls_have_real_counterexample_receipts(self) -> None:
+    def test_all_twenty_four_published_weakened_controls_have_real_counterexample_receipts(self) -> None:
         controls = self.projection["negativeControls"]
-        self.assertEqual(len(controls), 12)
+        self.assertEqual(len(controls), 24)
         self.assertEqual(
             {control["id"] for control in controls},
             set(self.annotations["negative_controls"]),

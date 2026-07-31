@@ -354,13 +354,19 @@ class BuildDataTests(unittest.TestCase):
     def test_source_manifest_binds_both_exact_document_bytes(self) -> None:
         manifest = json.loads((ROOT / "source" / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["schemaVersion"], 3)
+        authority = manifest["formalAuthority"]
+        self.assertEqual(authority["git_tag"], "formal-spec-v1.2.0")
+        self.assertEqual(authority["tag_object"], "e6d7905fa3a2c442b22f2837febee5ad74f19003")
+        self.assertEqual(authority["commit"], "3f81fc6640141bb27c1e6c167f513a4c54a64d23")
+        self.assertEqual(authority["tree"], "05054d86894723bfdce6d8e3299faceef1b9a34f")
+        self.assertEqual(authority["release_kind"], "semantic_successor")
+        self.assertEqual(authority["baseline_status"], "baseline_complete")
         self.assertEqual(
-            manifest["formalAuthority"]["git_tag"], "formal-spec-v1.1.0"
+            (authority["principal_model_count"], authority["expected_counterexample_count"]),
+            (12, 68),
         )
-        self.assertEqual(manifest["formalAuthority"]["release_kind"], "semantic_baseline")
-        self.assertEqual(manifest["formalAuthority"]["baseline_status"], "baseline_complete")
         self.assertEqual(
-            manifest["formalAuthority"]["semantic_base"],
+            authority["semantic_base"],
             "chambers-formal-specification/v1.1.0",
         )
         self.assertEqual(

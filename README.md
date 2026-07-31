@@ -17,7 +17,7 @@ A polished, playable public projection of the Chambers lifecycle and Cardflow fi
 - **Dictionary** — every document-local term and relationship is generated from the selected document's `## Dictionary` section, with searchable definitions, related-term navigation, exact-line source links, and document-aware deep links. A projected dictionary never creates cross-document semantic authority.
 - **Cross-document search** — find a sequence, function, or dictionary term in either registered source and move directly into its document workspace.
 - **Exact provenance** — every generated call resolves to a function-table row and every dictionary term resolves to its exact source line; each snapshot is bound to its Fundamentals source commit and SHA-256.
-- **Checked TLA+ model explorer** — the companion page binds the exact ratified formal release and separates a curated lifecycle/topology explanation from complete TLC-derived state-space aggregates and genuine safety/liveness/counterexample receipts. Its public view deliberately covers four of the release's eleven kernels, including the baseline composition chain, without publishing raw private model source or concrete state labels.
+- **Checked TLA+ model explorer** — the companion page binds the exact ratified formal release and separates a curated lifecycle/topology explanation from complete TLC-derived state-space aggregates and genuine safety/liveness/counterexample receipts. Its public view deliberately covers five of the release's twelve kernels, including the baseline composition and ordinary Git remote-synchronization state machines, without publishing raw private model source or concrete state labels.
 - **Source jump** — the snapshot card and footer open the exact private GitHub source document in a new page for viewers with repository access.
 - **No runtime dependencies** — the published artifact is plain HTML, CSS, JavaScript, and generated data. No CDN or Mermaid runtime is needed.
 
@@ -26,7 +26,7 @@ A polished, playable public projection of the Chambers lifecycle and Cardflow fi
 Modeled Chambers semantics are governed by the exact tagged release in the private temporal-model repository. The Atlas also snapshots two committed private Fundamentals documents; the Chambers document is a downstream projection of that release.
 
 ```text
-dreamcatcher-tech/chambers-temporal-model @ formal-spec-v1.1.0
+dreamcatcher-tech/chambers-temporal-model @ formal-spec-v1.2.0
 └── release/specification.json + manifest + model/config/evidence bundle
 
 dreamcatcher-tech/fundamentals
@@ -34,7 +34,7 @@ dreamcatcher-tech/fundamentals
 └── docs/cardflow-filesystem-lease-sequences.md
 ```
 
-`formal-spec-v1.1.0` is the ratified baseline successor. It adds ordinary snapshot-read authority, ephemeral activation identity/admission and the minimal Vault seam, ordinary generation upgrades, bounded interface composition, and the explicit baseline-complete jurisdiction finding while retaining Git remote synchronization and Vault internals outside Chambers authority.
+`formal-spec-v1.2.0` is the ratified semantic successor to the baseline-complete v1.1.0 release. It adds bounded fail-closed ordinary Git remote synchronization: exact fetch retention, durable journal-before-effect, scoped write authority, fast-forward expected-head compare-and-swap, explicit conflict, readback before confirmation or retry, crash-safe same-operation recovery, retained evidence, and separation from runtime promotion. Concrete Git object/protocol/provider mechanics and Vault internals remain outside Chambers' modeled jurisdiction.
 
 This public repository contains intentional committed snapshots. The synchronization path is fail-closed: every registered document must be committed, the Fundamentals checkout must be clean and synchronized with its upstream, every diagram call must resolve to that document's function table, and the generated browser bundle must exactly match the copied sources.
 
@@ -89,6 +89,7 @@ tla/
 tla/?model=multi_ark&view=state-space
 tla/?model=host_cutover&view=properties
 tla/?model=baseline_composition&view=state-space
+tla/?model=git_remote_synchronization&view=state-space
 ```
 
 ## Architecture

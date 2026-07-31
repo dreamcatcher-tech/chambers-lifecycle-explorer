@@ -1,20 +1,26 @@
 {
   "schemaVersion": 3,
   "repository": "dreamcatcher-tech/fundamentals",
-  "repositoryHead": "21d4c5e455f498937b10d45423b0bafd19d4245c",
-  "repositoryHeadTimestamp": "2026-07-31T00:53:07Z",
+  "repositoryHead": "dcf784a8afe7c6c5321bbee9682985a32a0668d8",
+  "repositoryHeadTimestamp": "2026-07-31T10:34:15Z",
   "projectionMode": "exact committed registered-source snapshots; generated browser data",
   "formalAuthority": {
     "repository": "dreamcatcher-tech/chambers-temporal-model",
-    "release": "chambers-formal-specification/v1.1.0",
-    "git_tag": "formal-spec-v1.1.0",
-    "commit": "3e3ea838e7ea778d29d5aceb5e0e90f52ae6a8a6",
-    "tree": "94f385730bce7a4c78e0105e406ff9a2ce989e53",
-    "release_url": "https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.1.0",
+    "release": "chambers-formal-specification/v1.2.0",
+    "git_tag": "formal-spec-v1.2.0",
+    "tag_object": "e6d7905fa3a2c442b22f2837febee5ad74f19003",
+    "commit": "3f81fc6640141bb27c1e6c167f513a4c54a64d23",
+    "tree": "05054d86894723bfdce6d8e3299faceef1b9a34f",
+    "release_url": "https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.2.0",
     "specification_path": "release/specification.json",
+    "specification_sha256": "79d8c84c70395432ce30c168731e78ec5397721c61a0b16e5dbb40ecda0ec020",
     "manifest_path": "release/manifest.json",
-    "manifest_sha256": "a4e5431c867751692dbe4a5f7395c6b362212b6a6a62bc2bd41e6fdd31fc649f",
-    "release_kind": "semantic_baseline",
+    "manifest_sha256": "3fd09a4aa13d3bbf2ccda958b8ca47a2dcc227ba75a4419a4f6acf122c72060d",
+    "evidence_path": "evidence/model-check-summary.json",
+    "evidence_sha256": "c45f21b26daad3224994e4121ed150f1f64341f95c7047357e7277c64aea6ad4",
+    "principal_model_count": 12,
+    "expected_counterexample_count": 68,
+    "release_kind": "semantic_successor",
     "semantic_base": "chambers-formal-specification/v1.1.0",
     "baseline_status": "baseline_complete"
   },
@@ -24,20 +30,20 @@
       "role": "downstream_projection_of_chambers_formal_specification",
       "path": "docs/chambers-lifecycle-sequences.md",
       "snapshotPath": "chambers-lifecycle-sequences.md",
-      "sourceCommit": "21d4c5e455f498937b10d45423b0bafd19d4245c",
-      "sourceTimestamp": "2026-07-31T00:53:07Z",
-      "documentSha256": "5e93bd426cb290310c75ce1b700157560b40bfce6e7b91620a69c59287c9e0b2",
-      "documentBytes": 121207
+      "sourceCommit": "dcf784a8afe7c6c5321bbee9682985a32a0668d8",
+      "sourceTimestamp": "2026-07-31T10:34:15Z",
+      "documentSha256": "2a071dd319d3cbe4905be364afecc610e07d07800e97fe004e338be8c84bddc2",
+      "documentBytes": 122834
     },
     {
       "id": "cardflow",
       "role": "cardflow_design_source_with_chambers_formal_release_binding",
       "path": "docs/cardflow-filesystem-lease-sequences.md",
       "snapshotPath": "cardflow-filesystem-lease-sequences.md",
-      "sourceCommit": "21d4c5e455f498937b10d45423b0bafd19d4245c",
-      "sourceTimestamp": "2026-07-31T00:53:07Z",
-      "documentSha256": "80732b286ef87c28518481f98419a5c17292b1352e7f70bf7135448792f629f5",
-      "documentBytes": 64053
+      "sourceCommit": "dcf784a8afe7c6c5321bbee9682985a32a0668d8",
+      "sourceTimestamp": "2026-07-31T10:34:15Z",
+      "documentSha256": "cfa0348b906f6f6d1c226be20f5a4afb395d6e677b83f54ad23c622cc85f7d0f",
+      "documentBytes": 64085
     }
   ]
 }

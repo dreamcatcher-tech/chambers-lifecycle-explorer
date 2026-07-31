@@ -4,8 +4,8 @@ Status: **Current working architecture companion; downstream specification and i
 
 Architecture classification: `architecture_delta_required`
 
-Chambers formal authority: [`chambers-formal-specification/v1.1.0`](https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.1.0),
-tag `formal-spec-v1.1.0`, commit `3e3ea838e7ea778d29d5aceb5e0e90f52ae6a8a6` (baseline complete for its declared modeled jurisdiction), bound locally by
+Chambers formal authority: [`chambers-formal-specification/v1.2.0`](https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.2.0),
+tag `formal-spec-v1.2.0`, commit `3f81fc6640141bb27c1e6c167f513a4c54a64d23` (baseline complete with bounded fail-closed ordinary Git remote synchronization outcomes), bound locally by
 [`chambers-formal-specification.json`](chambers-formal-specification.json).
 
 Chambers lifecycle/interface projection: [`chambers-lifecycle-sequences.md`](chambers-lifecycle-sequences.md).
