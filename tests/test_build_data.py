@@ -79,7 +79,7 @@ class BuildDataTests(unittest.TestCase):
 
     def test_document_counts_match_the_two_sources(self) -> None:
         chambers = self.documents["chambers"]["stats"]
-        self.assertEqual((17, 146, 57, 135, 11, 57), (
+        self.assertEqual((17, 149, 57, 138, 11, 60), (
             chambers["sequences"], chambers["calls"], chambers["functions"],
             chambers["i3Calls"], chambers["hostCalls"], chambers["dictionaryTerms"],
         ))
@@ -88,7 +88,7 @@ class BuildDataTests(unittest.TestCase):
             cardflow["sequences"], cardflow["calls"], cardflow["functions"],
             cardflow["i3Calls"], cardflow["hostCalls"], cardflow["dictionaryTerms"],
         ))
-        self.assertEqual(87, self.payload["stats"]["dictionaryTerms"])
+        self.assertEqual(90, self.payload["stats"]["dictionaryTerms"])
 
     def test_prepared_image_and_execution_profile_projection_survives(self) -> None:
         chambers = self.documents["chambers"]
@@ -355,12 +355,13 @@ class BuildDataTests(unittest.TestCase):
         manifest = json.loads((ROOT / "source" / "manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(manifest["schemaVersion"], 3)
         self.assertEqual(
-            manifest["formalAuthority"]["git_tag"], "formal-spec-v1.0.1"
+            manifest["formalAuthority"]["git_tag"], "formal-spec-v1.1.0"
         )
-        self.assertEqual(manifest["formalAuthority"]["release_kind"], "documentation_only")
+        self.assertEqual(manifest["formalAuthority"]["release_kind"], "semantic_baseline")
+        self.assertEqual(manifest["formalAuthority"]["baseline_status"], "baseline_complete")
         self.assertEqual(
             manifest["formalAuthority"]["semantic_base"],
-            "chambers-formal-specification/v1.0.0",
+            "chambers-formal-specification/v1.1.0",
         )
         self.assertEqual(
             self.payload["formalAuthority"], manifest["formalAuthority"]

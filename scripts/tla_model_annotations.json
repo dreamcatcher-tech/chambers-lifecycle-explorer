@@ -9,7 +9,11 @@
     "transitive_teardown": {"model": "multi_ark", "title": "Transitive teardown authority", "description": "Leak a grandchild teardown edge to the root ancestor instead of granting it only to the direct lifecycle parent."},
     "second_root_boot": {"model": "multi_ark", "title": "Second parentless host Ark", "description": "Allow ProcMan to boot a second local Ark without lifecycle parentage."},
     "implicit_parent_peer": {"model": "multi_ark", "title": "Implicit parent peer session", "description": "Treat lifecycle parentage as receiver authority for a peer session."},
-    "volume_before_release": {"model": "host_cutover", "title": "Candidate writer before release", "description": "Attach the candidate writer while the incumbent writer is still authoritative."}
+    "volume_before_release": {"model": "host_cutover", "title": "Candidate writer before release", "description": "Attach the candidate writer while the incumbent writer is still authoritative."},
+    "composition_wrong_provenance": {"model": "baseline_composition", "title": "Wrong snapshot provenance", "description": "Allow the ordinary Chamber projection to attach a different snapshot than the one sealed."},
+    "composition_effect_without_admission": {"model": "baseline_composition", "title": "Effect without current admission", "description": "Allow a base effect without a live admission bound to the current Core epoch."},
+    "composition_vault_blocks_base": {"model": "baseline_composition", "title": "Vault-coupled base readiness", "description": "Make ordinary base readiness depend on Vault availability instead of exact admission."},
+    "composition_stale_upgrade_authority": {"model": "baseline_composition", "title": "Stale authority after upgrade", "description": "Allow old-epoch authority to survive the generation cutover."}
   },
   "models": {
     "ark_core_appliance": {
@@ -210,6 +214,83 @@
       ],
       "scenarios": [
         {"id": "safe-cutover", "title": "Validated single-writer cutover", "description": "Private proof precedes fence, release, writer attach, readiness, and authority grant.", "steps": ["ProvisionPrivateCandidate", "ValidatePrivateCandidate", "CompletePrivateCrashRebootRehearsal", "BeginCutover", "FenceIncumbentAuthority", "ReleaseIncumbentWriter", "AttachCandidateProductionWriter", "CandidateAggregateReady", "GrantCandidateAuthority", "RetireIncumbent"]}
+      ]
+    },
+    "baseline_composition": {
+      "module": "BaselineComposition",
+      "title": "Baseline Seam Composition",
+      "short_title": "Baseline Composition",
+      "eyebrow": "Snapshot · artifact · identity · effect · upgrade",
+      "summary": "A bounded compatibility kernel joins mutable authoring, immutable snapshot access by an ordinary Chamber, provider revision, Builder artifact, Prepared Realization, fresh admission, optional Vault, base effect, and one-way generation upgrade.",
+      "question": "Do the independently owned baseline seams preserve exact provenance and current authority when composed?",
+      "property_description": "Under the declared weak fairness, the bounded composed baseline eventually reaches a completed successor cutover.",
+      "aggregation": {
+        "kind": "scalar",
+        "variable": "phase",
+        "label": "TLC states grouped by composed baseline phase"
+      },
+      "states": {
+        "Mutable": {"label": "Mutable workspace", "description": "Authoring remains mutable and cannot yet leave the source workspace.", "tone": "quiet", "x": 70, "y": 145},
+        "Fenced": {"label": "Workspace fenced", "description": "The writer is closed before any immutable snapshot is sealed.", "tone": "amber", "x": 190, "y": 145},
+        "Sealed": {"label": "Snapshot sealed", "description": "One exact immutable snapshot is available.", "tone": "blue", "x": 310, "y": 145},
+        "SnapshotAttached": {"label": "Snapshot projected", "description": "An ordinary Chamber receives only the exact snapshot projection.", "tone": "blue", "x": 430, "y": 145},
+        "Committed": {"label": "Provider revision", "description": "The ordinary Chamber derives one provider revision with exact provenance.", "tone": "violet", "x": 550, "y": 145},
+        "Built": {"label": "Artifact built", "description": "A constrained Builder derives one artifact and receipt.", "tone": "violet", "x": 670, "y": 145},
+        "Prepared": {"label": "Realization prepared", "description": "The artifact is recorded as one Prepared Realization.", "tone": "green", "x": 790, "y": 145},
+        "Reserved": {"label": "Activation reserved", "description": "A fresh activation is reserved for the exact realization and epoch.", "tone": "blue", "x": 910, "y": 145},
+        "Identified": {"label": "Ephemeral identity", "description": "The activation owns a fresh ephemeral PeerId.", "tone": "blue", "x": 790, "y": 445},
+        "Admitted": {"label": "Activation admitted", "description": "The exact public identity projection is admitted for the current epoch.", "tone": "green", "x": 670, "y": 445},
+        "Ready": {"label": "Base ready", "description": "Base readiness follows admission and remains independent of Vault.", "tone": "green", "x": 550, "y": 445},
+        "Effected": {"label": "Effect recorded", "description": "A base effect is attributable to the current admitted activation.", "tone": "violet", "x": 430, "y": 445},
+        "UpgradePrepared": {"label": "Upgrade prepared", "description": "A distinct successor generation is prepared without moving current authority.", "tone": "amber", "x": 310, "y": 445},
+        "UpgradeReady": {"label": "Successor ready", "description": "The successor is ready for one fenced cutover.", "tone": "blue", "x": 190, "y": 445},
+        "Complete": {"label": "Cutover complete", "description": "The new epoch, identity, admission, and route are current and old authority is fenced.", "tone": "green", "x": 70, "y": 445}
+      },
+      "actions": {
+        "FenceWorkspace": {"category": "boundary", "description": "Close mutable authoring before snapshot creation."},
+        "SealWorkspace": {"category": "boundary", "description": "Seal one exact immutable source snapshot."},
+        "AttachSnapshotToOrdinaryChamber": {"category": "authority", "description": "Grant an ordinary Chamber the exact snapshot projection without writer authority."},
+        "CreateProviderRevision": {"category": "provenance", "description": "Derive one provider revision from the projected snapshot."},
+        "BuildArtifact": {"category": "build", "description": "Produce one artifact from the exact provider revision."},
+        "RecordPrepared": {"category": "provenance", "description": "Record the artifact as one Prepared Realization."},
+        "ReserveActivation": {"category": "startup", "description": "Reserve one activation for the prepared realization and current epoch."},
+        "GenerateEphemeralPeer": {"category": "identity", "description": "Create one fresh ephemeral PeerId for the activation."},
+        "AdmitActivation": {"category": "authority", "description": "Admit the exact public activation projection and open current route ownership."},
+        "SetVaultAvailable": {"category": "vault", "description": "Make Vault available without changing ordinary base readiness."},
+        "IssueVaultLease": {"category": "vault", "description": "Issue an optional Vault lease to the current admitted activation."},
+        "MarkBaseReady": {"category": "readiness", "description": "Mark base readiness from exact admission rather than Vault availability."},
+        "PerformEffect": {"category": "effect", "description": "Record one effect attributable to the current admitted epoch."},
+        "PrepareUpgrade": {"category": "upgrade", "description": "Prepare a distinct successor while current authority remains unchanged."},
+        "ReadyUpgrade": {"category": "readiness", "description": "Record successor readiness before cutover."},
+        "CutoverUpgrade": {"category": "cutover", "description": "Move route, identity, admission, and epoch together while fencing old authority."}
+      },
+      "invariants": {
+        "TypeOK": "Every phase and provenance, identity, readiness, lease, and authority variable stays in its bounded domain.",
+        "ExactIdentityChain": "Snapshot, revision, artifact, prepared realization, and activation provenance remain exact end to end.",
+        "EffectsRequireCurrentAdmission": "A base effect requires live admission for the current Core epoch and routed realization.",
+        "BaseLifecycleIndependentOfVault": "Ordinary base readiness follows admission and does not require Vault.",
+        "UpgradeCutoverFencesOldAuthority": "A completed upgrade installs the fresh epoch and identity while revoking old authority and any old Vault lease.",
+        "OnlyImmutableSourceLeavesWorkspace": "Only a sealed immutable snapshot may cross the mutable-workspace boundary."
+      },
+      "curated_edges": [
+        {"from": "Mutable", "to": "Fenced", "label": "fence", "actions": ["FenceWorkspace"]},
+        {"from": "Fenced", "to": "Sealed", "label": "seal", "actions": ["SealWorkspace"]},
+        {"from": "Sealed", "to": "SnapshotAttached", "label": "project", "actions": ["AttachSnapshotToOrdinaryChamber"]},
+        {"from": "SnapshotAttached", "to": "Committed", "label": "derive revision", "actions": ["CreateProviderRevision"]},
+        {"from": "Committed", "to": "Built", "label": "build", "actions": ["BuildArtifact"]},
+        {"from": "Built", "to": "Prepared", "label": "record prepared", "actions": ["RecordPrepared"]},
+        {"from": "Prepared", "to": "Reserved", "label": "reserve", "actions": ["ReserveActivation"]},
+        {"from": "Reserved", "to": "Identified", "label": "identify", "actions": ["GenerateEphemeralPeer"]},
+        {"from": "Identified", "to": "Admitted", "label": "admit", "actions": ["AdmitActivation"]},
+        {"from": "Admitted", "to": "Ready", "label": "ready", "actions": ["MarkBaseReady"]},
+        {"from": "Ready", "to": "Effected", "label": "effect", "actions": ["PerformEffect"]},
+        {"from": "Effected", "to": "UpgradePrepared", "label": "prepare upgrade", "actions": ["PrepareUpgrade"]},
+        {"from": "UpgradePrepared", "to": "UpgradeReady", "label": "prove successor", "actions": ["ReadyUpgrade"]},
+        {"from": "UpgradeReady", "to": "Complete", "label": "cut over", "actions": ["CutoverUpgrade"]}
+      ],
+      "scenarios": [
+        {"id": "baseline-no-vault", "title": "Base lifecycle without Vault", "description": "Immutable source provenance reaches admitted effect and successor cutover without requiring a Vault lease.", "steps": ["FenceWorkspace", "SealWorkspace", "AttachSnapshotToOrdinaryChamber", "CreateProviderRevision", "BuildArtifact", "RecordPrepared", "ReserveActivation", "GenerateEphemeralPeer", "AdmitActivation", "MarkBaseReady", "PerformEffect", "PrepareUpgrade", "ReadyUpgrade", "CutoverUpgrade"]},
+        {"id": "optional-vault-lease", "title": "Optional exact Vault lease", "description": "Vault may become available and lease to the admitted activation without becoming base readiness authority.", "steps": ["FenceWorkspace", "SealWorkspace", "AttachSnapshotToOrdinaryChamber", "CreateProviderRevision", "BuildArtifact", "RecordPrepared", "ReserveActivation", "GenerateEphemeralPeer", "AdmitActivation", "SetVaultAvailable", "IssueVaultLease", "MarkBaseReady", "PerformEffect", "PrepareUpgrade", "ReadyUpgrade", "CutoverUpgrade"]}
       ]
     }
   }

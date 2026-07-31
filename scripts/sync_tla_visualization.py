@@ -28,7 +28,7 @@ ROOT = SCRIPT_DIR.parent
 ANNOTATIONS_PATH = SCRIPT_DIR / "tla_model_annotations.json"
 DEFAULT_OUTPUT = ROOT / "source" / "tla-model-projection.json"
 EXPECTED_REPOSITORY = "dreamcatcher-tech/chambers-temporal-model"
-MODEL_ORDER = ("ark_core_appliance", "multi_ark", "host_cutover")
+MODEL_ORDER = ("ark_core_appliance", "multi_ark", "host_cutover", "baseline_composition")
 
 
 def sha256_path(path: Path) -> str:
@@ -723,7 +723,7 @@ def build_projection(args: argparse.Namespace) -> dict[str, Any]:
             ),
             "proof": (
                 "PASS receipts mean TLC found no violation within the configured finite bounds. "
-                "Expected counterexamples prove that eight deliberately weakened guards in the public subset are "
+                "Expected counterexamples prove that the published deliberately weakened guards are "
                 "observable. Neither result proves deployment conformance."
             ),
         },

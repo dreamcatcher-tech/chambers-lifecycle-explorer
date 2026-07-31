@@ -1,10 +1,10 @@
 # Chambers lifecycle sequence reference
 
-Status: **Downstream lifecycle/interface projection of Chambers Formal Specification v1.0.1 (documentation-only lineage correction over v1.0.0); bounded runsc mechanism proof accepted; production integration pending**
+Status: **Downstream lifecycle/interface projection of Chambers Formal Specification v1.1.0 (baseline complete for its declared modeled jurisdiction); bounded runsc mechanism proof accepted; implementation conformance and production integration pending**
 
-Governing release: [`chambers-formal-specification/v1.0.1`](https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.0.1), tag `formal-spec-v1.0.1`, commit `71d80f84680391236e5234eb4d2bf525f0edde92`; modeled semantics and checker outcomes are unchanged from v1.0.0
+Governing release: [`chambers-formal-specification/v1.1.0`](https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.1.0), tag `formal-spec-v1.1.0`, commit `3e3ea838e7ea778d29d5aceb5e0e90f52ae6a8a6`; eleven principal kernels and fifty-six exact unsafe controls passed under their declared finite bounds
 
-Local binding: [`chambers-formal-specification.json`](chambers-formal-specification.json)
+Local bindings: [`chambers-formal-specification.json`](chambers-formal-specification.json) and, for Vault-owned internals behind the Chambers seam, [`vault-formal-specification.json`](vault-formal-specification.json)
 
 Projection classification: `formal_release_reconciled_downstream_projection`
 
@@ -98,6 +98,7 @@ add, remove, weaken, or infer modeled semantics. **Related terms** is navigation
 | Engine | The III runtime inside the Ark Core Appliance. It owns transport, the loopback required-worker listener, the Gateway-authorized Ark-private listener, function registration, invocation dispatch, and semantic role readiness. s6 owns OS-process lifetime, and any required process exit or semantic-readiness loss terminates the whole Core task. | Ark Core Appliance; I3 function; Registration contract; Worker |
 | Execution profile | Immutable Covenant and Realization policy choosing `dynamic-job` or `resident-service`, with the allowed entrypoint, availability promise, deadlines, and minimum ready residency. | Dynamic job; Prepared Realization; Resident service; Realization |
 | Gateway | The required Ark Core worker combining authentication, RBAC/authorization, bounded volatile buffering, stable-route proxying, exact route projection, route epochs, and fencing in RAM. | Ark Core Appliance; Engine; Persistence; Route; Supervisor |
+| Git Chamber | An ordinary Chamber whose own designated persistent workspace contains its `.git` repository state. It may consume exact snapshot read projections and ordinary network/Vault capabilities, but has no privileged lifecycle, source-writer, publication, selection, route, build, or start authority. | Chamber; Immutable identity; Snapshot read projection; Vault lease |
 | Hold | A bounded reference retaining one exact candidate and its custody, owner, expiry, and cleanup authority. | Candidate; Realization |
 | Host Agent | The small non-Chamber host authority, also called ProcMan. It has one configured host-root boot slot. Per scope it reads one selector at cold activation, attaches one volume and private network, starts one opaque Core task, attaches descendants only to that scope, enforces the no-forwarding boundary, owns physical lifecycle and Admission, and executes one bounded pre-authorized fallback. It creates every non-root scope only for an authenticated live parent's child request and contains no internal Core orchestration or Covenant policy. | Admission; Ark Core selection; Ark scope; containerd; Engine; Host-root Ark |
 | Host-root Ark | The sole parentless Ark scope configured for one ProcMan host. Installation, wake, reboot, and lower-platform recovery may boot only this scope directly; multi-Ark hosting occurs below it. | Ark scope; Child Ark; Host Agent |
@@ -122,8 +123,10 @@ add, remove, weaken, or infer modeled semantics. **Related terms** is navigation
 | Run receipt | Durable evidence binding one Realization ID, fresh Chamber ID, host evidence, runtime specification identity, and outcome. | Activation; Chamber; Realization |
 | Runnable Covenant | A Covenant whose selected Realization may have zero or many concurrent Chambers, each containing one or more workers. | Chamber; Covenant; Worker |
 | Selection | A fenced compare-and-swap from an expected Current selection revision to one exact Prepared candidate. Ark Core selection is a distinct lower-host operation over one appliance digest. | Ark Core selection; Candidate; Current selection; Prepared Realization; Realization |
+| Snapshot read projection | A revocable, activation-bound, read-only projection of one already sealed immutable snapshot into one ordinary Chamber. It grants no writer, delegation, selection, route, build, publication, or start authority. | Chamber; Git Chamber; Immutable identity; Persistence |
 | Source-composed launch spec | A normalized launch specification projecting exact resource revisions and workers over an exact base OCI descriptor without requiring a derived application image. | Artifact-backed launch spec; Normalized launch spec; OCI digest |
 | Supervisor | The required Ark Core policy worker. It reads Persistence, reconstructs the desired Covenant graph, resolves exports, and asks Gateway and Host Agent to apply typed effects; it owns no selector, route mechanism, or physical task authority. | Ark Core Appliance; Gateway; Host Agent; Persistence; Registration contract |
+| Vault lease | A bounded Vault-owned authorization outcome bound to one exact principal, activation, scope, peer, purpose, generation, and expiry. Chambers consumes grant/deny/revoke/expire consequences but does not define secret custody or cryptographic internals. | Admission; Chamber; Credential; Git Chamber |
 | Worker | One function-registering process, built-in module, or SDK worker inside a Chamber. A Runnable Covenant may declare one or more workers. | Chamber; I3 function; Registration contract |
 
 ## Lifecycle axioms
@@ -138,6 +141,8 @@ add, remove, weaken, or infer modeled semantics. **Related terms** is navigation
 - `registration contract = digest(canonical declared worker and export set)`.
 - Engine, Persistence, Gateway, and Supervisor are worker roles inside one Core image, not four separately selected Covenants.
 - Builder remains a separately sandboxed ordinary Covenant and never enters the cold path.
+- Every ordinary physical activation mints a fresh Chamber identity and PeerId. Private key material remains activation-local; Engine receives only the exact disposable public admission projection.
+- A Git Chamber is an ordinary Chamber. Its persistent `.git` state is workspace data, not lifecycle, publication, selection, route, build, or start authority.
 - A moving tag, process identity, containerd label, or apparent liveness is never selection authority.
 
 ### Cardinality
@@ -151,6 +156,7 @@ add, remove, weaken, or infer modeled semantics. **Related terms** is navigation
 - `any required Core process exit or semantic-readiness loss -> complete Core-task exit -> complete scope recovery`; no member-local repair exists.
 - `any selected Core change -> stop the scope tree -> one cold selector read -> one fresh Core`.
 - `one ordinary Chamber -> one Runnable Covenant Realization + one lease + one independent cleanup fate`.
+- `one snapshot read grant -> one exact sealed snapshot + one exact reader activation + one revocable read-only projection`; source writer authority never transfers.
 - `one Prepared Realization -> one exact retained OCI graph + zero or many fresh Chambers over time`.
 - `one dynamic-job request -> one fresh Chamber -> one terminal result or failure -> zero retained job tasks`.
 - `one selected resident-service -> at least one exact ready Chamber while its availability policy is active`.
@@ -754,9 +760,9 @@ sequenceDiagram
     Supervisor->>Persistence: `persistence::realization::read`
     Note over Supervisor,Persistence: Read the exact accepted Realization, normalized launch spec,<br/>receipts, provider descriptors, and bounded immutable-resource capabilities
     Supervisor->>HostAgent: `chamber::activate`
-    Note over HostAgent: Commit the exact Chamber intent, fresh Chamber ID, lease, PeerId,<br/>registration contract, listener, epoch, profile, and expiry before effects
+    Note over HostAgent: Commit the exact Chamber intent, fresh activation, Chamber ID, lease, PeerId,<br/>registration contract, listener, current Core epoch, profile, and expiry before effects
     Note over HostAgent,Chamber: Encapsulated host kernel: verify or obtain exact OCI content,<br/>compose the fixed OCI spec, and ask containerd to start it through the runsc shim
-    Note over HostAgent,Chamber: Inject the fresh private identity through a protected capability<br/>and pass the pinned selected Engine identity
+    Note over HostAgent,Chamber: Inject the fresh private identity through a protected capability<br/>Private material remains activation-local and Engine sees only the public projection
     Note over Chamber,Engine: TCP plus Noise proves both PeerIds before the Worker Manager stream opens
     alt Admission binding and complete registration set match while the lease is live
         Note over Engine: Atomically publish only the server-prefixed exact set<br/>under privileged-direct or ordinary-RBAC middleware as declared
@@ -766,7 +772,7 @@ sequenceDiagram
         Note over Engine: Publish nothing and preserve unrelated gateway state
         Note over HostAgent,Chamber: Stop/reap any partial task through containerd, revoke Admission,<br/>and emit one attributable terminal failure receipt
     end
-    Note over Engine,Vault: Ordinary-RBAC calls retain Vault mediation—<br/>privileged-direct bypasses only ordinary application middleware
+    Note over Engine,Vault: Base readiness does not require Vault by default<br/>Vault-dependent effects require one live exact activation, scope, peer, purpose, and expiry lease
 ```
 
 `chamber::activate(exact_realization, lease)` is the sole ordinary physical-start surface. The caller supplies
@@ -781,8 +787,11 @@ formation, and a different digest is a different candidate.
 
 The Noise connection is not admission by itself. Engine invokes Gateway's fixed authentication and registration
 hooks; Gateway validates the Host Agent-issued Admission both when the secure connection identifies the remote
-PeerId and when the peer requests Worker Manager. A claimed Chamber ID is never authority. Private identities
-are fresh per lease and destroyed with the Chamber.
+PeerId and when the peer requests Worker Manager. A claimed Chamber ID is never authority. Every physical
+activation receives a fresh identity. Private material remains inside that activation and is destroyed at stop.
+Replacement, restart, stop, Core-epoch change, expiry, or revocation invalidates the old public admission projection
+and every Vault-dependent effect bound to it. Vault denial cannot block unrelated base work unless the exact
+Realization declares Vault as a base-readiness dependency.
 
 The current revision or candidate Hold is captured when intent commits. A concurrent selection change never
 relabels the Chamber. A selected `dynamic-job` Realization normally has zero live Chambers before and after this
@@ -808,6 +817,7 @@ sequenceDiagram
     participant Persistence
     participant Supervisor
     participant Developer as Developer Chamber
+    participant GitChamber as Ordinary Git Chamber
     participant Agent
 
     Agent->>Supervisor: `chamber::workspace::materialize`
@@ -821,8 +831,14 @@ sequenceDiagram
         Agent->>Persistence: `resource::workspace::renew`
     else Seal an exact revision
         Agent->>Persistence: `resource::snapshot`
-        opt Publish a provider-native revision
-            Agent->>Persistence: `resource::commit`
+        opt An ordinary Git Chamber derives a revision or performs remote synchronization
+            Supervisor->>HostAgent: `chamber::activate`
+            Note over HostAgent,GitChamber: Activate an ordinary Chamber whose own persistent workspace contains `.git`<br/>It receives no privileged Git, source-writer, selection, route, build, or start authority
+            GitChamber->>Persistence: `resource::resolve`
+            Note over Persistence,GitChamber: Project only the exact sealed snapshot through one revocable read grant<br/>Fetch, checkout, merge, conflict handling, commit, pull, and push run inside the Git Chamber
+            GitChamber->>Persistence: `resource::commit`
+            Note over GitChamber,Persistence: Record the exact derived provider revision and receipt<br/>Remote publication remains a distinct ordinary Chamber effect outside current model coverage
+            Supervisor->>HostAgent: `chamber::stop`
         end
         Note over Agent,Persistence: Persist source/resource state only,<br/>never containerd content or a running root filesystem
     else Close or expire
@@ -835,6 +851,12 @@ Workspace, snapshot, provider revision, Realization, and Chamber remain distinct
 becomes an input to a later Covenant lock. It enters **Form a candidate Realization**, forms one exact
 candidate under a Hold, and may be selected only after verification. No workspace, containerd snapshot, or
 running Chamber is renamed into a candidate or current Realization.
+
+The ordinary Git Chamber owns its persistent `.git` region and performs Git itself. Source workspaces expose only
+exact sealed read projections, never their live writer capability. Local mutable content, local commit/ref state,
+remote-observed state, Vault/network authority, divergence or conflict, retry/recovery state, and provenance remain
+separate. The formal baseline governs the workspace/snapshot projection and derived-revision receipt seam. It does
+not claim Git protocol, remote compare-and-swap, readback, divergence, or conflict-recovery conformance.
 
 ## Form a candidate Realization
 
@@ -1182,9 +1204,11 @@ sequenceDiagram
         Supervisor->>Gateway: `routing::install`
         Supervisor->>Gateway: `routing::inspect`
         Supervisor->>Gateway: `routing::reopen`
+        Note over Current,Gateway: Stop predecessor acceptance at the single-owner cutover<br/>Only the successor accepts new routed work
         Supervisor->>Persistence: `persistence::routing::complete`
+        Note over Current,Persistence: Complete or terminalize every item accepted before cutover<br/>Record exact drain evidence before predecessor stop
         Supervisor->>HostAgent: `chamber::stop`
-        Note over Current,Successor: Drain and reap predecessor only after stable successor ownership is proved
+        Note over Current,Successor: Reap predecessor only after stable successor ownership and drain are proved
     end
 ```
 
@@ -1192,6 +1216,11 @@ Gateway buffering is not a second durable queue. Gateway failure exits the compl
 requires clients to retry. The cutover is therefore useful for bounded ordinary target movement, not for pretending
 Gateway can route around its own replacement or around a full Ark Core restart. Dynamic jobs do not need this route handover: each new
 request snapshots the newly selected revision and creates a fresh Chamber.
+
+A successor failure before cutover keeps the predecessor selected and accepting while the failed candidate is
+reaped. After cutover, the predecessor is draining and cannot silently regain route or effect authority. A
+post-cutover successor failure requires a new exact recovery or rollback selection decision; it does not resurrect
+the predecessor merely because that process is still alive.
 
 ## Complete Ark Core replacement and bounded fallback
 
@@ -1384,8 +1413,13 @@ broken; execution fails closed and rebuilding is candidate work.
 - `Ark peer route unavailable, invitation invalid, or policy unavailable -> fail closed`; never fall back to ProcMan wiring or scope-private Worker Manager reachability.
 - `peer session revoked or expires -> remove only that session projection`; lifecycle parentage, teardown authority, and unrelated sessions are unchanged.
 - `admitted ordinary call snapshots Current revision S and Realization R -> Chamber remains pinned to (S, R)` despite later selection change.
+- `ordinary activation starts -> mint one fresh private identity and PeerId -> publish only the exact disposable admission projection`; replacement, restart, stop, epoch change, expiry, or revocation invalidates the old binding.
+- `Vault-dependent effect -> exact live activation/scope/peer/purpose/generation/expiry lease`; Vault denial or revocation blocks that effect without blocking unrelated base readiness unless the Realization explicitly declares Vault as required.
+- `sealed snapshot + exact reader activation + current scoped grant -> read-only projection`; wrong reader, activation, scope, snapshot, purpose, expiry, or revoked grant yields no access and no source-writer authority.
+- `ordinary Git Chamber -> persistent designated workspace containing .git + exact sealed source projections + ordinary network/Vault capabilities`; Git protocol and remote-ref semantics remain outside the current modeled jurisdiction.
 - `ordinary Chamber lease expires or work terminates -> chamber::stop exact Chamber`; siblings and both selectors are unchanged.
 - `ordinary resident successor passes tests + ordinary CAS succeeds -> Gateway may install and reopen exact route`; predecessor drains independently.
+- `ordinary cutover -> predecessor stops new acceptance + successor alone owns new acceptance + predecessor completes or terminalizes every accepted item before stop`; post-cutover failure never silently restores predecessor authority.
 - `Gateway or complete Core fails during ordinary cutover -> volatile buffer is lost -> clients retry`; Gateway RAM is not durable acceptance.
 - `artifact-backed ordinary graph unavailable -> activation fails`; do not build inside `chamber::activate`.
 - `Prepared provider graph missing or readback mismatched -> fence new jobs or resident replacement and fail closed`.
@@ -1394,6 +1428,7 @@ broken; execution fails closed and rebuilding is candidate work.
 - `rebuild produces another digest -> distinct candidate`; only fenced selection may choose it.
 - `Noise authenticates a PeerId absent from live Admission, wrong scope, or wrong Engine epoch -> no Worker Manager stream`.
 - `physical task survives but exact scope, selected Core or Realization, lease, Admission, and operation cannot be proved -> reap it`.
+- `root creates child and child creates grandchild under exact scope-derived authority -> bounded nested scope exists`; this evidence makes no arbitrary-depth or unbounded-liveness claim.
 - `verifier unavailable, verdict UNKNOWN, shutdown unproved, or retention readback absent -> no Prepared record and no selection`.
 - `Host Agent unavailable -> only an explicitly lower platform may wake or replace it`; no Chamber bootstraps absent host authority.
 
@@ -1444,6 +1479,9 @@ broken; execution fails closed and rebuilding is candidate work.
 - ordinary resident-service cutover through Gateway fence, Prepared successor proof, Persistence CAS, route install/reopen, and predecessor drain;
 - Persistence-owned `current[name] = {revision, realization}` as the sole ordinary named selection;
 - fresh ordinary Chamber PeerIds bound by Admission to exact scope, Chamber, Realization, registration contract, Engine epoch, profile, and expiry;
+- activation-local private identities with only disposable public admission projections exposed to Engine, plus exact optional Vault-lease outcomes kept separate from base readiness;
+- scoped, revocable, read-only projections of exact sealed snapshots into ordinary reader Chambers without source writer transfer;
+- ordinary Git Chambers whose own persistent workspaces contain `.git`, with fetch, merge, commit, pull, and push remaining ordinary Chamber behavior rather than privileged lifecycle machinery;
 - Builder as an ordinary separate sandbox with no containerd socket, selector path, Ark volume, or selection authority;
 - no build on Core cold activation or ordinary activation;
 - finite `chamber::job::run` orchestration and baseline one-ready-Chamber resident-service reconciliation;
@@ -1457,6 +1495,8 @@ broken; execution fails closed and rebuilding is candidate work.
 - durable ingress queueing if product requirements exceed volatile Gateway buffering and caller retry;
 - shared ordinary Chamber pools, prewarm controllers, and service traffic balancing;
 - optional direct-path optimization, richer discovery, relay selection automation, and additional inter-Ark application protocols after the baseline topology-neutral authenticated Ark Interconnect; never implicit scope routing or a mandatory global relay;
+- Git-specific remote synchronization semantics, including moving remote refs, expected-head compare-and-swap, readback, divergence/conflict, retry, and recovery; these require a future model before they can become Chambers authority;
+- arbitrary-depth nesting and unbounded nested-scope liveness; the ratified baseline establishes only the declared finite root/child/grandchild composition bounds;
 - lower-platform automation that stops, wakes, and replaces ProcMan;
 - independently accepted replacement of ProcMan, containerd, runsc shim, runsc, kernel, CNI boundary, and boot-control format;
 - process-memory or rootfs checkpoint recovery.

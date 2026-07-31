@@ -87,31 +87,31 @@ def validate_projection(payload: dict) -> None:
         fail("projection authority is not the temporal-model release")
     if authority.get("commit") != source.get("commit"):
         fail("formal release commit does not match projected source commit")
-    if authority.get("release") != "chambers-formal-specification/v1.0.1":
+    if authority.get("release") != "chambers-formal-specification/v1.1.0":
         fail("formal release identity drifted")
-    if authority.get("version") != "1.0.1":
+    if authority.get("version") != "1.1.0":
         fail("formal release version drifted")
-    if authority.get("gitTag") != "formal-spec-v1.0.1":
+    if authority.get("gitTag") != "formal-spec-v1.1.0":
         fail("formal release tag drifted")
-    if authority.get("releaseKind") != "documentation_only":
+    if authority.get("releaseKind") != "semantic_baseline":
         fail("formal release kind drifted")
-    if authority.get("semanticDelta") != "none; completes commit-by-commit changelog accounting through formal-spec-v1.0.0":
+    if authority.get("semanticDelta") != "adds ordinary snapshot-read authority, ephemeral Chamber identity/admission and minimal Vault seam, ordinary generation upgrades, bounded interface composition, and a baseline-complete jurisdiction finding":
         fail("formal release semantic delta drifted")
-    if authority.get("supersedes") != "chambers-formal-specification/v1.0.0":
+    if authority.get("supersedes") != "chambers-formal-specification/v1.0.1":
         fail("formal release predecessor drifted")
-    if authority.get("manifestSha256") != "4b2ce9f0f22d032b775630fe6ffe24d5e1075138b11bfe2fded52b18817c2fef":
+    if authority.get("manifestSha256") != "a4e5431c867751692dbe4a5f7395c6b362212b6a6a62bc2bd41e6fdd31fc649f":
         fail("formal release manifest drifted")
     if not re.fullmatch(r"[0-9a-f]{64}", authority.get("manifestSha256", "")):
         fail("formal release manifest receipt is invalid")
     coverage = payload.get("projection", {}).get("coverage", {})
     if coverage.get("status") != "deliberately_bounded_public_subset":
         fail("public model coverage boundary is missing")
-    if len(coverage.get("releaseKernels", [])) != 7:
+    if len(coverage.get("releaseKernels", [])) != 11:
         fail("formal release kernel inventory is incomplete")
 
     models = payload.get("models", [])
     if [model.get("id") for model in models] != [
-        "ark_core_appliance", "multi_ark", "host_cutover"
+        "ark_core_appliance", "multi_ark", "host_cutover", "baseline_composition"
     ]:
         fail("model registry/order drifted")
 
@@ -205,7 +205,7 @@ def validate_projection(payload: dict) -> None:
         fail(f"projection totals drifted: expected {expected_totals}, got {totals}")
 
     controls = payload["negativeControls"]
-    if len(controls) != 8 or any(control.get("status") != "expected_counterexample" for control in controls):
+    if len(controls) != 12 or any(control.get("status") != "expected_counterexample" for control in controls):
         fail("expected-counterexample receipt set is incomplete")
     for control in controls:
         if control["violatedInvariant"] not in properties_by_model[control["model"]]:

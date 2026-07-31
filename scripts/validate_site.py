@@ -68,23 +68,25 @@ def validate_manifest_and_bundle(payload: dict) -> None:
         fail("browser bundle formal authority does not match source manifest")
     if formal_authority.get("repository") != "dreamcatcher-tech/chambers-temporal-model":
         fail("Chambers formal authority repository is wrong")
-    if formal_authority.get("release") != "chambers-formal-specification/v1.0.1":
+    if formal_authority.get("release") != "chambers-formal-specification/v1.1.0":
         fail("Chambers formal authority release drifted")
-    if formal_authority.get("git_tag") != "formal-spec-v1.0.1":
+    if formal_authority.get("git_tag") != "formal-spec-v1.1.0":
         fail("Chambers formal authority tag drifted")
-    if formal_authority.get("commit") != "71d80f84680391236e5234eb4d2bf525f0edde92":
+    if formal_authority.get("commit") != "3e3ea838e7ea778d29d5aceb5e0e90f52ae6a8a6":
         fail("Chambers formal authority commit drifted")
-    if formal_authority.get("manifest_sha256") != "4b2ce9f0f22d032b775630fe6ffe24d5e1075138b11bfe2fded52b18817c2fef":
+    if formal_authority.get("manifest_sha256") != "a4e5431c867751692dbe4a5f7395c6b362212b6a6a62bc2bd41e6fdd31fc649f":
         fail("Chambers formal authority manifest drifted")
-    if formal_authority.get("release_kind") != "documentation_only":
+    if formal_authority.get("release_kind") != "semantic_baseline":
         fail("Chambers formal authority release kind drifted")
-    if formal_authority.get("semantic_base") != "chambers-formal-specification/v1.0.0":
+    if formal_authority.get("semantic_base") != "chambers-formal-specification/v1.1.0":
         fail("Chambers formal authority semantic base drifted")
+    if formal_authority.get("baseline_status") != "baseline_complete":
+        fail("Chambers formal authority baseline status drifted")
 
     documents = payload.get("documents", [])
     if [document.get("id") for document in documents] != ["chambers", "cardflow"]:
         fail("bundle must contain Chambers and Cardflow in that order")
-    expected_stats = {"documents": 2, "sequences": 26, "calls": 212, "functions": 90, "dictionaryTerms": 87}
+    expected_stats = {"documents": 2, "sequences": 26, "calls": 215, "functions": 90, "dictionaryTerms": 90}
     if payload.get("stats") != expected_stats:
         fail(f"unexpected combined stats: {payload.get('stats')}")
 
@@ -127,8 +129,8 @@ def validate_manifest_and_bundle(payload: dict) -> None:
 
     chambers, cardflow = documents
     expected_chambers = {
-        "sequences": 17, "actors": 47, "calls": 146, "i3Calls": 135,
-        "hostCalls": 11, "functions": 57, "usedFunctions": 57, "dictionaryTerms": 57,
+        "sequences": 17, "actors": 48, "calls": 149, "i3Calls": 138,
+        "hostCalls": 11, "functions": 57, "usedFunctions": 57, "dictionaryTerms": 60,
     }
     if chambers["stats"] != expected_chambers:
         fail(f"unexpected Chambers stats: {chambers['stats']}")
@@ -234,6 +236,13 @@ def validate_manifest_and_bundle(payload: dict) -> None:
         "Gateway warm cutover applies only to ordinary Chambers",
         "one-attempt LKG fallback",
         "Builder as an ordinary separate sandbox",
+        "ordinary Git Chamber",
+        "persistent `.git` state",
+        "exact snapshot read projections",
+        "fresh private identity",
+        "Base readiness does not require Vault by default",
+        "A successor failure before cutover keeps the predecessor",
+        "post-cutover failure never silently restores predecessor authority",
     )
     missing_core_markers = [marker for marker in required_core_markers if marker not in flattened]
     if missing_core_markers:

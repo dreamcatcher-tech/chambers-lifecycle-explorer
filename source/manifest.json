@@ -1,21 +1,22 @@
 {
   "schemaVersion": 3,
   "repository": "dreamcatcher-tech/fundamentals",
-  "repositoryHead": "4a83d95a3f28239ad080611ff7818b060acdd7bc",
-  "repositoryHeadTimestamp": "2026-07-30T15:25:40Z",
+  "repositoryHead": "21d4c5e455f498937b10d45423b0bafd19d4245c",
+  "repositoryHeadTimestamp": "2026-07-31T00:53:07Z",
   "projectionMode": "exact committed registered-source snapshots; generated browser data",
   "formalAuthority": {
     "repository": "dreamcatcher-tech/chambers-temporal-model",
-    "release": "chambers-formal-specification/v1.0.1",
-    "git_tag": "formal-spec-v1.0.1",
-    "commit": "71d80f84680391236e5234eb4d2bf525f0edde92",
-    "tree": "a9075a84267d52c3f2bfe9e064a9ee663cd27bb6",
-    "release_url": "https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.0.1",
+    "release": "chambers-formal-specification/v1.1.0",
+    "git_tag": "formal-spec-v1.1.0",
+    "commit": "3e3ea838e7ea778d29d5aceb5e0e90f52ae6a8a6",
+    "tree": "94f385730bce7a4c78e0105e406ff9a2ce989e53",
+    "release_url": "https://github.com/dreamcatcher-tech/chambers-temporal-model/releases/tag/formal-spec-v1.1.0",
     "specification_path": "release/specification.json",
     "manifest_path": "release/manifest.json",
-    "manifest_sha256": "4b2ce9f0f22d032b775630fe6ffe24d5e1075138b11bfe2fded52b18817c2fef",
-    "release_kind": "documentation_only",
-    "semantic_base": "chambers-formal-specification/v1.0.0"
+    "manifest_sha256": "a4e5431c867751692dbe4a5f7395c6b362212b6a6a62bc2bd41e6fdd31fc649f",
+    "release_kind": "semantic_baseline",
+    "semantic_base": "chambers-formal-specification/v1.1.0",
+    "baseline_status": "baseline_complete"
   },
   "documents": [
     {
@@ -23,20 +24,20 @@
       "role": "downstream_projection_of_chambers_formal_specification",
       "path": "docs/chambers-lifecycle-sequences.md",
       "snapshotPath": "chambers-lifecycle-sequences.md",
-      "sourceCommit": "f82cbcdbe6b055ae4dca0920e75d010ed8cc0f0a",
-      "sourceTimestamp": "2026-07-30T10:51:11Z",
-      "documentSha256": "74a44df574f6502fc9ab4e7a177400a89b4bdb9e74d9f7ae654446db06401894",
-      "documentBytes": 114639
+      "sourceCommit": "21d4c5e455f498937b10d45423b0bafd19d4245c",
+      "sourceTimestamp": "2026-07-31T00:53:07Z",
+      "documentSha256": "5e93bd426cb290310c75ce1b700157560b40bfce6e7b91620a69c59287c9e0b2",
+      "documentBytes": 121207
     },
     {
       "id": "cardflow",
       "role": "cardflow_design_source_with_chambers_formal_release_binding",
       "path": "docs/cardflow-filesystem-lease-sequences.md",
       "snapshotPath": "cardflow-filesystem-lease-sequences.md",
-      "sourceCommit": "f82cbcdbe6b055ae4dca0920e75d010ed8cc0f0a",
-      "sourceTimestamp": "2026-07-30T10:51:11Z",
-      "documentSha256": "c310d518648bba3b8d70ae53126e28c08c5370754d83955916d078368d1f9450",
-      "documentBytes": 64047
+      "sourceCommit": "21d4c5e455f498937b10d45423b0bafd19d4245c",
+      "sourceTimestamp": "2026-07-31T00:53:07Z",
+      "documentSha256": "80732b286ef87c28518481f98419a5c17292b1352e7f70bf7135448792f629f5",
+      "documentBytes": 64053
     }
   ]
 }

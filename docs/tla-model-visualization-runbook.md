@@ -12,21 +12,22 @@ The page deliberately separates three kinds of information:
 
 1. **Explain** — a curated, human-readable state/action or scope-topology map. Layout, descriptions, and walkthrough paths live in `scripts/tla_model_annotations.json`. The synchronization script fails if an annotated action or property name no longer resolves in the exact TLA+ module. This view explains the model but is **not** claimed to be a complete semantic derivation.
 2. **TLC state space** — an automatically generated aggregation of complete Graphviz DOT state graphs emitted reproducibly by `tlc2.TLC -seed 1 -dump dot,actionlabels,colorize`. Every parsed concrete state and transition must be accounted for, and its count must agree with the checked evidence receipt. Raw private state labels and raw DOT files are not published.
-3. **Properties** — configured safety/liveness operators and the real TLC receipts for eight deliberately weakened controls in the published subset. A passing bounded check is model evidence, not implementation conformance.
+3. **Properties** — configured safety/liveness operators and the real TLC receipts for twelve deliberately weakened controls in the published subset. A passing bounded check is model evidence, not implementation conformance.
 
 This distinction is a publication contract. Do not merge the curated and generated labels or describe the Explain view as “generated from all TLA+ semantics.”
 
 ## Why not publish the ordinary TLC graph directly?
 
-TLC and the TLA+ Toolbox can generate a Graphviz state graph. The official TLA+ documentation warns that this is useful only for small state spaces because fully expanded DOT rendering becomes unreadable or times out as models grow. The current checked suite has 797 distinct states and 2,593 non-stuttering transitions across three models.
+TLC and the TLA+ Toolbox can generate a Graphviz state graph. The official TLA+ documentation warns that this is useful only for small state spaces because fully expanded DOT rendering becomes unreadable or times out as models grow. The current checked public subset has 833 distinct states and 2,646 transitions across four models.
 
 The explorer therefore keeps the exact complete graph as a private build intermediate and publishes bounded aggregates:
 
 - `ArkCoreAppliance`: 502 states grouped by the scalar `mode` variable;
 - `MultiArk`: 284 states grouped into 43 reachable `Root / Child / Grandchild` phase tuples and shown as a matrix;
 - `HostCutover`: 11 exact states grouped into 9 incumbent/candidate phase tuples, with the Explain view retaining the 11-step action chain.
+- `BaselineComposition`: 36 checked states grouped into 15 exact lifecycle phases from mutable workspace through one-way successor cutover.
 
-Compact authority models do not retain an observer-only `lastAction` variable. The projection therefore takes concrete transition labels directly from TLC's `actionlabels` DOT edges, requires every emitted operator to have a source-resolving annotation, and still accounts for every checked state and transition. Because TLC DOT bytes contain opaque JVM graph identifiers that are not byte-stable across equivalent runs, projection schema v3 publishes `aggregateSha256`: a canonical SHA-256 over the complete parsed aggregate nodes and transitions, rather than a misleading raw-DOT byte hash. The formal release contains seven kernels; this public page deliberately projects three and labels that coverage boundary explicitly.
+Compact authority models do not retain an observer-only `lastAction` variable. The projection therefore takes concrete transition labels directly from TLC's `actionlabels` DOT edges, requires every emitted operator to have a source-resolving annotation, and still accounts for every checked state and transition. Because TLC DOT bytes contain opaque JVM graph identifiers that are not byte-stable across equivalent runs, projection schema v3 publishes `aggregateSha256`: a canonical SHA-256 over the complete parsed aggregate nodes and transitions, rather than a misleading raw-DOT byte hash. The formal release contains eleven kernels; this public page deliberately projects four and labels that coverage boundary explicitly.
 
 References:
 
@@ -126,7 +127,7 @@ make serve
 # http://127.0.0.1:8008/tla/
 ```
 
-Exercise all three models and views, scenario playback, action filtering, keyboard focus, and narrow/mobile layouts. Local rendering is not final publication acceptance.
+Exercise all four models and views, scenario playback, action filtering, keyboard focus, and narrow/mobile layouts. Local rendering is not final publication acceptance.
 
 ### 5. Publish and perform external QA
 
@@ -142,6 +143,7 @@ Minimum deployed checks:
 - Ark Core Explain/TLC/Properties views render and interact;
 - Multi-Ark phase matrix contains reachable dots and selection details;
 - Host Cutover shows the complete 11-state chain;
+- Baseline Composition shows the exact provenance/admission/effect/upgrade phase chain and optional Vault scenario;
 - source and evidence receipts show the expected commit/hash;
 - scenario playback can pause/restart;
 - browser Back/Forward restores model/view state;

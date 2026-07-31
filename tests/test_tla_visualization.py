@@ -28,21 +28,21 @@ class TlaVisualizationContractTests(unittest.TestCase):
             source["authority"]["repository"],
             "dreamcatcher-tech/chambers-temporal-model",
         )
-        self.assertEqual(source["authority"]["release"], "chambers-formal-specification/v1.0.1")
-        self.assertEqual(source["authority"]["gitTag"], "formal-spec-v1.0.1")
+        self.assertEqual(source["authority"]["release"], "chambers-formal-specification/v1.1.0")
+        self.assertEqual(source["authority"]["gitTag"], "formal-spec-v1.1.0")
         self.assertEqual(source["authority"]["commit"], source["commit"])
-        self.assertEqual(source["authority"]["releaseKind"], "documentation_only")
+        self.assertEqual(source["authority"]["releaseKind"], "semantic_baseline")
         self.assertEqual(
             source["authority"]["semanticDelta"],
-            "none; completes commit-by-commit changelog accounting through formal-spec-v1.0.0",
+            "adds ordinary snapshot-read authority, ephemeral Chamber identity/admission and minimal Vault seam, ordinary generation upgrades, bounded interface composition, and a baseline-complete jurisdiction finding",
         )
         self.assertEqual(
             source["authority"]["supersedes"],
-            "chambers-formal-specification/v1.0.0",
+            "chambers-formal-specification/v1.0.1",
         )
         self.assertEqual(
             source["authority"]["manifestSha256"],
-            "4b2ce9f0f22d032b775630fe6ffe24d5e1075138b11bfe2fded52b18817c2fef",
+            "a4e5431c867751692dbe4a5f7395c6b362212b6a6a62bc2bd41e6fdd31fc649f",
         )
         self.assertEqual(
             source["architectureSynthesis"]["role"], "provenance_only_not_authority"
@@ -52,8 +52,8 @@ class TlaVisualizationContractTests(unittest.TestCase):
         )
         coverage = self.projection["projection"]["coverage"]
         self.assertEqual(coverage["status"], "deliberately_bounded_public_subset")
-        self.assertEqual(len(coverage["releaseKernels"]), 7)
-        self.assertEqual(len(coverage["publishedModels"]), 3)
+        self.assertEqual(len(coverage["releaseKernels"]), 11)
+        self.assertEqual(len(coverage["publishedModels"]), 4)
 
     def test_complete_dot_aggregates_cover_every_checked_state_and_transition(self) -> None:
         for model in self.models.values():
@@ -103,6 +103,24 @@ class TlaVisualizationContractTests(unittest.TestCase):
             [scenario_action for scenario_action in model["scenarios"][0]["steps"]],
         )
 
+    def test_baseline_composition_lens_binds_the_new_seams(self) -> None:
+        model = self.models["baseline_composition"]
+        self.assertEqual(model["check"]["distinctStates"], 36)
+        self.assertEqual(model["stateSpace"]["concreteTransitions"], 53)
+        self.assertEqual(len(model["stateSpace"]["nodes"]), 15)
+        self.assertEqual(
+            [node["id"] for node in model["curated"]["nodes"]],
+            [
+                "Mutable", "Fenced", "Sealed", "SnapshotAttached", "Committed",
+                "Built", "Prepared", "Reserved", "Identified", "Admitted", "Ready",
+                "Effected", "UpgradePrepared", "UpgradeReady", "Complete",
+            ],
+        )
+        base_steps = model["scenarios"][0]["steps"]
+        self.assertNotIn("SetVaultAvailable", base_steps)
+        self.assertNotIn("IssueVaultLease", base_steps)
+        self.assertIn("IssueVaultLease", model["scenarios"][1]["steps"])
+
     def test_curated_names_are_all_resolved_in_generated_operator_registry(self) -> None:
         for model_id, annotation in self.annotations["models"].items():
             generated = self.models[model_id]
@@ -113,9 +131,9 @@ class TlaVisualizationContractTests(unittest.TestCase):
             for edge in generated["curated"]["edges"]:
                 self.assertTrue(set(edge.get("actions", [])) <= actions)
 
-    def test_all_eight_published_weakened_controls_have_real_counterexample_receipts(self) -> None:
+    def test_all_twelve_published_weakened_controls_have_real_counterexample_receipts(self) -> None:
         controls = self.projection["negativeControls"]
-        self.assertEqual(len(controls), 8)
+        self.assertEqual(len(controls), 12)
         self.assertEqual(
             {control["id"] for control in controls},
             set(self.annotations["negative_controls"]),
