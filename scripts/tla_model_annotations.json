@@ -323,11 +323,11 @@
         "Requested": {"label": "Request formed", "description": "One immutable publication request binds repository, ref, expected head, candidate, snapshot, validation, principal, and operation.", "tone": "blue", "x": 295, "y": 120},
         "Journaled": {"label": "Intent durable", "description": "The exact operation journal exists and remains retained before any remote effect.", "tone": "violet", "x": 500, "y": 120},
         "Ready": {"label": "Lease ready", "description": "The current activation holds the exact scoped write-lease projection for the journaled operation.", "tone": "cyan", "x": 705, "y": 120},
-        "InFlight": {"label": "Update in flight", "description": "The same immutable request has one bounded send attempt awaiting a remote outcome.", "tone": "amber", "x": 910, "y": 120},
-        "AwaitReadback": {"label": "Await readback", "description": "The update was acknowledged but confirmation still requires authoritative destination-ref equality.", "tone": "blue", "x": 910, "y": 320},
-        "Unknown": {"label": "Outcome unknown", "description": "Transport ended without a trustworthy outcome; retry is forbidden until exact readback.", "tone": "amber", "x": 705, "y": 320},
+        "InFlight": {"label": "In flight", "description": "The same immutable request has one bounded send attempt awaiting a remote outcome.", "tone": "amber", "x": 910, "y": 120},
+        "AwaitReadback": {"label": "Readback gate", "description": "The update was acknowledged but confirmation still requires authoritative destination-ref equality.", "tone": "blue", "x": 910, "y": 320},
+        "Unknown": {"label": "Unknown", "description": "Transport ended without a trustworthy outcome; retry is forbidden until exact readback.", "tone": "amber", "x": 705, "y": 320},
         "Confirmed": {"label": "Confirmed", "description": "Authoritative readback names the exact candidate and the terminal receipt binds the original operation.", "tone": "green", "x": 500, "y": 520},
-        "Conflict": {"label": "Explicit conflict", "description": "A revoked lease, raced head, divergent head, or third-value readback stops publication without overwriting evidence.", "tone": "rose", "x": 910, "y": 520}
+        "Conflict": {"label": "Conflict", "description": "A revoked lease, raced head, divergent head, or third-value readback stops publication without overwriting evidence.", "tone": "rose", "x": 910, "y": 520}
       },
       "actions": {
         "ObserveRemote": {"category": "observation", "description": "Observe one exact remote head without mutating the destination ref."},
@@ -373,13 +373,13 @@
         {"from": "Ready", "to": "InFlight", "label": "send", "actions": ["BeginPush"]},
         {"from": "Ready", "to": "Conflict", "label": "lease revoked", "actions": ["RevokeWriteLease"]},
         {"from": "InFlight", "to": "AwaitReadback", "label": "acknowledged", "actions": ["ApplyAndAcknowledge"]},
-        {"from": "InFlight", "to": "Unknown", "label": "outcome unknown", "actions": ["ApplyWithoutAcknowledgement", "DisconnectBeforeRemoteDecision"]},
+        {"from": "InFlight", "to": "Unknown", "label": "unknown", "actions": ["ApplyWithoutAcknowledgement", "DisconnectBeforeRemoteDecision"]},
         {"from": "InFlight", "to": "Conflict", "label": "stale head", "actions": ["RejectStaleExpectedHead"]},
-        {"from": "AwaitReadback", "to": "Confirmed", "label": "candidate readback", "actions": ["ReadbackOutcome"]},
-        {"from": "Unknown", "to": "Ready", "label": "old-head readback", "actions": ["ReadbackOutcome"]},
-        {"from": "Unknown", "to": "Journaled", "label": "recover without lease", "actions": ["CrashGitChamber", "RecoverGitChamber", "ReadbackOutcome"]},
-        {"from": "Unknown", "to": "Confirmed", "label": "candidate readback", "actions": ["ReadbackOutcome"]},
-        {"from": "Unknown", "to": "Conflict", "label": "third-value readback", "actions": ["ReadbackOutcome"]}
+        {"from": "AwaitReadback", "to": "Confirmed", "label": "candidate", "actions": ["ReadbackOutcome"]},
+        {"from": "Unknown", "to": "Ready", "label": "old head", "actions": ["ReadbackOutcome"]},
+        {"from": "Unknown", "to": "Journaled", "label": "fresh lease needed", "actions": ["CrashGitChamber", "RecoverGitChamber", "ReadbackOutcome"]},
+        {"from": "Unknown", "to": "Confirmed", "label": "candidate", "actions": ["ReadbackOutcome"]},
+        {"from": "Unknown", "to": "Conflict", "label": "third value", "actions": ["ReadbackOutcome"]}
       ],
       "scenarios": [
         {"id": "confirmed-fast-forward", "title": "Confirmed fast-forward publication", "description": "Observe and retain exact source, journal before effect, acquire exact authority, update only the expected head, and confirm by readback.", "steps": ["ObserveRemote", "FetchObservedRevision", "FormPushRequest", "WriteOperationJournal", "AcquireWriteLease", "BeginPush", "ApplyAndAcknowledge", "ReadbackOutcome"]},

@@ -191,6 +191,7 @@ class TlaVisualizationContractTests(unittest.TestCase):
         nodes = self.annotations["models"]["git_remote_synchronization"]["states"].values()
         rows: dict[int, list[int]] = {}
         for node in nodes:
+            self.assertLessEqual(len(node["label"]), 15)
             self.assertGreaterEqual(node["x"], 79)
             self.assertLessEqual(node["x"], 921)
             self.assertGreaterEqual(node["y"], 38)

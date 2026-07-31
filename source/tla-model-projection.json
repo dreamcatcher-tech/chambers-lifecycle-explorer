@@ -34,7 +34,7 @@
   },
   "projection": {
     "annotationsSchema": "dreamcatcher.chambers-tla-visualization-annotations/v1",
-    "annotationsSha256": "94827a5e7556d6165a77d3fb8ee7efbc8a92a8788d0be5c2b09ff1131e309b60",
+    "annotationsSha256": "a75fb9d4b557ea4e951b1eac4cb8f3142bb486b9b8a32bfb17f5b5cd670c97ab",
     "disclosure": "Curated explanatory labels and layout only. Action, variable, property, source-line, state-space, and transition data are regenerated from the pinned TLA+ modules, TLC configurations, checked evidence, and TLC DOT dumps.",
     "boundary": "Public-safe projection only: exact names, line anchors, hashes, bounded state/transition aggregates, and TLC receipts. It excludes raw private TLA+ source, concrete state labels, and raw DOT graphs.",
     "coverage": {
@@ -5438,7 +5438,7 @@
           },
           {
             "id": "InFlight",
-            "label": "Update in flight",
+            "label": "In flight",
             "description": "The same immutable request has one bounded send attempt awaiting a remote outcome.",
             "tone": "amber",
             "x": 910,
@@ -5446,7 +5446,7 @@
           },
           {
             "id": "AwaitReadback",
-            "label": "Await readback",
+            "label": "Readback gate",
             "description": "The update was acknowledged but confirmation still requires authoritative destination-ref equality.",
             "tone": "blue",
             "x": 910,
@@ -5454,7 +5454,7 @@
           },
           {
             "id": "Unknown",
-            "label": "Outcome unknown",
+            "label": "Unknown",
             "description": "Transport ended without a trustworthy outcome; retry is forbidden until exact readback.",
             "tone": "amber",
             "x": 705,
@@ -5470,7 +5470,7 @@
           },
           {
             "id": "Conflict",
-            "label": "Explicit conflict",
+            "label": "Conflict",
             "description": "A revoked lease, raced head, divergent head, or third-value readback stops publication without overwriting evidence.",
             "tone": "rose",
             "x": 910,
@@ -5538,7 +5538,7 @@
           {
             "from": "InFlight",
             "to": "Unknown",
-            "label": "outcome unknown",
+            "label": "unknown",
             "actions": [
               "ApplyWithoutAcknowledgement",
               "DisconnectBeforeRemoteDecision"
@@ -5555,7 +5555,7 @@
           {
             "from": "AwaitReadback",
             "to": "Confirmed",
-            "label": "candidate readback",
+            "label": "candidate",
             "actions": [
               "ReadbackOutcome"
             ]
@@ -5563,7 +5563,7 @@
           {
             "from": "Unknown",
             "to": "Ready",
-            "label": "old-head readback",
+            "label": "old head",
             "actions": [
               "ReadbackOutcome"
             ]
@@ -5571,7 +5571,7 @@
           {
             "from": "Unknown",
             "to": "Journaled",
-            "label": "recover without lease",
+            "label": "fresh lease needed",
             "actions": [
               "CrashGitChamber",
               "RecoverGitChamber",
@@ -5581,7 +5581,7 @@
           {
             "from": "Unknown",
             "to": "Confirmed",
-            "label": "candidate readback",
+            "label": "candidate",
             "actions": [
               "ReadbackOutcome"
             ]
@@ -5589,7 +5589,7 @@
           {
             "from": "Unknown",
             "to": "Conflict",
-            "label": "third-value readback",
+            "label": "third value",
             "actions": [
               "ReadbackOutcome"
             ]
@@ -5827,7 +5827,7 @@
           {
             "id": "Conflict",
             "concreteStates": 12,
-            "label": "Explicit conflict",
+            "label": "Conflict",
             "description": "A revoked lease, raced head, divergent head, or third-value readback stops publication without overwriting evidence.",
             "tone": "rose",
             "x": 910,
@@ -5836,7 +5836,7 @@
           {
             "id": "InFlight",
             "concreteStates": 8,
-            "label": "Update in flight",
+            "label": "In flight",
             "description": "The same immutable request has one bounded send attempt awaiting a remote outcome.",
             "tone": "amber",
             "x": 910,
@@ -5845,7 +5845,7 @@
           {
             "id": "AwaitReadback",
             "concreteStates": 4,
-            "label": "Await readback",
+            "label": "Readback gate",
             "description": "The update was acknowledged but confirmation still requires authoritative destination-ref equality.",
             "tone": "blue",
             "x": 910,
@@ -5854,7 +5854,7 @@
           {
             "id": "Unknown",
             "concreteStates": 18,
-            "label": "Outcome unknown",
+            "label": "Unknown",
             "description": "Transport ended without a trustworthy outcome; retry is forbidden until exact readback.",
             "tone": "amber",
             "x": 705,
