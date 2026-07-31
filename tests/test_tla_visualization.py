@@ -121,6 +121,20 @@ class TlaVisualizationContractTests(unittest.TestCase):
         self.assertNotIn("IssueVaultLease", base_steps)
         self.assertIn("IssueVaultLease", model["scenarios"][1]["steps"])
 
+    def test_baseline_composition_layout_has_no_node_overlap(self) -> None:
+        nodes = self.annotations["models"]["baseline_composition"]["states"].values()
+        rows: dict[int, list[int]] = {}
+        for node in nodes:
+            self.assertGreaterEqual(node["x"], 79)
+            self.assertLessEqual(node["x"], 921)
+            self.assertGreaterEqual(node["y"], 38)
+            self.assertLessEqual(node["y"], 562)
+            rows.setdefault(node["y"], []).append(node["x"])
+        self.assertEqual(sorted(len(columns) for columns in rows.values()), [5, 5, 5])
+        for columns in rows.values():
+            ordered = sorted(columns)
+            self.assertTrue(all(right - left >= 170 for left, right in zip(ordered, ordered[1:])))
+
     def test_curated_names_are_all_resolved_in_generated_operator_registry(self) -> None:
         for model_id, annotation in self.annotations["models"].items():
             generated = self.models[model_id]
